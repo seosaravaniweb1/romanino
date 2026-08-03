@@ -1223,12 +1223,23 @@ add_filter( 'woocommerce_checkout_fields', function ( array $fields ): array {
 }, 20 );
 add_action( 'wp_enqueue_scripts', 'romanino_enqueue_pages_custom_css', 20 );
 function romanino_enqueue_pages_custom_css(): void {
-    // اگر می‌خواهید فقط در همین ۷ صفحه لود شود (بهتر برای پرفورمنس)،
-    // اسلاگ‌های واقعی صفحاتتان را این‌جا بگذارید و شرط را فعال کنید:
-    //
-    // $slugs = ['about-us','sabt-sefaresh','paygiri-sefaresh','odat','hazf-asar','qavanin','tamas'];
-    // if ( ! is_page( $slugs ) ) { return; }
- 
+    /* FIX (پرفورمنس): این فایل ۱۲ کیلوبایتی روی «همه‌ی» صفحات سایت لود
+       می‌شد — از جمله صفحه اصلی و آرشیو محصولات که پربازدیدترین‌اند — چون
+       شرط محدودکننده‌اش کامنت شده بود.
+
+       بررسی شد: تمام سلکتورهای این فایل کلاس‌های .rmn-page، .rmn-card،
+       .rmn-callout و مشابه هستند که فقط داخل «محتوای» نوشته‌شده توسط مدیر
+       سایت به کار می‌روند (نه در مارک‌آپ خود تمپلیت‌ها).
+
+       بنابراین به‌جای هاردکد کردن لیست اسلاگ‌ها — که با هر برگه‌ی جدید از
+       کار می‌افتد — فایل روی هر صفحه‌ی singular لود می‌شود؛ یعنی هرجا که
+       the_content() اجرا می‌شود: برگه‌ها، نوشته‌ها و صفحه‌ی محصول. آرشیوها،
+       صفحه اصلی، سبد خرید و حساب کاربری آن را دیگر لود نمی‌کنند.
+       نتیجه: هیچ تغییری در ظاهر هیچ صفحه‌ای رخ نمی‌دهد. */
+    if ( ! is_singular() ) {
+        return;
+    }
+
     wp_enqueue_style(
         'romanino-pages-custom',
         get_template_directory_uri() . '/assets/css/pages-custom.css',

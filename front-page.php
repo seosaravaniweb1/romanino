@@ -282,27 +282,6 @@
             <?php endforeach; ?>
         </div>
 
-        <script>
-            // اسکریپت فوق‌سبک برای تغییر تب‌ها
-            function switchGenreTab(activeIndex) {
-                document.querySelectorAll('.genre-tab-btn').forEach((btn, idx) => {
-                    if (idx === activeIndex) {
-                        btn.className = "genre-tab-btn rounded-full px-5 py-2 text-sm font-bold transition-all duration-100 bg-[#eab308] text-[#0f0726] glow-gold";
-                    } else {
-                        btn.className = "genre-tab-btn rounded-full px-5 py-2 text-sm font-bold transition-all duration-100 glass text-slate-400 hover:text-white";
-                    }
-                });
-                document.querySelectorAll('.genre-tab-panel').forEach((panel, idx) => {
-                    if (idx === activeIndex) {
-                        panel.classList.remove('hidden');
-                        setTimeout(() => panel.classList.add('opacity-100'), 10);
-                    } else {
-                        panel.classList.add('hidden');
-                        panel.classList.remove('opacity-100');
-                    }
-                });
-            }
-        </script>
     </section>
 
     <!-- ── SECTION 6: TOP AUTHORS ── -->
@@ -376,20 +355,6 @@
             <?php endforeach; ?>
         </div>
 
-        <script>
-            // اسکریپت آکاردئون سوالات متداول
-            function toggleFaq(ansId, iconId) {
-                const ans = document.getElementById(ansId);
-                const icon = document.getElementById(iconId);
-                if (ans.style.maxHeight && ans.style.maxHeight !== '0px') {
-                    ans.style.maxHeight = '0px';
-                    icon.style.transform = 'rotate(0deg)';
-                } else {
-                    ans.style.maxHeight = ans.scrollHeight + "px";
-                    icon.style.transform = 'rotate(180deg)';
-                }
-            }
-        </script>
     </section>
 
     <!-- ── SECTION 8: SEO DESCRIPTION ── -->

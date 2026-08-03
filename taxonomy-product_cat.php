@@ -158,32 +158,6 @@ if ( is_wp_error( $tax_cats ) ) $tax_cats = [];
                 </div>
             </section>
 
-            <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const wrap = document.getElementById('seo-content-wrap');
-                const fade = document.getElementById('seo-fade-layer');
-                const btn = document.getElementById('seo-read-more-btn');
-
-                if (wrap && wrap.scrollHeight <= 90) {
-                    if (btn) btn.style.display = 'none';
-                    if (fade) fade.style.display = 'none';
-                    wrap.style.maxHeight = 'none';
-                } else if (btn && wrap) {
-                    btn.addEventListener('click', function() {
-                        const isExpanded = wrap.style.maxHeight !== '85px';
-                        if (!isExpanded) {
-                            wrap.style.maxHeight = wrap.scrollHeight + 'px';
-                            fade.style.opacity = '0';
-                            btn.innerHTML = 'بستن <svg class="w-4 h-4 rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>';
-                        } else {
-                            wrap.style.maxHeight = '85px';
-                            fade.style.opacity = '1';
-                            btn.innerHTML = 'مشاهده بیشتر <svg class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>';
-                        }
-                    });
-                }
-            });
-            </script>
             <?php endif; ?>
 
             <?php if ( $show_subcats && ! empty( $subcats ) ) : ?>

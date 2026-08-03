@@ -415,6 +415,141 @@
     scrollBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
   }
 
+  /* ── ۶ب. هدر: تب‌های تکسونومی، زنگوله‌ی نوتیفیکیشن، سوییچ تم ─────────────
+     FIX: این سه بلوک قبلاً به‌صورت <script> inline در انتهای header.php بودند
+     (۵۶ خط) و در «هر» صفحه‌ی سایت دوباره دانلود می‌شدند بدون اینکه مرورگر
+     بتواند کششان کند. رفتار دقیقاً همان قبل است. */
+
+  // جابه‌جایی بین ۳ تب «دسته‌بندی / برچسب / نویسنده» در مگامنو و منوی موبایل
+  window.romaninoTaxTab = function (prefix, key) {
+    document.querySelectorAll('.romanino-tax-tabbtn-' + prefix).forEach(btn => {
+      const active = btn.id === prefix + '-tabbtn-' + key;
+      btn.className = 'romanino-tax-tabbtn-' + prefix +
+        ' rounded-full px-3 py-1.5 text-xs font-bold transition-all duration-150 ' +
+        (active ? 'bg-[#eab308] text-[#0f0726]' : 'bg-white/5 text-slate-400 hover:text-white');
+    });
+    document.querySelectorAll('.romanino-tax-tabpanel-' + prefix).forEach(panel => {
+      panel.classList.toggle('hidden', panel.id !== prefix + '-tabpanel-' + key);
+    });
+  };
+
+  // باز/بسته‌شدن پنل زنگوله‌ی نوتیفیکیشن هدر
+  const notifBtn   = document.getElementById('romanino-notif-btn');
+  const notifPanel = document.getElementById('romanino-notif-panel');
+  if (notifBtn && notifPanel) {
+    notifBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      const isHidden = notifPanel.classList.contains('hidden');
+      notifPanel.classList.toggle('hidden', !isHidden);
+      notifBtn.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+    });
+    document.addEventListener('click', e => {
+      if (!notifPanel.classList.contains('hidden') && !notifPanel.contains(e.target) && e.target !== notifBtn) {
+        notifPanel.classList.add('hidden');
+        notifBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  // سوییچ روشن/تاریک — کلاس «light» روی <html>، ذخیره در localStorage
+  // (اسکریپت کوچک ابتدای <head> همین مقدار را قبل از رندر می‌خواند تا فلش نشود)
+  const themeToggle = document.getElementById('romanino-theme-toggle');
+  if (themeToggle) {
+    const iconMoon = document.getElementById('romanino-theme-icon-moon');
+    const iconSun  = document.getElementById('romanino-theme-icon-sun');
+
+    const syncThemeIcon = () => {
+      const isLight = document.documentElement.classList.contains('light');
+      themeToggle.setAttribute('aria-pressed', isLight ? 'true' : 'false');
+      iconMoon?.classList.toggle('hidden', isLight);
+      iconSun?.classList.toggle('hidden', !isLight);
+    };
+    syncThemeIcon();
+
+    themeToggle.addEventListener('click', () => {
+      const isLight = document.documentElement.classList.toggle('light');
+      try { localStorage.setItem('romaninoTheme', isLight ? 'light' : 'dark'); } catch (e) {}
+      syncThemeIcon();
+    });
+  }
+
+  /* ── ۶ج. صفحه اصلی: تب‌های ژانر و آکاردئون سوالات متداول ────────────────
+     FIX: قبلاً دو <script> inline جدا در index.php بودند. */
+  window.switchGenreTab = function (activeIndex) {
+    const base = 'genre-tab-btn rounded-full px-5 py-2 text-sm font-bold transition-all duration-100 ';
+    document.querySelectorAll('.genre-tab-btn').forEach((btn, idx) => {
+      btn.className = base + (idx === activeIndex
+        ? 'bg-[#eab308] text-[#0f0726] glow-gold'
+        : 'glass text-slate-400 hover:text-white');
+    });
+    document.querySelectorAll('.genre-tab-panel').forEach((panel, idx) => {
+      if (idx === activeIndex) {
+        panel.classList.remove('hidden');
+        setTimeout(() => panel.classList.add('opacity-100'), 10);
+      } else {
+        panel.classList.add('hidden');
+        panel.classList.remove('opacity-100');
+      }
+    });
+  };
+
+  window.toggleFaq = function (ansId, iconId) {
+    const ans  = document.getElementById(ansId);
+    const icon = document.getElementById(iconId);
+    if (!ans) return;
+    const isOpen = ans.style.maxHeight && ans.style.maxHeight !== '0px';
+    ans.style.maxHeight = isOpen ? '0px' : ans.scrollHeight + 'px';
+    if (icon) icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+  };
+
+  /* ── ۶د. آرشیو: باکس «مشاهده بیشتر» توضیحات سئو ─────────────────────────
+     FIX: قبلاً <script> inline در archive-product.php بود. */
+  const seoWrap = document.getElementById('seo-content-wrap');
+  const seoBtn  = document.getElementById('seo-read-more-btn');
+  const seoFade = document.getElementById('seo-fade-layer');
+  if (seoWrap) {
+    const CHEVRON_DOWN = '<svg class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>';
+    const CHEVRON_UP   = '<svg class="w-4 h-4 rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>';
+
+    if (seoWrap.scrollHeight <= 90) {
+      if (seoBtn) seoBtn.style.display = 'none';
+      if (seoFade) seoFade.style.display = 'none';
+      seoWrap.style.maxHeight = 'none';
+    } else if (seoBtn) {
+      seoBtn.addEventListener('click', () => {
+        const collapsed = seoWrap.style.maxHeight === '85px';
+        if (collapsed) {
+          seoWrap.style.maxHeight = seoWrap.scrollHeight + 'px';
+          if (seoFade) seoFade.style.opacity = '0';
+          seoBtn.innerHTML = 'بستن ' + CHEVRON_UP;
+        } else {
+          seoWrap.style.maxHeight = '85px';
+          if (seoFade) seoFade.style.opacity = '1';
+          seoBtn.innerHTML = 'مشاهده بیشتر ' + CHEVRON_DOWN;
+        }
+      });
+    }
+  }
+
+  /* ── ۶ه. صفحه محصول: تب مشخصات / توضیحات / نظرات ────────────────────────
+     FIX: قبلاً <script> inline در template-parts/product/content-single.php بود. */
+  window.romaninoSwitchTab = function (tabId) {
+    const INACTIVE = 'flex-1 rounded-xl px-2 py-2.5 text-xs font-semibold text-slate-400 transition-all hover:text-white lg:px-4 lg:py-3 lg:text-base';
+    const ACTIVE   = 'flex-1 rounded-xl bg-[#eab308] px-2 py-2.5 text-xs font-semibold text-[#0b0514] transition-all lg:px-4 lg:py-3 lg:text-base';
+
+    ['specs', 'desc', 'reviews'].forEach(id => {
+      const btn   = document.getElementById('ptab-btn-' + id);
+      const panel = document.getElementById('ppanel-' + id);
+      if (btn) { btn.className = INACTIVE; btn.setAttribute('aria-selected', 'false'); }
+      if (panel) panel.classList.add('hidden');
+    });
+
+    const activeBtn   = document.getElementById('ptab-btn-' + tabId);
+    const activePanel = document.getElementById('ppanel-' + tabId);
+    if (activeBtn) { activeBtn.className = ACTIVE; activeBtn.setAttribute('aria-selected', 'true'); }
+    if (activePanel) activePanel.classList.remove('hidden');
+  };
+
   /* ── ۷. Lazy-load تصاویر (fallback برای مرورگرهای قدیمی) ───────────────── */
   if ('loading' in HTMLImageElement.prototype === false) {
     const imgs = document.querySelectorAll('img[loading="lazy"]');

@@ -483,27 +483,6 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 	</div>
 </main>
 
-<script>
-// کنترل‌کننده‌ی واحد تب/آکاردئون محصول — در موبایل و دسکتاپ یکسان عمل می‌کند
-function romaninoSwitchTab(tabId) {
-	['specs', 'desc', 'reviews'].forEach(function (id) {
-		var btn   = document.getElementById('ptab-btn-' + id);
-		var panel = document.getElementById('ppanel-' + id);
-		if (btn) {
-			btn.className = 'flex-1 rounded-xl px-2 py-2.5 text-xs font-semibold text-slate-400 transition-all hover:text-white lg:px-4 lg:py-3 lg:text-base';
-			btn.setAttribute('aria-selected', 'false');
-		}
-		if (panel) panel.classList.add('hidden');
-	});
-	var activeBtn   = document.getElementById('ptab-btn-' + tabId);
-	var activePanel = document.getElementById('ppanel-' + tabId);
-	if (activeBtn) {
-		activeBtn.className = 'flex-1 rounded-xl bg-[#eab308] px-2 py-2.5 text-xs font-semibold text-[#0b0514] transition-all lg:px-4 lg:py-3 lg:text-base';
-		activeBtn.setAttribute('aria-selected', 'true');
-	}
-	if (activePanel) activePanel.classList.remove('hidden');
-}
-</script>
 
 <?php
 /**
