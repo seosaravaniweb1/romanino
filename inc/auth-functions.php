@@ -15,9 +15,12 @@
 defined( 'ABSPATH' ) || exit;
 
 /* ─── ثوابت ─────────────────────────────────────────────────────────────── */
-define( 'ROMANINO_OTP_EXPIRE',    5 * MINUTE_IN_SECONDS );  // ۵ دقیقه
-define( 'ROMANINO_OTP_MAX_TRY',   5 );  // حداکثر ۵ بار تلاش ناموفق
-define( 'ROMANINO_RATE_WINDOW',   15 * MINUTE_IN_SECONDS ); // پنجره rate-limit
+// FIX: با defined() محافظت می‌شوند تا اگر افزونه‌ای همین نام‌ها را زودتر
+// تعریف کرده باشد، به‌جای «Constant already defined» فقط مقدار قبلی بماند —
+// و تا بشود این مقادیر را از wp-config.php هم override کرد.
+defined( 'ROMANINO_OTP_EXPIRE' )  || define( 'ROMANINO_OTP_EXPIRE',  5 * MINUTE_IN_SECONDS );  // ۵ دقیقه
+defined( 'ROMANINO_OTP_MAX_TRY' ) || define( 'ROMANINO_OTP_MAX_TRY', 5 );                      // حداکثر ۵ تلاش ناموفق
+defined( 'ROMANINO_RATE_WINDOW' ) || define( 'ROMANINO_RATE_WINDOW', 15 * MINUTE_IN_SECONDS ); // پنجره rate-limit
 
 /* ─── توابع کمکی ────────────────────────────────────────────────────────── */
 
@@ -71,24 +74,13 @@ function romanino_find_user_by_identifier( string $identifier ): WP_User|false {
     return $by_login ?: false;
 }
 
-/**
- * بررسی rate-limit برای یک عملیات مشخص
- * @return bool اگر true باشد = بلاک شده
- */
-function romanino_is_rate_limited( string $action, string $identifier ): bool {
-    $key     = 'romanino_rl_' . $action . '_' . md5( $identifier );
-    $current = (int) get_transient( $key );
-    if ( $current >= ROMANINO_OTP_MAX_TRY ) {
-        return true;
-    }
-    set_transient( $key, $current + 1, ROMANINO_RATE_WINDOW );
-    return false;
-}
-
-/** پاک کردن rate-limit پس از موفقیت */
-function romanino_clear_rate_limit( string $action, string $identifier ): void {
-    delete_transient( 'romanino_rl_' . $action . '_' . md5( $identifier ) );
-}
+/* FIX: توابع romanino_is_rate_limited() و romanino_clear_rate_limit() از
+   اینجا حذف شدند. آن‌ها آستانه‌ی ثابت (۵ بار/۱۵ دقیقه) داشتند و باعث شده
+   بودند قالب دو پیاده‌سازی موازی rate-limit داشته باشد. حالا همه‌ی مسیرها
+   (احراز هویت، سبد خرید، جست‌وجو) از یک پیاده‌سازی واحد و پارامتری در
+   inc/misc-functions.php استفاده می‌کنند:
+       romanino_check_rate_limit( $action, $identifier, $max, $window )
+       romanino_clear_rate_limit_v2( $action, $identifier ) */
 
 /**
  * ارسال پیامک واقعی — جایگزین با API خودتان
@@ -133,15 +125,21 @@ add_action( 'wp_ajax_nopriv_romanino_check_phone', 'romanino_ajax_check_phone' )
 function romanino_ajax_check_phone(): void {
     check_ajax_referer( 'romanino_auth_nonce', 'nonce' );
 
-    $ip    = sanitize_text_field( $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0' );
-    $phone = romanino_normalize_phone( $_POST['phone'] ?? '' );
+    $ip    = romanino_get_client_ip();
+    $phone = romanino_normalize_phone( wp_unslash( $_POST['phone'] ?? '' ) );
 
     if ( ! $phone ) {
         wp_send_json_error( [ 'message' => 'شماره موبایل معتبر نیست.' ], 400 );
     }
 
-    // Rate-limit بر اساس IP
-    if ( romanino_is_rate_limited( 'check_phone', $ip ) ) {
+    /* FIX (بحرانی): دو لایه‌ی مستقل rate-limit.
+       لایه‌ی «شماره» اصلی است و با چرخش IP قابل دور زدن نیست — بدون آن،
+       مهاجم می‌توانست با یک لیست پروکسی، به هر شماره‌ای پیامک بمباران کند
+       (هزینه‌ی مستقیم روی پنل پیامکی شما). */
+    if ( romanino_check_rate_limit( 'check_phone_p', $phone, 5, 15 * MINUTE_IN_SECONDS ) ) {
+        wp_send_json_error( [ 'message' => 'برای این شماره درخواست‌های زیادی ثبت شده. لطفاً ۱۵ دقیقه صبر کنید.' ], 429 );
+    }
+    if ( romanino_check_rate_limit( 'check_phone_ip', $ip, 20, 15 * MINUTE_IN_SECONDS ) ) {
         wp_send_json_error( [ 'message' => 'درخواست‌های زیادی ارسال شده. لطفاً چند دقیقه صبر کنید.' ], 429 );
     }
 
@@ -170,16 +168,21 @@ add_action( 'wp_ajax_nopriv_romanino_send_otp', 'romanino_ajax_send_otp' );
 function romanino_ajax_send_otp(): void {
     check_ajax_referer( 'romanino_auth_nonce', 'nonce' );
 
-    $ip    = sanitize_text_field( $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0' );
-    $phone = romanino_normalize_phone( $_POST['phone'] ?? '' );
+    $ip    = romanino_get_client_ip();
+    $phone = romanino_normalize_phone( wp_unslash( $_POST['phone'] ?? '' ) );
 
     if ( ! $phone ) {
         wp_send_json_error( [ 'message' => 'شماره موبایل معتبر نیست.' ], 400 );
     }
 
-    // Rate-limit: حداکثر ۵ بار در ۱۵ دقیقه
-    if ( romanino_is_rate_limited( 'send_otp', $ip . $phone ) ) {
+    /* FIX (بحرانی): کلید قبلی «$ip . $phone» بود؛ یعنی مهاجم با تعویض IP
+       سقف را ریست می‌کرد و می‌توانست پیامک بی‌نهایت به یک شماره بفرستد.
+       حالا سقف اصلی روی خود شماره است. */
+    if ( romanino_check_rate_limit( 'send_otp_p', $phone, 5, 15 * MINUTE_IN_SECONDS ) ) {
         wp_send_json_error( [ 'message' => 'تعداد درخواست‌ها از حد مجاز گذشته. لطفاً ۱۵ دقیقه صبر کنید.' ], 429 );
+    }
+    if ( romanino_check_rate_limit( 'send_otp_ip', $ip, 20, 15 * MINUTE_IN_SECONDS ) ) {
+        wp_send_json_error( [ 'message' => 'درخواست‌های زیادی از این شبکه ارسال شده. کمی بعد تلاش کنید.' ], 429 );
     }
 
     $code = romanino_generate_otp( $phone );
@@ -198,18 +201,27 @@ add_action( 'wp_ajax_nopriv_romanino_verify_otp', 'romanino_ajax_verify_otp' );
 function romanino_ajax_verify_otp(): void {
     check_ajax_referer( 'romanino_auth_nonce', 'nonce' );
 
-    $ip    = sanitize_text_field( $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0' );
-    $phone = romanino_normalize_phone( $_POST['phone'] ?? '' );
-    $code  = preg_replace( '/[^0-9]/', '', sanitize_text_field( $_POST['code'] ?? '' ) );
+    $ip    = romanino_get_client_ip();
+    $phone = romanino_normalize_phone( wp_unslash( $_POST['phone'] ?? '' ) );
+    $code  = preg_replace( '/[^0-9]/', '', sanitize_text_field( wp_unslash( $_POST['code'] ?? '' ) ) );
 
     if ( ! $phone || strlen( $code ) !== 5 ) {
         wp_send_json_error( [ 'message' => 'اطلاعات ناقص یا نامعتبر است.' ], 400 );
     }
 
-    // Rate-limit تلاش‌های ناموفق OTP
-    if ( romanino_is_rate_limited( 'verify_otp', $ip . $phone ) ) {
+    /* FIX (بحرانی — بروت‌فورس OTP): کلید قبلی «$ip . $phone» بود. فضای یک کد
+       ۵ رقمی فقط ۹۰٬۰۰۰ حالت است؛ با چرخش IP، مهاجم به ازای هر IP جدید ۵
+       تلاش تازه می‌گرفت و با چند صد پروکسی حمله کاملاً عملی می‌شد.
+       لایه‌ی اول حالا فقط به «شماره» بسته است — هرچقدر هم IP عوض شود، سقف
+       تلاش برای یک شماره ثابت می‌ماند و بعد از عبور از آن، خودِ OTP باطل
+       می‌شود تا مهاجم مجبور به درخواست کد جدید (با سقف مستقل خودش) شود. */
+    if ( romanino_check_rate_limit( 'verify_otp_p', $phone, ROMANINO_OTP_MAX_TRY, ROMANINO_RATE_WINDOW ) ) {
         delete_transient( 'romanino_otp_' . $phone ); // باطل کردن OTP
-        wp_send_json_error( [ 'message' => 'حساب موقتاً قفل شد. لطفاً بعداً درخواست جدید بدهید.' ], 429 );
+        wp_send_json_error( [ 'message' => 'تعداد تلاش‌های ناموفق زیاد بود. لطفاً کد جدید درخواست کنید.' ], 429 );
+    }
+    // لایه‌ی دوم: جلوگیری از اسکن یک IP روی شماره‌های مختلف
+    if ( romanino_check_rate_limit( 'verify_otp_ip', $ip, 30, ROMANINO_RATE_WINDOW ) ) {
+        wp_send_json_error( [ 'message' => 'درخواست‌های زیادی از این شبکه ارسال شده. کمی بعد تلاش کنید.' ], 429 );
     }
 
     $stored_hash = get_transient( 'romanino_otp_' . $phone );
@@ -219,10 +231,11 @@ function romanino_ajax_verify_otp(): void {
         wp_send_json_error( [ 'message' => 'کد وارد‌شده صحیح نیست یا منقضی شده.' ] );
     }
 
-    // موفقیت: پاک‌سازی OTP و rate-limit
+    // موفقیت: پاک‌سازی OTP و شمارنده‌های rate-limit
     delete_transient( 'romanino_otp_' . $phone );
-    romanino_clear_rate_limit( 'verify_otp', $ip . $phone );
-    romanino_clear_rate_limit( 'send_otp', $ip . $phone );
+    romanino_clear_rate_limit_v2( 'verify_otp_p', $phone );
+    romanino_clear_rate_limit_v2( 'send_otp_p', $phone );
+    romanino_clear_rate_limit_v2( 'check_phone_p', $phone );
 
     // پیدا کردن یا ساختن کاربر
     $user = romanino_find_user_by_phone( $phone );
@@ -273,21 +286,25 @@ add_action( 'wp_ajax_nopriv_romanino_login_password', 'romanino_ajax_login_passw
 function romanino_ajax_login_password(): void {
     check_ajax_referer( 'romanino_auth_nonce', 'nonce' );
 
-    $ip = sanitize_text_field( $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0' );
+    $ip = romanino_get_client_ip();
 
     // FIX: فرم «ورود بدون احراز پیامکی» فیلد identifier (نام‌کاربری/ایمیل/موبایل)
     // می‌فرستد، در حالی که فرم «رمز عبور بعد از OTP» فیلد phone می‌فرستد.
     // هر دو حالت اینجا پشتیبانی می‌شود.
-    $identifier = sanitize_text_field( $_POST['identifier'] ?? $_POST['phone'] ?? '' );
-    $password   = $_POST['password'] ?? ''; // نباید sanitize شود (رمز ممکن است کاراکتر خاص داشته باشد)
+    $identifier = sanitize_text_field( wp_unslash( $_POST['identifier'] ?? $_POST['phone'] ?? '' ) );
+    $password   = (string) ( $_POST['password'] ?? '' ); // نباید sanitize شود (رمز ممکن است کاراکتر خاص داشته باشد)
 
     if ( ! $identifier || ! $password ) {
         wp_send_json_error( [ 'message' => 'مشخصات ورود و رمز عبور الزامی هستند.' ], 400 );
     }
 
-    // Rate-limit: جلوگیری از brute-force رمز عبور
-    if ( romanino_is_rate_limited( 'login_pass', $ip . $identifier ) ) {
-        wp_send_json_error( [ 'message' => 'به دلیل تلاش‌های مکرر ناموفق، حساب موقتاً قفل شد.' ], 429 );
+    /* FIX (بحرانی — بروت‌فورس رمز عبور): کلید قبلی «$ip . $identifier» بود و
+       با چرخش IP ریست می‌شد. سقف اصلی حالا روی خود حساب کاربری است. */
+    if ( romanino_check_rate_limit( 'login_pass_u', $identifier, ROMANINO_OTP_MAX_TRY, ROMANINO_RATE_WINDOW ) ) {
+        wp_send_json_error( [ 'message' => 'به دلیل تلاش‌های مکرر ناموفق، ورود به این حساب موقتاً قفل شد.' ], 429 );
+    }
+    if ( romanino_check_rate_limit( 'login_pass_ip', $ip, 30, ROMANINO_RATE_WINDOW ) ) {
+        wp_send_json_error( [ 'message' => 'تلاش‌های ورود زیادی از این شبکه انجام شده. کمی بعد تلاش کنید.' ], 429 );
     }
 
     $user = romanino_find_user_by_identifier( $identifier );
@@ -303,7 +320,7 @@ function romanino_ajax_login_password(): void {
         wp_send_json_error( [ 'message' => 'حساب کاربری شما غیرفعال است.' ] );
     }
 
-    romanino_clear_rate_limit( 'login_pass', $ip . $identifier );
+    romanino_clear_rate_limit_v2( 'login_pass_u', $identifier );
     wp_set_current_user( $user->ID );
     wp_set_auth_cookie( $user->ID, true );
     do_action( 'wp_login', $user->user_login, $user );
@@ -327,13 +344,13 @@ add_action( 'wp_ajax_nopriv_romanino_register_manual', 'romanino_ajax_register_m
 function romanino_ajax_register_manual(): void {
     check_ajax_referer( 'romanino_auth_nonce', 'nonce' );
 
-    $ip          = sanitize_text_field( $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0' );
-    $username    = sanitize_user( $_POST['username'] ?? '', true );
-    $first       = sanitize_text_field( $_POST['first_name'] ?? '' );
-    $last        = sanitize_text_field( $_POST['last_name'] ?? '' );
-    $email_raw   = sanitize_email( $_POST['email'] ?? '' );
-    $phone_raw   = sanitize_text_field( $_POST['phone'] ?? '' );
-    $password    = $_POST['password'] ?? '';
+    $ip          = romanino_get_client_ip();
+    $username    = sanitize_user( wp_unslash( $_POST['username'] ?? '' ), true );
+    $first       = sanitize_text_field( wp_unslash( $_POST['first_name'] ?? '' ) );
+    $last        = sanitize_text_field( wp_unslash( $_POST['last_name'] ?? '' ) );
+    $email_raw   = sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
+    $phone_raw   = sanitize_text_field( wp_unslash( $_POST['phone'] ?? '' ) );
+    $password    = (string) ( $_POST['password'] ?? '' );
 
     // FIX: طبق سیاست جدید، فقط نام/نام‌خانوادگی/موبایل الزامی‌اند؛ ایمیل اختیاری است.
     if ( ! $username || ! $first || ! $phone_raw || ! $password ) {
@@ -342,7 +359,7 @@ function romanino_ajax_register_manual(): void {
     if ( strlen( $password ) < 6 ) {
         wp_send_json_error( [ 'message' => 'رمز عبور باید حداقل ۶ کاراکتر باشد.' ], 400 );
     }
-    if ( romanino_is_rate_limited( 'register_manual', $ip ) ) {
+    if ( romanino_check_rate_limit( 'register_manual', $ip, 5, ROMANINO_RATE_WINDOW ) ) {
         wp_send_json_error( [ 'message' => 'تعداد درخواست‌ها از حد مجاز گذشته. کمی بعد دوباره تلاش کنید.' ], 429 );
     }
     if ( username_exists( $username ) ) {
@@ -409,8 +426,8 @@ function romanino_ajax_save_name(): void {
         wp_send_json_error( [ 'message' => 'ابتدا باید وارد حساب کاربری شوید.' ], 401 );
     }
 
-    $first = sanitize_text_field( $_POST['first_name'] ?? '' );
-    $last  = sanitize_text_field( $_POST['last_name'] ?? '' );
+    $first = sanitize_text_field( wp_unslash( $_POST['first_name'] ?? '' ) );
+    $last  = sanitize_text_field( wp_unslash( $_POST['last_name'] ?? '' ) );
 
     if ( ! $first || ! $last ) {
         wp_send_json_error( [ 'message' => 'نام و نام‌خانوادگی الزامی است.' ], 400 );

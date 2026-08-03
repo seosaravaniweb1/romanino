@@ -11,9 +11,49 @@ if ( ! defined( 'ABSPATH' ) ) exit;
    کد قبلی auth-functions.php دست‌نخورده می‌ماند.
    ========================================================================== */
 
-/** گرفتن IP واقعی کاربر (بدون اعتماد کور به هدرهای قابل‌جعل پروکسی) */
+/**
+ * گرفتن IP واقعی کاربر.
+ *
+ * FIX (بحرانی): نسخه‌ی قبلی فقط REMOTE_ADDR را می‌خواند. اگر سایت پشت یک CDN
+ * باشد (کلودفلر، ابرآروان و…) — که برای یک سایت ایرانی تقریباً همیشه هست —
+ * REMOTE_ADDR برای «همه‌ی بازدیدکنندگان» یکسان و برابر IP خودِ CDN است.
+ * نتیجه‌ی این اشتباه دو چیز بود:
+ *   ۱) rate-limit جست‌وجو (۶۰ بار در ۲ دقیقه) و سبد خرید (۴۰ بار در ۵ دقیقه)
+ *      عملاً به یک self-DoS تبدیل می‌شد: کل کاربران سایت با هم بلاک می‌شدند.
+ *   ۲) rate-limit امنیتی OTP بی‌معنی می‌شد، چون همه یک «هویت» داشتند.
+ *
+ * هدرهای پروکسی قابل جعل هستند، پس فقط وقتی خوانده می‌شوند که مدیر سایت
+ * صراحتاً اعلام کرده باشد پشت کدام CDN است. در wp-config.php:
+ *
+ *     define( 'ROMANINO_TRUSTED_PROXY', 'cloudflare' );  // یا 'arvan'
+ *
+ * اگر این ثابت تعریف نشود، رفتار امن قبلی (فقط REMOTE_ADDR) حفظ می‌شود.
+ */
 function romanino_get_client_ip(): string {
-    return sanitize_text_field( $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0' );
+    static $ip = null;
+    if ( null !== $ip ) {
+        return $ip;
+    }
+
+    if ( defined( 'ROMANINO_TRUSTED_PROXY' ) ) {
+        $headers = array(
+            'cloudflare' => 'HTTP_CF_CONNECTING_IP',
+            'arvan'      => 'HTTP_AR_REAL_IP',
+            'generic'    => 'HTTP_X_REAL_IP',
+        );
+        $header = $headers[ strtolower( (string) ROMANINO_TRUSTED_PROXY ) ] ?? '';
+        if ( $header && ! empty( $_SERVER[ $header ] ) ) {
+            $candidate = filter_var( wp_unslash( $_SERVER[ $header ] ), FILTER_VALIDATE_IP );
+            if ( $candidate ) {
+                $ip = $candidate;
+                return $ip;
+            }
+        }
+    }
+
+    $candidate = filter_var( wp_unslash( $_SERVER['REMOTE_ADDR'] ?? '' ), FILTER_VALIDATE_IP );
+    $ip        = $candidate ?: '0.0.0.0';
+    return $ip;
 }
 
 /**
@@ -28,6 +68,15 @@ function romanino_check_rate_limit( string $action, string $identifier, int $max
     }
     set_transient( $key, $current + 1, $window_seconds );
     return false;
+}
+
+/**
+ * پاک‌کردن شمارنده‌ی rate-limit پس از یک عملیات موفق (نسخه‌ی v2).
+ * معادل romanino_clear_rate_limit() است ولی روی کلیدهای romanino_rl2_ کار
+ * می‌کند — یعنی همان کلیدهایی که romanino_check_rate_limit() می‌سازد.
+ */
+function romanino_clear_rate_limit_v2( string $action, string $identifier ): void {
+    delete_transient( 'romanino_rl2_' . $action . '_' . md5( $identifier ) );
 }
 
 /**
