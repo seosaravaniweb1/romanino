@@ -7,6 +7,26 @@
 (function () {
   'use strict';
 
+  /* ── ۰. Nonce ــ گرفته‌شده در لحظه، نه از HTML کش‌شده ───────────────────
+     FIX: قبلاً nonce با wp_localize_script داخل خود صفحه چاپ می‌شد. روی سایتی
+     که WP Rocket/LiteSpeed کش کامل صفحه دارد، آن nonce بعد از ۱۲ تا ۲۴ ساعت
+     منقضی می‌شد ولی در HTML کش‌شده باقی می‌ماند — و همه‌ی درخواست‌های AJAX
+     بی‌صدا با -1 رد می‌شدند. حالا یک بار در هر بارگذاری صفحه و فقط هنگام
+     نیاز واقعی، از یک endpoint no-cache گرفته می‌شود.
+     window.romaninoNonce برای mini-cart.js هم قابل استفاده است. */
+  let noncePromise = null;
+
+  window.romaninoNonce = function (type) {
+    const cfg = window.romanino || window.romaninoCart || {};
+    if (!cfg.nonceUrl) return Promise.resolve('');
+    if (!noncePromise) {
+      noncePromise = fetch(cfg.nonceUrl, { credentials: 'same-origin' })
+        .then(res => res.json())
+        .catch(() => ({}));
+    }
+    return noncePromise.then(data => (data && data[type]) || '');
+  };
+
   /* ── ۱. منوی موبایل ─────────────────────────────────────────────────────── */
   const mobileBtn  = document.getElementById('mobile-menu-btn');
   const mobileMenu = document.getElementById('mobile-menu');
@@ -123,7 +143,7 @@
       try {
         const fd = new FormData();
         fd.append('action', 'romanino_check_phone');
-        fd.append('nonce', authAjax.authNonce || '');
+        fd.append('nonce', await window.romaninoNonce('auth'));
         fd.append('phone', phone);
 
         const res  = await fetch(authAjax.ajaxUrl, { method: 'POST', body: fd });
@@ -161,7 +181,7 @@
       try {
         const fd = new FormData();
         fd.append('action', 'romanino_login_password');
-        fd.append('nonce', authAjax.authNonce || '');
+        fd.append('nonce', await window.romaninoNonce('auth'));
         fd.append('phone', currentPhone);
         fd.append('password', password);
 
@@ -193,7 +213,7 @@
       try {
         const fd = new FormData();
         fd.append('action', 'romanino_verify_otp');
-        fd.append('nonce', authAjax.authNonce || '');
+        fd.append('nonce', await window.romaninoNonce('auth'));
         fd.append('phone', currentPhone);
         fd.append('code', code);
 
@@ -227,7 +247,7 @@
       btnResend.disabled = true;
       const fd = new FormData();
       fd.append('action', 'romanino_send_otp');
-      fd.append('nonce', authAjax.authNonce || '');
+      fd.append('nonce', await window.romaninoNonce('auth'));
       fd.append('phone', currentPhone);
       await fetch(authAjax.ajaxUrl, { method: 'POST', body: fd });
       startOtpCountdown(60);
@@ -238,7 +258,7 @@
   document.getElementById('btn-use-otp-instead')?.addEventListener('click', async () => {
     const fd = new FormData();
     fd.append('action', 'romanino_send_otp');
-    fd.append('nonce', authAjax.authNonce || '');
+    fd.append('nonce', await window.romaninoNonce('auth'));
     fd.append('phone', currentPhone);
     await fetch(authAjax.ajaxUrl, { method: 'POST', body: fd });
     document.getElementById('otp-phone-display').textContent = currentPhone;
@@ -259,7 +279,7 @@
       try {
         const fd = new FormData();
         fd.append('action', 'romanino_save_name');
-        fd.append('nonce', authAjax.authNonce || '');
+        fd.append('nonce', await window.romaninoNonce('auth'));
         fd.append('first_name', firstName);
         fd.append('last_name', lastName);
 
@@ -293,7 +313,7 @@
       try {
         const fd = new FormData();
         fd.append('action', 'romanino_login_password');
-        fd.append('nonce', authAjax.authNonce || '');
+        fd.append('nonce', await window.romaninoNonce('auth'));
         fd.append('identifier', identifier);
         fd.append('password', password);
 
@@ -335,7 +355,7 @@
       try {
         const fd = new FormData();
         fd.append('action', 'romanino_register_manual');
-        fd.append('nonce', authAjax.authNonce || '');
+        fd.append('nonce', await window.romaninoNonce('auth'));
         fd.append('username', username);
         fd.append('first_name', firstName);
         fd.append('last_name', lastName);

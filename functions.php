@@ -90,13 +90,42 @@ function romanino_enqueue_assets(): void {
         [ 'strategy' => 'defer', 'in_footer' => true ]
     );
 
-    // Localize متمرکز برای تمام AJAX‌ها
+    /* FIX (بحرانی با کش صفحه): nonceها دیگر داخل خودِ HTML چاپ نمی‌شوند.
+       این قالب صراحتاً با WP Rocket و LiteSpeed یکپارچه شده (بخش ۱۱ب همین
+       فایل)، و nonce وردپرس عمر ۱۲ تا ۲۴ ساعت دارد. صفحه‌ی کش‌شده معمولاً
+       بیشتر از این عمر می‌کند؛ نتیجه این بود که بعد از حدود یک روز، همه‌ی
+       بازدیدکنندگانِ آن صفحه‌ی کش‌شده یک nonce منقضی می‌گرفتند و
+       check_ajax_referer با -1 ردشان می‌کرد — یعنی «افزودن به سبد» و «ورود»
+       بی‌صدا از کار می‌افتاد، بدون هیچ ردی در لاگ سرور.
+       حالا nonce در لحظه و از یک endpoint سبک و no-cache گرفته می‌شود. */
     wp_localize_script( 'romanino-main', 'romanino', [
-        'ajaxUrl'   => esc_url( admin_url( 'admin-ajax.php' ) ),
-        'authNonce' => wp_create_nonce( 'romanino_auth_nonce' ),
-        'cartNonce' => wp_create_nonce( 'romanino_cart_nonce' ),
-        'homeUrl'   => esc_url( home_url( '/' ) ),
+        'ajaxUrl'  => esc_url( admin_url( 'admin-ajax.php' ) ),
+        'nonceUrl' => esc_url( rest_url( 'romanino/v1/nonce' ) ),
+        'homeUrl'  => esc_url( home_url( '/' ) ),
     ] );
+}
+
+/* ==========================================================================
+   ۲ب. Endpoint تولید Nonce — سازگار با کش کامل صفحه
+   ========================================================================== */
+add_action( 'rest_api_init', 'romanino_register_nonce_route' );
+function romanino_register_nonce_route(): void {
+    register_rest_route( 'romanino/v1', '/nonce', [
+        'methods'             => WP_REST_Server::READABLE,
+        'permission_callback' => '__return_true', // عمومی است؛ خودِ nonce به سشن کاربر گره خورده
+        'callback'            => 'romanino_rest_get_nonces',
+    ] );
+}
+
+function romanino_rest_get_nonces(): WP_REST_Response {
+    $response = new WP_REST_Response( [
+        'auth' => wp_create_nonce( 'romanino_auth_nonce' ),
+        'cart' => wp_create_nonce( 'romanino_cart_nonce' ),
+    ] );
+    // این پاسخ هرگز نباید توسط CDN/افزونه‌ی کش نگه‌داری شود.
+    $response->header( 'Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0' );
+    $response->header( 'Pragma', 'no-cache' );
+    return $response;
 }
 
 /* ==========================================================================

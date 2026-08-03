@@ -144,15 +144,37 @@ function romanino_force_login_before_checkout(): void {
 	exit;
 }
 
-// اطمینان از خاموش‌بودن تنظیمات «خرید مهمان» و «ثبت‌نام از چک‌اوت» ووکامرس در
-// سطح آپشن، صرف‌نظر از مقداری که در پیشخوان → ووکامرس → حساب کاربری تنظیم
-// شده — تا هیچ راه جایگزینی برای دور زدن گارد بالا باقی نماند.
+/* سیاست قطعی رمانینو: خرید مهمان وجود ندارد. کاربر باید ثبت‌نام کند —
+   یا «با احراز پیامکی» یا «بدون احراز پیامکی» (هر دو مسیر در page-login.php).
+   بنابراین این دو آپشن ووکامرس در سطح کد قفل می‌شوند تا هیچ راه جایگزینی
+   (تغییر تصادفی تنظیمات، افزونه‌ی ثالث، REST API) گارد بالا را دور نزند. */
 add_filter( 'pre_option_woocommerce_enable_guest_checkout', function () {
 	return 'no';
 } );
 add_filter( 'pre_option_woocommerce_enable_checkout_login_reminder', function () {
 	return 'yes';
 } );
+
+/* FIX (شفافیت برای مدیر سایت): فیلترهای pre_option_* مقدار را «قبل از» خواندن
+   از دیتابیس برمی‌گردانند. یعنی مدیر سایت به ووکامرس → تنظیمات → حساب کاربری
+   می‌رفت، تیک «خرید مهمان» را تغییر می‌داد، ذخیره می‌کرد — و صفحه دوباره همان
+   حالت قبل را نشان می‌داد، بدون هیچ توضیحی. این یک باگ گیج‌کننده بود.
+   حالا در همان صفحه صراحتاً گفته می‌شود که این قفل عمدی و از سمت قالب است. */
+add_action( 'admin_notices', 'romanino_notice_guest_checkout_locked' );
+function romanino_notice_guest_checkout_locked(): void {
+	if ( ! function_exists( 'get_current_screen' ) ) {
+		return;
+	}
+	$screen = get_current_screen();
+	if ( ! $screen || 'woocommerce_page_wc-settings' !== $screen->id ) {
+		return;
+	}
+	$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : '';
+	if ( 'account' !== $tab ) {
+		return;
+	}
+	echo '<div class="notice notice-info"><p><strong>قالب رمانینو:</strong> طبق سیاست فروشگاه، «خرید مهمان» و «ثبت‌نام هنگام تسویه» توسط قالب قفل شده‌اند و تغییر آن‌ها از این صفحه اثری ندارد. کاربران باید پیش از رسیدن به چک‌اوت، از صفحه‌ی ورود/ثبت‌نام (با یا بدون احراز پیامکی) وارد شوند. برای برداشتن این قفل باید فیلترهای <code>pre_option_woocommerce_enable_guest_checkout</code> در <code>inc/checkout-functions.php</code> حذف شوند.</p></div>';
+}
 
 /* ==========================================================================
    ۶. راهنمای «پرداخت ناموفق» بر اساس درگاه
