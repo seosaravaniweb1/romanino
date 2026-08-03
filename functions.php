@@ -934,20 +934,41 @@ function romanino_formatted_billing_address( string $address, array $raw_address
    ۱۲. بارگذاری ماژول‌ها
    ========================================================================== */
 
-$romanino_modules = [
-    'inc/misc-functions.php',
-    'inc/sms-functions.php',
-    'inc/auth-functions.php',
-    'inc/cart-functions.php',
-    'inc/checkout-functions.php',
-    'inc/account-functions.php',
-    'inc/seo-functions.php',
-    'inc/theme-options.php',
-];
-foreach ( $romanino_modules as $module ) {
-    $path = get_template_directory() . '/' . $module;
-    if ( file_exists( $path ) ) {
-        require_once $path;
+/* FIX (بحرانی): گارد نسخه‌ی PHP.
+   ماژول‌های زیر (مخصوصاً inc/auth-functions.php) از Union Type مثل
+   «string|false» و توابع PHP 8 استفاده می‌کنند. Union Type روی PHP 7.4 یک
+   Parse Error است، نه Runtime Error — یعنی صرفِ require کردن فایل، کل سایت
+   را با صفحه‌ی سفید و بدون هیچ پیام قابل‌فهمی از کار می‌اندازد.
+   با این گارد، به‌جای یک صفحه‌ی سفید کاملاً بی‌پیام، پیشخوان بالا می‌آید و
+   یک پیام واضح دلیل مشکل و راه‌حل را می‌گوید. توجه: در این حالت فرانت‌اند
+   همچنان کار نخواهد کرد (چون تمپلیت‌ها به توابع همین ماژول‌ها وابسته‌اند) —
+   هدف این گارد «قابل‌تشخیص کردن» خطاست، نه ادامه‌ی کار روی PHP قدیمی. */
+define( 'ROMANINO_MIN_PHP', '8.0' );
+
+if ( version_compare( PHP_VERSION, ROMANINO_MIN_PHP, '<' ) ) {
+    add_action( 'admin_notices', function () {
+        printf(
+            '<div class="notice notice-error"><p><strong>قالب رمانینو:</strong> این قالب به PHP نسخه‌ی %1$s یا بالاتر نیاز دارد، اما نسخه‌ی فعلی سرور %2$s است. تا زمان ارتقای PHP، بخش‌هایی از قالب (ورود با پیامک، سبد خرید ایجکسی، تنظیمات قالب) غیرفعال هستند. لطفاً از پشتیبانی هاست خود بخواهید نسخه‌ی PHP را ارتقا دهد.</p></div>',
+            esc_html( ROMANINO_MIN_PHP ),
+            esc_html( PHP_VERSION )
+        );
+    } );
+} else {
+    $romanino_modules = [
+        'inc/misc-functions.php',
+        'inc/sms-functions.php',
+        'inc/auth-functions.php',
+        'inc/cart-functions.php',
+        'inc/checkout-functions.php',
+        'inc/account-functions.php',
+        'inc/seo-functions.php',
+        'inc/theme-options.php',
+    ];
+    foreach ( $romanino_modules as $module ) {
+        $path = get_template_directory() . '/' . $module;
+        if ( file_exists( $path ) ) {
+            require_once $path;
+        }
     }
 }
 
