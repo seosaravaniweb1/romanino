@@ -119,8 +119,15 @@
                     <svg id="romanino-theme-icon-moon" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
                     <svg id="romanino-theme-icon-sun" class="hidden h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                 </button>
+                <?php
+                // FIX: بدون گارد function_exists، غیرفعال‌شدن (یا آپدیت) ووکامرس
+                // کل هدر و در نتیجه کل سایت را با Fatal Error می‌انداخت.
+                $romanino_account_url = function_exists( 'wc_get_page_permalink' )
+                    ? wc_get_page_permalink( 'myaccount' )
+                    : wp_login_url();
+                ?>
                 <?php if ( ! is_user_logged_in() ) : ?>
-                    <a href="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>" class="flex items-center gap-2 rounded-xl bg-[#eab308] px-3 py-2 text-sm font-bold text-[#0f0726] shadow-[0_0_20px_-4px_rgba(234,179,8,0.5)] transition-all duration-200 hover:brightness-110 hover:shadow-[0_0_28px_-4px_rgba(234,179,8,0.7)] sm:px-4">
+                    <a href="<?php echo esc_url( $romanino_account_url ); ?>" class="flex items-center gap-2 rounded-xl bg-[#eab308] px-3 py-2 text-sm font-bold text-[#0f0726] shadow-[0_0_20px_-4px_rgba(234,179,8,0.5)] transition-all duration-200 hover:brightness-110 hover:shadow-[0_0_28px_-4px_rgba(234,179,8,0.7)] sm:px-4">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
                         ورود | ثبت‌نام
                     </a>
@@ -135,7 +142,14 @@
                      (بدون هیچ ریلودی) محتوای کشو را پر می‌کند. کلاس
                      cart-count-badge هم اضافه شد تا با افزودن هر آیتم، عدد
                      روی این آیکون هم زنده (بدون رفرش) به‌روزرسانی شود. -->
-                <?php $cart_count = WC()->cart ? WC()->cart->get_cart_contents_count() : 0; ?>
+                <?php
+                // FIX: WC() فقط وقتی وجود دارد که ووکامرس فعال باشد؛ و حتی وقتی
+                // فعال است، WC()->cart در برخی ریکوئست‌ها (مثلاً REST یا cron)
+                // هنوز ساخته نشده است.
+                $cart_count = ( function_exists( 'WC' ) && WC()->cart )
+                    ? WC()->cart->get_cart_contents_count()
+                    : 0;
+                ?>
                 <button type="button" id="cart-open-btn" class="relative rounded-lg p-2 text-slate-300 transition-colors duration-150 hover:bg-white/10 hover:text-white">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                     <span class="cart-count-badge absolute -left-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#eab308] text-[11px] font-bold text-[#0f0726] shadow-[0_0_10px_-1px_rgba(234,179,8,0.6)]<?php echo $cart_count === 0 ? ' hidden' : ''; ?>">

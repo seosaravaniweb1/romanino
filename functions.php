@@ -116,25 +116,46 @@ function romanino_preload_font(): void {
 
 add_action( 'wp_enqueue_scripts', 'romanino_dequeue_unnecessary_assets', 99 );
 function romanino_dequeue_unnecessary_assets(): void {
+    // FIX (بحرانی): بدون این گارد، اگر ووکامرس غیرفعال یا در حال آپدیت باشد،
+    // is_woocommerce() تعریف‌نشده است و کل فرانت‌اند با Fatal Error می‌افتد.
+    if ( ! function_exists( 'is_woocommerce' ) ) {
+        return;
+    }
     if ( is_woocommerce() || is_cart() || is_checkout() || is_account_page() ) {
         return;
     }
 
+    /* FIX (بحرانی): قبلاً علاوه بر wp_dequeue_script، خودِ wp_deregister_script
+       هم صدا زده می‌شد. تفاوت این دو حیاتی است:
+       - dequeue یعنی «این اسکریپت را در این صفحه چاپ نکن» (هدف ما همین است).
+       - deregister یعنی «این هندل اصلاً وجود ندارد».
+       اگر افزونه‌ای اسکریپت خودش را با وابستگی array('woocommerce') یا
+       array('wc-add-to-cart') ثبت کرده باشد، وردپرس به‌خاطر گم‌شدن وابستگی،
+       اسکریپت آن افزونه را هم بی‌صدا و بدون هیچ خطایی در لاگ حذف می‌کند —
+       کلاسیک‌ترین علت «افزونه بعد از نصب قالب کار نمی‌کند». */
     $wc_scripts = [
         'wc-cart-fragments', 'woocommerce', 'wc-add-to-cart',
         'wc-add-to-cart-variation', 'wc-checkout', 'wc-password-strength-meter',
     ];
     foreach ( $wc_scripts as $handle ) {
         wp_dequeue_script( $handle );
-        wp_deregister_script( $handle );
     }
 
     $wc_styles = [
         'woocommerce-general', 'woocommerce-layout', 'woocommerce-smallscreen',
-        'wc-blocks-style', 'wp-block-library',
+        'wc-blocks-style',
     ];
     foreach ( $wc_styles as $handle ) {
         wp_dequeue_style( $handle );
+    }
+
+    // FIX: wp-block-library فقط وقتی حذف می‌شود که صفحه واقعاً هیچ بلاک
+    // گوتنبرگی نداشته باشد؛ قبلاً بی‌قیدوشرط حذف می‌شد و هر برگه‌ای که با
+    // ویرایشگر بلاک ساخته شده بود (جدول، ستون، دکمه و…) بی‌استایل می‌ماند.
+    $romanino_queried_id = get_queried_object_id();
+    if ( ! $romanino_queried_id || ! has_blocks( $romanino_queried_id ) ) {
+        wp_dequeue_style( 'wp-block-library' );
+        wp_dequeue_style( 'wp-block-library-theme' );
     }
 }
 
@@ -148,13 +169,18 @@ remove_action( 'wp_head', 'rsd_link' );
 remove_action( 'wp_head', 'wlwmanifest_link' );
 remove_action( 'wp_head', 'wp_generator' );
 
-add_filter( 'script_loader_tag', 'romanino_defer_scripts', 10, 3 );
-function romanino_defer_scripts( string $tag, string $handle, string $src ): string {
-    $defer_handles = [ 'comment-reply', 'wp-embed', 'romanino-main' ];
-    if ( in_array( $handle, $defer_handles, true ) ) {
-        return str_replace( ' src=', ' defer src=', $tag );
+/* FIX: قبلاً defer دو بار روی romanino-main اعمال می‌شد — یک‌بار با آرگومان
+   مدرن ['strategy' => 'defer'] در wp_enqueue_script و یک‌بار با این فیلتر
+   قدیمی که با str_replace رشته‌ی ' src=' را دستکاری می‌کرد. خروجی نهایی
+   <script defer defer src="..."> بود (HTML نامعتبر).
+   حالا فقط از API استاندارد وردپرس ۶.۳ به بالا استفاده می‌شود. */
+add_filter( 'wp_script_attributes', 'romanino_defer_core_scripts' );
+function romanino_defer_core_scripts( array $attributes ): array {
+    $defer_ids = [ 'comment-reply-js', 'wp-embed-js' ];
+    if ( isset( $attributes['id'] ) && in_array( $attributes['id'], $defer_ids, true ) ) {
+        $attributes['defer'] = true;
     }
-    return $tag;
+    return $attributes;
 }
 
 /* ==========================================================================
@@ -180,15 +206,28 @@ remove_action( 'wp_head', 'rel_canonical' );
 // هم کمی سربار سرور را کم می‌کند و هم یک مسیر شناخته‌شده‌ی حمله را می‌بندد.
 add_filter( 'xmlrpc_enabled', '__return_false' );
 
-// Heartbeat API فقط در صفحه‌ی ویرایش پست لازم است (قفل ویرایش هم‌زمان)؛
-// در بقیه‌ی پیشخوان و در فرانت (سبد خرید/حساب کاربری) هر ۱۵ تا ۶۰ ثانیه یک
-// درخواست admin-ajax اضافه می‌فرستد که برای این سایت لازم نیست.
-add_action( 'init', 'romanino_control_heartbeat', 1 );
-function romanino_control_heartbeat(): void {
-    if ( is_admin() && isset( $_GET['action'] ) && $_GET['action'] === 'edit' ) {
-        return; // صفحه‌ی ویرایش پست: Heartbeat را دست‌نخورده می‌گذاریم
+/* FIX (بحرانی): قبلاً روی هوک init، اسکریپت heartbeat در «کل پیشخوان» به‌جز
+   صفحه‌ی ویرایش پست، با wp_deregister_script حذف می‌شد. مشکلات این کار:
+   ۱) deregister وابستگی‌ها را می‌شکند — هر افزونه‌ای که اسکریپتش را با
+      array('heartbeat') ثبت کرده باشد، اسکریپتش بی‌صدا حذف می‌شود.
+   ۲) تشخیص انقضای نشست (wp-auth-check)، قفل ویرایش هم‌زمان و اعلان‌های
+      زنده‌ی ووکامرس همگی به heartbeat وابسته‌اند.
+   ۳) اجرای آن روی init یعنی این کد در هر ریکوئست (شامل AJAX و cron) اجرا
+      می‌شد، در حالی که ثبت اسکریپت‌ها اصلاً هنوز انجام نشده بود.
+   راه‌حل جایگزین با همان صرفه‌جویی در سربار سرور:
+   - در پیشخوان: heartbeat می‌ماند ولی فاصله‌ی درخواست‌ها کند می‌شود.
+   - در فرانت‌اند: heartbeat واقعاً لازم نیست، پس آن‌جا حذف می‌شود. */
+add_filter( 'heartbeat_settings', 'romanino_slow_down_heartbeat' );
+function romanino_slow_down_heartbeat( array $settings ): array {
+    $settings['interval'] = 120; // به‌جای پیش‌فرض ۱۵ تا ۶۰ ثانیه
+    return $settings;
+}
+
+add_action( 'wp_enqueue_scripts', 'romanino_disable_frontend_heartbeat', 1 );
+function romanino_disable_frontend_heartbeat(): void {
+    if ( ! is_admin() ) {
+        wp_deregister_script( 'heartbeat' );
     }
-    wp_deregister_script( 'heartbeat' );
 }
 
 // حذف نسخه‌ی وردپرس از فید RSS (اطلاعات نسخه برای مهاجم مفید است، برای کاربر نه)
