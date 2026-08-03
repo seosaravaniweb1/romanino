@@ -91,11 +91,23 @@ function romanino_enforce_ajax_rate_limit( string $action, string $identifier, i
     }
 }
 
-/** محاسبه تقریبی زمان مطالعه یک پست (بر اساس ۲۰۰ کلمه در دقیقه) */
-function romanino_reading_time() {
-    $content    = get_post_field( 'post_content', get_the_ID() );
-    $word_count = str_word_count( wp_strip_all_tags( $content ) );
-    return max( 1, ceil( $word_count / 200 ) );
+/**
+ * محاسبه تقریبی زمان مطالعه یک پست (بر اساس ۲۰۰ کلمه در دقیقه).
+ *
+ * FIX: نسخه‌ی قبلی از str_word_count() استفاده می‌کرد. آن تابع «کلمه» را بر
+ * مبنای حروف الفبای لاتین تشخیص می‌دهد و برای متن فارسی همیشه صفر برمی‌گرداند
+ * — یعنی زمان مطالعه‌ی هر پستی، صرف‌نظر از طولش، «۱ دقیقه» نمایش داده می‌شد.
+ * حالا با شکستن متن روی فاصله (شامل نیم‌فاصله‌ی فارسی U+200C) شمرده می‌شود.
+ */
+function romanino_reading_time(): int {
+    $content = wp_strip_all_tags( (string) get_post_field( 'post_content', get_the_ID() ) );
+    $content = trim( $content );
+    if ( '' === $content ) {
+        return 1;
+    }
+    $words      = preg_split( '/[\s\x{200C}]+/u', $content, -1, PREG_SPLIT_NO_EMPTY );
+    $word_count = is_array( $words ) ? count( $words ) : 0;
+    return max( 1, (int) ceil( $word_count / 200 ) );
 }
 
 /**

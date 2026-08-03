@@ -30,7 +30,19 @@ $image_url      = wp_get_attachment_image_url( $product->get_image_id(), 'full' 
 $rating_count   = $product->get_rating_count();
 $average_rating = $product->get_average_rating();
 $review_count   = $product->get_review_count();
-$sales_count    = get_post_meta( get_the_ID(), 'total_sales', true ) ?: '58';
+/* FIX (داده‌ی ساختگی): قبلاً اگر محصولی هنوز فروشی نداشت، عدد ثابت «۵۸» به
+   کاربر نشان داده می‌شد — یعنی برای هر رمان تازه‌منتشرشده یک آمار فروش جعلی
+   چاپ می‌شد. جدا از بحث اعتماد کاربر، نمایش آمار غیرواقعی می‌تواند مصداق
+   تبلیغ گمراه‌کننده باشد و برای فروشگاه دارای نماد اعتماد ریسک دارد.
+   حالا عدد واقعی نمایش داده می‌شود؛ برای محصول بدون فروش، به‌جای عدد، برچسب
+   «تازه» می‌آید تا اندازه و چیدمان باکس دقیقاً مثل قبل بماند. */
+$sales_count      = absint( get_post_meta( get_the_ID(), 'total_sales', true ) );
+$sales_display    = $sales_count > 0 ? number_format_i18n( $sales_count ) : 'تازه';
+/* «۹۷٪ رضایت کاربران» هم هاردکد بود. حالا از میانگین امتیاز واقعی محصول
+   محاسبه می‌شود؛ اگر هنوز امتیازی ثبت نشده، «—» نمایش داده می‌شود. */
+$satisfaction     = $rating_count > 0
+    ? number_format_i18n( (int) round( ( (float) $average_rating / 5 ) * 100 ) ) . '٪'
+    : '—';
 $author_name    = romanino_get_book_author( get_the_ID() ) ?: 'ناشناس';
 // FIX (بهینه‌سازی کوئری): این ۴ فیلد متا (translator/page_count/file_size/
 // sample_download_url) قبلاً هرکدام با یک get_post_meta() جداگانه خوانده
@@ -294,11 +306,11 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 				<!-- آمار — فقط دسکتاپ (نسخه‌ی جمع‌وجورتر موبایل پایین‌تر می‌آید) -->
 				<div class="hidden grid-cols-2 gap-4 lg:grid">
 					<div class="glass-box rounded-2xl p-4 text-center">
-						<div class="text-2xl font-extrabold text-emerald-400">۹۷٪</div>
+						<div class="text-2xl font-extrabold text-emerald-400"><?php echo esc_html( $satisfaction ); ?></div>
 						<div class="mt-1 text-xs text-slate-400">رضایت کاربران</div>
 					</div>
 					<div class="glass-box rounded-2xl p-4 text-center">
-						<div class="text-2xl font-extrabold text-[#eab308]"><?php echo esc_html( $sales_count ); ?></div>
+						<div class="text-2xl font-extrabold text-[#eab308]"><?php echo esc_html( $sales_display ); ?></div>
 						<div class="mt-1 text-xs text-slate-400">فروش موفق</div>
 					</div>
 				</div>
@@ -319,11 +331,11 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 				<!-- آمار — فقط موبایل (کنار هم، زیر تصویر) -->
 				<div class="grid grid-cols-2 gap-3 lg:hidden">
 					<div class="glass-box rounded-xl p-3 text-center">
-						<div class="text-lg font-extrabold text-emerald-400">۹۷٪</div>
+						<div class="text-lg font-extrabold text-emerald-400"><?php echo esc_html( $satisfaction ); ?></div>
 						<div class="mt-0.5 text-[11px] text-slate-400">رضایت کاربران</div>
 					</div>
 					<div class="glass-box rounded-xl p-3 text-center">
-						<div class="text-lg font-extrabold text-[#eab308]"><?php echo esc_html( $sales_count ); ?></div>
+						<div class="text-lg font-extrabold text-[#eab308]"><?php echo esc_html( $sales_display ); ?></div>
 						<div class="mt-0.5 text-[11px] text-slate-400">فروش موفق</div>
 					</div>
 				</div>

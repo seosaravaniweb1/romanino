@@ -15,6 +15,18 @@ module.exports = {
 		'!./node_modules/**',
 		'!./vendor/**',
 	],
+	/*
+	 * FIX: باکس اعتماد در template-parts/product/content-single.php نام کلاس را
+	 * با الحاق رشته می‌سازد (border-<?= $c ?>-500/30). اسکنر Tailwind فقط
+	 * رشته‌های کاملِ literal را در سورس پیدا می‌کند، پس این کلاس‌ها هرگز
+	 * مستقیماً دیده نمی‌شوند. در حال حاضر تصادفاً کار می‌کنند چون دقیقاً همین
+	 * رشته‌ها جای دیگری در همان فایل به‌صورت literal آمده‌اند — یعنی به‌محض
+	 * حذف آن استفاده‌ها، باکس اعتماد بی‌رنگ می‌شد.
+	 * safelist این وابستگی تصادفی را از بین می‌برد.
+	 */
+	safelist: [
+		{ pattern: /(border|bg|text)-(emerald|cyan|amber)-(400|500)/ },
+	],
 	darkMode: false, // تم به‌صورت ثابت تیره است (color-scheme: dark)
 	theme: {
 		extend: {

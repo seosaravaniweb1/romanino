@@ -27,7 +27,7 @@ if ( is_user_logged_in() ) {
 }
 ?>
 <!DOCTYPE html>
-<html <?php language_attributes(); ?> dir="rtl">
+<html <?php language_attributes(); ?>>
 <head>
 	<meta charset="<?php bloginfo( 'charset' ); ?>">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -49,7 +49,7 @@ if ( is_user_logged_in() ) {
 				<span class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-primary ring-1 ring-primary/40">
 					<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
 				</span>
-				<span class="text-lg font-bold tracking-tight text-foreground">رمان<span class="text-primary">سرا</span></span>
+				<span class="text-lg font-bold tracking-tight text-foreground"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></span>
 			</a>
 			<button type="button" id="btn-back" class="hidden rounded-lg p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground" aria-label="بازگشت">
 				<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>

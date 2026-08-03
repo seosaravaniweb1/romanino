@@ -212,10 +212,10 @@ function romanino_meta_description_tag(): void {
     }
 }
 
-add_filter( 'woocommerce_short_description', 'romanino_enhance_short_description' );
-function romanino_enhance_short_description( string $desc ): string {
-    return $desc;
-}
+/* FIX (کد مرده): فیلتر romanino_enhance_short_description() حذف شد — ورودی را
+   بدون هیچ تغییری برمی‌گرداند، یعنی یک هوک کاملاً بی‌اثر روی هر بار رندر
+   توضیح کوتاه محصول بود. اگر روزی لازم شد توضیح کوتاه را تغییر دهید، همین‌جا
+   دوباره اضافه کنید. */
 
 add_filter( 'woocommerce_page_title', 'romanino_product_page_title', 10, 1 );
 function romanino_product_page_title( string $title ): string {
