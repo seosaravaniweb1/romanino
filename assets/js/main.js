@@ -367,6 +367,34 @@
   // بازگشت
   document.getElementById('btn-back')?.addEventListener('click', () => showAuthStep('step-phone'));
 
+  /* ── ۶. فوتر: تب «جدیدترین / پرفروش‌ترین» و دکمه‌ی بازگشت به بالا ───────
+     FIX: این کد قبلاً به‌صورت <script> inline در انتهای footer.php بود، یعنی
+     در «هر» صفحه‌ی سایت دوباره دانلود می‌شد، توسط مرورگر کش نمی‌شد و WP Rocket
+     هم نمی‌توانست minify/ترکیبش کند. */
+  const footerTabBtns = document.querySelectorAll('.footer-tab-btn');
+  if (footerTabBtns.length) {
+    footerTabBtns.forEach(btn => {
+      if (btn.dataset.footerTab === 'latest') btn.classList.add('is-active');
+      btn.addEventListener('click', () => {
+        footerTabBtns.forEach(b => b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+        document.querySelectorAll('.footer-tab-panel').forEach(p => p.classList.add('hidden'));
+        document.getElementById('footer-panel-' + btn.dataset.footerTab)?.classList.remove('hidden');
+      });
+    });
+  }
+
+  const scrollBtn = document.getElementById('scroll-top-btn');
+  if (scrollBtn) {
+    // passive: مرورگر می‌داند این listener اسکرول را بلاک نمی‌کند
+    window.addEventListener('scroll', () => {
+      const show = window.scrollY > 500;
+      scrollBtn.classList.toggle('hidden', !show);
+      scrollBtn.classList.toggle('flex', show);
+    }, { passive: true });
+    scrollBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  }
+
   /* ── ۷. Lazy-load تصاویر (fallback برای مرورگرهای قدیمی) ───────────────── */
   if ('loading' in HTMLImageElement.prototype === false) {
     const imgs = document.querySelectorAll('img[loading="lazy"]');
