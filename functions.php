@@ -447,8 +447,14 @@ function romanino_product_specs_metabox_content( WP_Post $post ): void {
 
 add_action( 'save_post_product', 'romanino_save_product_specs_meta' );
 function romanino_save_product_specs_meta( int $post_id ): void {
-    if ( ! isset( $_POST['romanino_specs_meta_nonce'] ) ||
-         ! wp_verify_nonce( $_POST['romanino_specs_meta_nonce'], 'romanino_save_specs_data' ) ) {
+    /* FIX: وردپرس تمام سوپرگلوبال‌ها را addslashes می‌کند. بدون wp_unslash()
+       هر بار ذخیره یک بک‌اسلش اضافه روی مقادیر می‌نشست — نام مترجمی مثل
+       «احمدی'زاده» بعد از چند بار ویرایش به «احمدی\\\'زاده» تبدیل می‌شد.
+       همین موضوع برای خودِ nonce هم صدق می‌کند. */
+    $romanino_nonce = isset( $_POST['romanino_specs_meta_nonce'] )
+        ? sanitize_text_field( wp_unslash( $_POST['romanino_specs_meta_nonce'] ) )
+        : '';
+    if ( ! $romanino_nonce || ! wp_verify_nonce( $romanino_nonce, 'romanino_save_specs_data' ) ) {
         return;
     }
     if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
@@ -456,13 +462,13 @@ function romanino_save_product_specs_meta( int $post_id ): void {
 
     $page_count = absint( $_POST['page_count'] ?? 0 );
 
-    update_post_meta( $post_id, 'is_foreign_novel',     isset( $_POST['is_foreign_novel'] ) ? 'yes' : 'no' );
+    update_post_meta( $post_id, 'is_foreign_novel',       isset( $_POST['is_foreign_novel'] ) ? 'yes' : 'no' );
     update_post_meta( $post_id, 'romanino_volume_number', absint( $_POST['romanino_volume_number'] ?? 0 ) );
     update_post_meta( $post_id, 'romanino_series_key',    sanitize_title( wp_unslash( $_POST['romanino_series_key'] ?? '' ) ) );
-    update_post_meta( $post_id, 'translator',           sanitize_text_field( $_POST['translator'] ?? '' ) );
-    update_post_meta( $post_id, 'page_count',           $page_count > 0 ? $page_count : '' );
-    update_post_meta( $post_id, 'sample_download_url',  esc_url_raw( $_POST['sample_download_url'] ?? '' ) );
-    update_post_meta( $post_id, 'file_size', sanitize_text_field( $_POST['file_size'] ?? '' ) );
+    update_post_meta( $post_id, 'translator',             sanitize_text_field( wp_unslash( $_POST['translator'] ?? '' ) ) );
+    update_post_meta( $post_id, 'page_count',             $page_count > 0 ? $page_count : '' );
+    update_post_meta( $post_id, 'sample_download_url',    esc_url_raw( wp_unslash( $_POST['sample_download_url'] ?? '' ) ) );
+    update_post_meta( $post_id, 'file_size',              sanitize_text_field( wp_unslash( $_POST['file_size'] ?? '' ) ) );
     // FIX: «نام نویسنده»، «ناشر»، «زبان کتاب» و «فرمت فایل» دیگر از این فرم
     // ذخیره نمی‌شوند (حذف شدند طبق درخواست) — مقادیر قدیمی این متاها اگر
     // قبلاً برای محصولی ثبت شده بود دست‌نخورده در دیتابیس می‌ماند، فقط

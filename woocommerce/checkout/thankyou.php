@@ -112,7 +112,7 @@ defined( 'ABSPATH' ) || exit;
 								<div class="min-w-0">
 									<h3 class="truncate text-sm font-bold text-foreground"><?php echo esc_html( $download['product_name'] ); ?></h3>
 									<p class="mt-1 text-[11px] text-muted-foreground">فایل: <?php echo esc_html( $download['download_name'] ); ?></p>
-									<span class="mt-1 inline-block rounded bg-cyan-glow/10 px-2 py-0.5 text-[10px] text-cyan-glow"><?php echo $format_label; ?></span>
+									<span class="mt-1 inline-block rounded bg-cyan-glow/10 px-2 py-0.5 text-[10px] text-cyan-glow"><?php echo esc_html( $format_label ); ?></span>
 								</div>
 							</div>
 							

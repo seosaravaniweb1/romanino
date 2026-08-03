@@ -265,7 +265,7 @@ function romanino_ajax_remove_cart_item() {
 
     if ( ! WC()->cart ) wc_load_cart();
 
-    $key = sanitize_text_field( $_POST['key'] ?? '' );
+    $key = sanitize_text_field( wp_unslash( $_POST['key'] ?? '' ) );
     if ( $key ) {
         WC()->cart->remove_cart_item( $key );
     }

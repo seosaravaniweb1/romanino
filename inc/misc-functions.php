@@ -477,6 +477,56 @@ function romanino_render_category_tag_author_tabs( string $id_prefix, string $la
  */
 
 /**
+ * پارامترهای مجاز URL که هنگام ارسال فرم‌های فیلتر/مرتب‌سازی باید حفظ شوند.
+ *
+ * @return string[]
+ */
+function romanino_preserved_query_args(): array {
+    /**
+     * افزودن پارامتر دلخواه به لیست مجاز (مثلاً اگر افزونه‌ای query var خودش
+     * را دارد و باید بین فیلترها حفظ شود).
+     */
+    return (array) apply_filters( 'romanino_preserved_query_args', array(
+        's', 'post_type', 'orderby', 'paged',
+        'product_cat', 'product_tag', 'min_price', 'max_price',
+        'romanino_author',
+    ) );
+}
+
+/**
+ * چاپ فیلدهای مخفیِ حفظ‌شونده در فرم‌های GET.
+ *
+ * FIX (بودجه‌ی خزش + بهداشت ورودی): نسخه‌ی قبلی روی «کل $_GET» حلقه می‌زد و
+ * هر کلیدی را که در URL بود، به‌عنوان input مخفی داخل فرم بازتاب می‌داد.
+ * esc_attr جلوی XSS را می‌گرفت، ولی مشکل باقی می‌ماند: هر کسی می‌توانست با
+ * یک URL دلخواه پارامترهای دلخواه را وارد فرم کند، و در ترکیب با فرم
+ * مرتب‌سازی، تعداد نامحدودی URL یکتا و خزش‌پذیر تولید می‌شد
+ * (?a=1&b=2&orderby=date و…). برای سایتی با ۱۲٬۰۰۰ محصول این یعنی هدر رفتن
+ * جدی بودجه‌ی خزش گوگل. حالا فقط پارامترهای شناخته‌شده حفظ می‌شوند.
+ *
+ * @param string[] $exclude کلیدهایی که خودِ همین فرم مدیریتشان می‌کند.
+ */
+function romanino_render_preserved_query_fields( array $exclude = array() ): void {
+    foreach ( romanino_preserved_query_args() as $key ) {
+        if ( in_array( $key, $exclude, true ) ) {
+            continue;
+        }
+        if ( ! isset( $_GET[ $key ] ) || is_array( $_GET[ $key ] ) ) {
+            continue;
+        }
+        $value = sanitize_text_field( wp_unslash( $_GET[ $key ] ) );
+        if ( '' === $value ) {
+            continue;
+        }
+        printf(
+            '<input type="hidden" name="%s" value="%s" />',
+            esc_attr( $key ),
+            esc_attr( $value )
+        );
+    }
+}
+
+/**
  * فیلترهای اضافه‌ی سایدبار لیستینگ: برچسب محصول + ویژگی‌های ووکامرس
  * (فرمت فایل pa_format، ملیت رمان pa_nationality). در archive-product.php
  * و taxonomy-product_cat.php استفاده می‌شود.
@@ -490,16 +540,12 @@ function romanino_render_listing_filters(): void {
         'pa_nationality' => 'ملیت رمان',
     );
 
-    $selected_tags   = isset( $_GET['rmn_tag'] ) ? array_map( 'sanitize_title', (array) $_GET['rmn_tag'] ) : array();
+    $selected_tags   = isset( $_GET['rmn_tag'] ) ? array_map( 'sanitize_title', (array) wp_unslash( (array) $_GET['rmn_tag'] ) ) : array();
     ?>
     <form method="get" class="rounded-2xl border border-border bg-card p-4">
         <?php
-        // حفظ سایر query varها (جست‌وجو، مرتب‌سازی و…) به‌جز فیلترهای همین فرم
-        foreach ( $_GET as $k => $v ) {
-            if ( in_array( $k, array( 'rmn_tag', 'pa_format', 'pa_nationality' ), true ) ) continue;
-            if ( is_array( $v ) ) continue;
-            echo '<input type="hidden" name="' . esc_attr( $k ) . '" value="' . esc_attr( $v ) . '" />';
-        }
+        // حفظ query varهای معتبر (جست‌وجو، مرتب‌سازی و…) به‌جز فیلترهای همین فرم
+        romanino_render_preserved_query_fields( array( 'rmn_tag', 'pa_format', 'pa_nationality' ) );
         ?>
         <?php if ( ! empty( $tags ) ) : ?>
         <h3 class="mb-3 text-sm font-bold text-foreground">برچسب رمان</h3>

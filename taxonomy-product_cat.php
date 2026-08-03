@@ -119,11 +119,9 @@ if ( is_wp_error( $tax_cats ) ) $tax_cats = [];
                 <!-- مرتب‌سازی -->
                 <form method="get">
                     <?php
-                    foreach ( $_GET as $k => $v ) {
-                        if ( $k !== 'orderby' ) {
-                            echo '<input type="hidden" name="' . esc_attr( $k ) . '" value="' . esc_attr( $v ) . '" />';
-                        }
-                    }
+                    // FIX: قبلاً کل $_GET بازتاب داده می‌شد؛ حالا فقط پارامترهای
+                    // مجاز (inc/misc-functions.php :: romanino_preserved_query_args).
+                    romanino_render_preserved_query_fields( array( 'orderby' ) );
                     ?>
                     <select name="orderby" onchange="this.form.submit()"
                         class="rounded-xl border border-border bg-card px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring lg:text-sm">

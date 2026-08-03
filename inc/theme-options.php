@@ -236,6 +236,46 @@ add_action( 'wp_ajax_romanino_admin_search_products', function () {
 /* ------------------------------------------------------------
    ۴. ذخیره‌سازی
    ------------------------------------------------------------ */
+/**
+ * پاک‌سازی کد نماد اعتماد (اینماد / ساماندهی).
+ *
+ * FIX: قبلاً با wp_kses_post ذخیره می‌شد. آن تابع صفت referrerpolicy را در
+ * لیست مجاز ندارد و حذفش می‌کند — در حالی که اسنیپت رسمی اینماد دقیقاً به
+ * referrerpolicy="origin" روی هر دو تگ <a> و <img> نیاز دارد، وگرنه سرور
+ * اینماد تصویر را برنمی‌گرداند و جای لوگو خالی می‌ماند.
+ * این تابع یک allowlist محدود و هدفمند است: فقط <a> و <img> با همان صفاتی
+ * که این اسنیپت‌ها واقعاً لازم دارند (بدون هیچ رویداد on* یا <script>).
+ *
+ * @param string $html کد خام واردشده توسط مدیر سایت
+ * @return string
+ */
+function romanino_kses_trust_seal( string $html ): string {
+    return wp_kses( $html, array(
+        'a'   => array(
+            'href'           => true,
+            'target'         => true,
+            'rel'            => true,
+            'referrerpolicy' => true,
+            'class'          => true,
+            'id'             => true,
+            'style'          => true,
+        ),
+        'img' => array(
+            'src'            => true,
+            'alt'            => true,
+            'referrerpolicy' => true,
+            'width'          => true,
+            'height'         => true,
+            'class'          => true,
+            'id'             => true,
+            'style'          => true,
+            'loading'        => true,
+        ),
+        'div' => array( 'class' => true, 'id' => true, 'style' => true ),
+        'br'  => array(),
+    ), array( 'https', 'http' ) );
+}
+
 function romanino_sanitize_link_repeater( $items, $limit = 0 ) {
     $clean = array();
     if ( ! is_array( $items ) ) return $clean;
@@ -289,7 +329,9 @@ add_action( 'admin_init', function () {
             'app_google'         => esc_url_raw( trim( wp_unslash( $_POST['app_google'] ?? '' ) ) ),
             'app_bazaar'         => esc_url_raw( trim( wp_unslash( $_POST['app_bazaar'] ?? '' ) ) ),
             'app_myket'          => esc_url_raw( trim( wp_unslash( $_POST['app_myket'] ?? '' ) ) ),
-            'enamad_code'        => wp_kses_post( wp_unslash( $_POST['enamad_code'] ?? '' ) ),
+            // FIX: wp_kses_post صفت referrerpolicy را حذف می‌کرد — دقیقاً همان
+            // صفتی که اسنیپت رسمی اینماد بدون آن لوگو را نمایش نمی‌دهد.
+            'enamad_code'        => romanino_kses_trust_seal( wp_unslash( $_POST['enamad_code'] ?? '' ) ),
             'banks'              => $banks,
             'gateway_1_label'    => sanitize_text_field( wp_unslash( $_POST['gateway_1_label'] ?? $defaults['gateway_1_label'] ) ),
             'gateway_2_label'    => sanitize_text_field( wp_unslash( $_POST['gateway_2_label'] ?? $defaults['gateway_2_label'] ) ),

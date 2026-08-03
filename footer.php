@@ -240,7 +240,13 @@ $romanino_plan_colors = romanino_plan_color_map();
             <?php if ( ! empty( $romanino_footer_opts['enamad_code'] ) ) : ?>
             <div class="flex flex-wrap items-center justify-center gap-3">
                 <div id="enamad-container" class="flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/5 p-1.5 [&_img]:h-full [&_img]:w-full [&_img]:object-contain">
-                    <?php echo $romanino_footer_opts['enamad_code']; ?>
+                    <?php
+                    // FIX: خروجی بدون escape چاپ می‌شد. مقدار هنگام ذخیره پاک‌سازی
+                    // می‌شود، ولی خروجی هم باید از همان allowlist رد شود تا اگر
+                    // مقدار قدیمی‌تری (پیش از این تغییر) در دیتابیس مانده باشد
+                    // هم امن بماند.
+                    echo romanino_kses_trust_seal( (string) $romanino_footer_opts['enamad_code'] );
+                    ?>
                 </div>
             </div>
             <?php endif; ?>
