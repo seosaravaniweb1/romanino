@@ -290,6 +290,9 @@ function romanino_sitemap_categories(): void {
 add_filter( 'robots_txt', 'romanino_add_sitemap_to_robots', 10, 2 );
 function romanino_add_sitemap_to_robots( string $output, bool $public ): string {
     if ( ! $public ) return $output;
+    // FIX: مسیر واسط دانلود رایگان نباید کراول شود — نه ارزش سئویی دارد و نه
+    // باید بودجه‌ی خزش را مصرف کند (هر بازدید گوگل‌بات یک ریدایرکت است).
+    $output .= "\nDisallow: /dl/\n";
     $output .= "\nSitemap: " . home_url( '/sitemap-novels.xml' ) . "\n";
     $output .= "Sitemap: " . home_url( '/sitemap-categories.xml' ) . "\n";
     return $output;
@@ -557,14 +560,14 @@ function romanino_homepage_faq_schema(): void {
 
 add_action( 'updated_option', function ( string $option_name ): void {
     if ( 0 === strpos( $option_name, 'rank-math' ) || 'woocommerce_permalinks' === $option_name ) {
-        delete_option( 'romanino_rewrite_flushed_v3' );
+        delete_option( 'romanino_rewrite_flushed_v4' );
     }
 } );
 
 add_action( 'admin_init', function (): void {
-    if ( ! get_option( 'romanino_rewrite_flushed_v3' ) ) {
+    if ( ! get_option( 'romanino_rewrite_flushed_v4' ) ) {
         flush_rewrite_rules();
-        update_option( 'romanino_rewrite_flushed_v3', 1 );
+        update_option( 'romanino_rewrite_flushed_v4', 1 );
     }
 } );
 

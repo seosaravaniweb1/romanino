@@ -69,9 +69,9 @@ $romanino_sbopts = romanino_get_sidebar_options();
 // Phase 1 FIX: تشخیص «رمان رایگان» / «فعلاً قابل خرید نیست» — توابع کمکی در inc/cart-functions.php
 $is_unavailable   = romanino_product_price_field_is_empty( $product );
 $is_free_product  = ! $is_unavailable && romanino_is_free_product( $product );
-// FIX: لینک دانلود رایگان اول از فیلد «لینک فایل نمونه رایگان» خوانده می‌شود
-// (همان فیلدی که مدیر سایت واقعاً از آن برای رمان‌های رایگان استفاده می‌کند).
-$direct_dl_url    = $is_free_product ? romanino_get_free_download_url( $product ) : '';
+// FIX (بحرانی — نشت فایل): آدرس واسط /dl/{id}/ به‌جای مسیر خام فایل.
+// جزئیات در inc/cart-functions.php :: romanino_serve_free_download().
+$direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $product ) : '';
 ?>
 
 <main id="primary" dir="rtl" style="background-color:#0b0514;" class="min-h-screen w-full text-slate-200 rmn-font pb-24 lg:pb-8">

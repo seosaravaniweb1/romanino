@@ -32,10 +32,11 @@ $byline_label = $author_name;
 // Phase 1 FIX: تشخیص «رمان رایگان» / «فعلاً قابل خرید نیست» — توابع کمکی در inc/cart-functions.php
 $is_unavailable  = romanino_product_price_field_is_empty( $product );
 $is_free_product = ! $is_unavailable && romanino_is_free_product( $product );
-// FIX: لینک دانلود رایگان اول از فیلد «لینک فایل نمونه رایگان» خوانده می‌شود
-// (همان فیلدی که مدیر سایت واقعاً از آن برای رمان‌های رایگان استفاده می‌کند)
-// و فقط اگر خالی بود، به فایل‌های دانلودی استاندارد ووکامرس برمی‌گردد.
-$direct_dl_url   = $is_free_product ? romanino_get_free_download_url( $product ) : '';
+// FIX (بحرانی — نشت فایل): قبلاً اینجا مسیر خام فایل روی سرور چاپ می‌شد که
+// سیستم مجوز دانلود ووکامرس را کامل دور می‌زد و لینک را برای همیشه عمومی و
+// قابل ایندکس می‌کرد. حالا فقط آدرس واسط /dl/{id}/ چاپ می‌شود؛ اعتبارسنجی
+// «رایگان بودن محصول» و سقف دانلود سمت سرور انجام می‌شود.
+$direct_dl_url   = $is_free_product ? romanino_get_public_free_download_url( $product ) : '';
 // FIX: قیمتِ «قبل و بعد» (del/ins) در باکس محصول گیج‌کننده بود؛ کاربر فقط
 // باید قیمت نهایی را ببیند (تخفیف‌خورده در صورت وجود، وگرنه قیمت اصلی).
 $final_price_html = $is_unavailable ? '' : wc_price( $product->get_price() );
