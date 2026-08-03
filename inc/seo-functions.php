@@ -226,137 +226,40 @@ function romanino_product_page_title( string $title ): string {
 }
 
 /* ==========================================================================
-   ۴. Sitemap اختصاصی رمان‌ها (بدون نیاز به پلاگین)
+   ۴. [حذف‌شده] Sitemap اختصاصی رمان‌ها
+   ─────────────────────────────────────────────────────────────────────────
+   قالب قبلاً سه سایت‌مپ اختصاصی (sitemap-novels / -authors / -categories)
+   تولید می‌کرد. این کد کاملاً حذف شد، به دو دلیل:
+
+   ۱) تکراری بودن: هم هسته‌ی وردپرس (از نسخه ۵.۵) و هم Rank Math — که روی این
+      سایت نصب و فعال است — سایت‌مپ کاملی برای همین URLها می‌سازند. سه منبع
+      موازی برای یک مجموعه آدرس، فقط بودجه‌ی خزش گوگل را هدر می‌دهد.
+
+   ۲) ناپایداری: نسخه‌ی قالب صفحه‌بندی نداشت. حلقه‌اش برای هر ۵۰۰ محصول یک
+      WP_Query می‌زد و برای «هر محصول» یک wc_get_product() صدا می‌کرد. روی
+      کاتالوگ ۱۲٬۰۰۰ محصولی یعنی ۲۴ کوئری به‌علاوه‌ی ۱۲٬۰۰۰ بار لود کامل شیء
+      محصول در یک ریکوئست — که تقریباً قطعاً به max_execution_time یا
+      memory_limit می‌خورد و با خطای ۵۰۰ به گوگل‌بات پاسخ می‌داد.
+
+   سایت‌مپ Rank Math صفحه‌بندی‌شده و کش‌شده است و هر دو مشکل را ندارد.
+   ⚠️ اگر روزی Rank Math را غیرفعال کردید، سایت‌مپ هسته‌ی وردپرس
+   (/wp-sitemap.xml) خودکار فعال می‌شود؛ نیازی به بازگرداندن این کد نیست.
    ========================================================================== */
 
-/* FIX (سئو + پرفورمنس): سایت‌مپ اختصاصی قالب فقط وقتی فعال می‌شود که هیچ
-   افزونه‌ی سئویی نصب نباشد. دلیل:
-   ۱) با Rank Math فعال، سه سایت‌مپ موازی برای یک مجموعه URL وجود داشت
-      (هسته‌ی وردپرس + Rank Math + قالب) که فقط بودجه‌ی خزش را هدر می‌دهد.
-   ۲) نسخه‌ی قالب صفحه‌بندی ندارد: برای ۱۲٬۰۰۰ محصول، ۲۴ بار WP_Query
-      به‌علاوه‌ی ۱۲٬۰۰۰ فراخوانی wc_get_product() در یک ریکوئست انجام
-      می‌دهد که تقریباً قطعاً به max_execution_time یا memory_limit می‌خورد.
-   افزونه‌های سئو هر دو مشکل را با سایت‌مپ صفحه‌بندی‌شده و کش‌شده حل کرده‌اند. */
-add_action( 'init', 'romanino_register_sitemap_rewrite' );
-function romanino_register_sitemap_rewrite(): void {
-    if ( romanino_seo_plugin_active() ) return;
-    add_rewrite_rule( '^sitemap-novels\.xml$', 'index.php?romanino_sitemap=novels', 'top' );
-    add_rewrite_rule( '^sitemap-authors\.xml$', 'index.php?romanino_sitemap=authors', 'top' );
-    add_rewrite_rule( '^sitemap-categories\.xml$', 'index.php?romanino_sitemap=categories', 'top' );
-}
-
-add_filter( 'query_vars', function( array $vars ): array {
-    $vars[] = 'romanino_sitemap';
-    return $vars;
-} );
-
-add_action( 'template_redirect', 'romanino_serve_sitemap' );
-function romanino_serve_sitemap(): void {
-    if ( romanino_seo_plugin_active() ) return;
-    $type = get_query_var( 'romanino_sitemap' );
-    if ( ! $type ) return;
-
-    header( 'Content-Type: application/xml; charset=UTF-8' );
-    header( 'X-Robots-Tag: noindex' );
-    echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-    echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' . "\n";
-    echo '        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">' . "\n";
-
-    if ( $type === 'novels' ) {
-        romanino_sitemap_novels();
-    } elseif ( $type === 'authors' ) {
-        romanino_sitemap_authors();
-    } elseif ( $type === 'categories' ) {
-        romanino_sitemap_categories();
+/* قوانین اختصاصی قالب در robots.txt.
+   FIX: خطوط Sitemap از اینجا حذف شدند — به سه فایلی اشاره می‌کردند که قالب
+   دیگر تولیدشان نمی‌کند (بخش ۴ بالا). معرفی سایت‌مپ حالا کاملاً بر عهده‌ی
+   Rank Math (یا سایت‌مپ هسته‌ی وردپرس) است که هر دو خودشان این کار را
+   انجام می‌دهند. */
+add_filter( 'robots_txt', 'romanino_add_theme_robots_rules', 10, 2 );
+function romanino_add_theme_robots_rules( string $output, bool $public ): string {
+    if ( ! $public ) {
+        return $output;
     }
-
-    echo '</urlset>';
-    exit;
-}
-
-function romanino_sitemap_novels(): void {
-    $paged = 1;
-    do {
-        $query = new WP_Query( [
-            'post_type'      => 'product',
-            'post_status'    => 'publish',
-            'posts_per_page' => 500,
-            'paged'          => $paged,
-            'fields'         => 'ids',
-            'no_found_rows'  => false,
-            'orderby'        => 'modified',
-            'order'          => 'DESC',
-        ] );
-
-        foreach ( $query->posts as $id ) {
-            $product     = wc_get_product( $id );
-            if ( ! $product ) continue;
-            $image_url   = get_the_post_thumbnail_url( $id, 'large' );
-            $image_title = esc_xml( 'دانلود رمان ' . $product->get_name() . ' PDF' );
-            $mod_date    = get_the_modified_date( 'c', $id );
-            echo "<url>\n";
-            echo "  <loc>" . esc_url( $product->get_permalink() ) . "</loc>\n";
-            echo "  <lastmod>{$mod_date}</lastmod>\n";
-            echo "  <changefreq>weekly</changefreq>\n";
-            echo "  <priority>0.8</priority>\n";
-            if ( $image_url ) {
-                echo "  <image:image>\n";
-                echo "    <image:loc>" . esc_url( $image_url ) . "</image:loc>\n";
-                echo "    <image:title>{$image_title}</image:title>\n";
-                echo "  </image:image>\n";
-            }
-            echo "</url>\n";
-        }
-        $paged++;
-    } while ( $paged <= $query->max_num_pages );
-}
-
-function romanino_sitemap_authors(): void {
-    // ساخت sitemap برای صفحات نویسندگان — از همان تکسونومی برندی که واقعاً
-    // روی سایت فعال است استفاده می‌شود (نه یک نام ثابت که ممکن است هیچ‌جا
-    // register نشده باشد).
-    $taxonomy = function_exists( 'romanino_get_brand_taxonomy' ) ? romanino_get_brand_taxonomy() : '';
-    if ( ! $taxonomy ) return;
-
-    $authors = get_terms( [ 'taxonomy' => $taxonomy, 'hide_empty' => true ] );
-    if ( is_wp_error( $authors ) || empty( $authors ) ) return;
-
-    foreach ( $authors as $author ) {
-        echo "<url>\n";
-        echo "  <loc>" . esc_url( get_term_link( $author, $taxonomy ) ) . "</loc>\n";
-        echo "  <changefreq>weekly</changefreq>\n";
-        echo "  <priority>0.6</priority>\n";
-        echo "</url>\n";
-    }
-}
-
-function romanino_sitemap_categories(): void {
-    $cats = get_terms( [ 'taxonomy' => 'product_cat', 'hide_empty' => true ] );
-    if ( is_wp_error( $cats ) || empty( $cats ) ) return;
-
-    foreach ( $cats as $cat ) {
-        echo "<url>\n";
-        echo "  <loc>" . esc_url( get_term_link( $cat ) ) . "</loc>\n";
-        echo "  <changefreq>daily</changefreq>\n";
-        echo "  <priority>0.7</priority>\n";
-        echo "</url>\n";
-    }
-}
-
-// اضافه کردن لینک sitemap به robots.txt
-add_filter( 'robots_txt', 'romanino_add_sitemap_to_robots', 10, 2 );
-function romanino_add_sitemap_to_robots( string $output, bool $public ): string {
-    if ( ! $public ) return $output;
-    // FIX: مسیر واسط دانلود رایگان نباید کراول شود — نه ارزش سئویی دارد و نه
-    // باید بودجه‌ی خزش را مصرف کند (هر بازدید گوگل‌بات یک ریدایرکت است).
+    // مسیر واسط دانلود رایگان نباید کراول شود — نه ارزش سئویی دارد و نه باید
+    // بودجه‌ی خزش را مصرف کند (هر بازدید گوگل‌بات یک ریدایرکت است).
     $output .= "\nDisallow: /dl/\n";
 
-    // سایت‌مپ قالب فقط وقتی معرفی می‌شود که واقعاً تولید هم بشود؛ در غیر این
-    // صورت افزونه‌ی سئو خودش سایت‌مپ خودش را به robots.txt اضافه می‌کند.
-    if ( ! romanino_seo_plugin_active() ) {
-        $output .= "\nSitemap: " . home_url( '/sitemap-novels.xml' ) . "\n";
-        $output .= "Sitemap: " . home_url( '/sitemap-categories.xml' ) . "\n";
-    }
     return $output;
 }
 

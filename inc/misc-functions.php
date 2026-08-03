@@ -403,14 +403,33 @@ function romanino_product_date( int $post_id, string $format = 'Y/m/d' ): string
  * وابستگی جدید (فقط PHP خالص) کار می‌کند و روی هر هاستی جواب می‌دهد.
  */
 function romanino_track_and_get_views( int $post_id ): int {
-    $meta_key    = '_romanino_view_count';
-    $count       = (int) get_post_meta( $post_id, $meta_key, true );
-    $sample_rate = 10; // فقط ۱ از هر ۱۰ بازدید واقعاً نوشته می‌شود
+    $meta_key = '_romanino_view_count';
+    $count    = (int) get_post_meta( $post_id, $meta_key, true );
 
-    if ( ! is_admin() && wp_rand( 1, $sample_rate ) === 1 ) {
-        $count += $sample_rate;
-        update_post_meta( $post_id, $meta_key, $count );
+    if ( is_admin() || ! is_singular( 'product' ) ) {
+        return $count;
     }
+
+    /* FIX (تکمیلی): علاوه بر نمونه‌برداری، حالا یک قفل کوتاه هم گذاشته می‌شود.
+       بدون آن، در لحظه‌ی هجوم ترافیک به یک محصول، چندین ریکوئست هم‌زمان
+       می‌توانستند قرعه‌ی «۱ از ۱۰» را ببرند و هم‌زمان روی یک ردیف
+       wp_postmeta بنویسند — دقیقاً همان Row Lock Contention که این تابع
+       قرار بود از آن جلوگیری کند.
+       قفل روی Object Cache می‌نشیند (اگر Redis فعال باشد اصلاً به دیتابیس
+       نمی‌رود) و بعد از ۳۰ ثانیه خودش آزاد می‌شود. */
+    $sample_rate = 10;
+    if ( wp_rand( 1, $sample_rate ) !== 1 ) {
+        return $count;
+    }
+
+    $lock_key = 'romanino_view_lock_' . $post_id;
+    if ( false !== wp_cache_get( $lock_key, 'romanino_views' ) ) {
+        return $count; // نوشتن دیگری همین الان در جریان است
+    }
+    wp_cache_set( $lock_key, 1, 'romanino_views', 30 );
+
+    $count += $sample_rate;
+    update_post_meta( $post_id, $meta_key, $count );
 
     return $count;
 }
@@ -972,13 +991,40 @@ add_filter( 'query_vars', function ( $vars ) {
     $vars[] = 'romanino_author';
     return $vars;
 } );
+/* FIX (مسیر مرده): این فیلتر روی متای قدیمی «book_author» کوئری می‌زد، در حالی
+   که romanino_get_book_author() از مدت‌ها پیش نام نویسنده را از تکسونومی برند
+   می‌خواند و فقط در نبود آن به این متا برمی‌گردد. نتیجه: آرشیو نویسنده برای
+   تقریباً همه‌ی محصولات خالی برمی‌گشت.
+   حالا اول روی تکسونومی برند فیلتر می‌شود (مسیر اصلی داده) و متای قدیمی فقط
+   به‌عنوان fallback برای محصولاتی می‌ماند که هنوز برند برایشان تنظیم نشده. */
 add_action( 'pre_get_posts', function ( $query ) {
     if ( is_admin() || ! $query->is_main_query() ) return;
     if ( ! $query->is_post_type_archive( 'product' ) && ! $query->is_shop() ) return;
-    $author = get_query_var( 'romanino_author' );
-    if ( ! $author ) return;
+
+    $author = trim( (string) get_query_var( 'romanino_author' ) );
+    if ( '' === $author ) return;
+
+    $author   = sanitize_text_field( $author );
+    $taxonomy = romanino_get_brand_taxonomy();
+
+    // مسیر اصلی: نام نویسنده به‌عنوان ترم برند ثبت شده است.
+    if ( $taxonomy ) {
+        $term = get_term_by( 'name', $author, $taxonomy );
+        if ( $term instanceof WP_Term ) {
+            $tax_query   = (array) $query->get( 'tax_query' );
+            $tax_query[] = array(
+                'taxonomy' => $taxonomy,
+                'field'    => 'term_id',
+                'terms'    => $term->term_id,
+            );
+            $query->set( 'tax_query', $tax_query );
+            return;
+        }
+    }
+
+    // Fallback: محصولات قدیمی‌ای که هنوز برند ندارند و نام نویسنده در متاست.
     $meta_query   = (array) $query->get( 'meta_query' );
-    $meta_query[] = array( 'key' => 'book_author', 'value' => sanitize_text_field( $author ), 'compare' => '=' );
+    $meta_query[] = array( 'key' => 'book_author', 'value' => $author, 'compare' => '=' );
     $query->set( 'meta_query', $meta_query );
 } );
 function romanino_get_author_archive_link( string $author_name ): string {
