@@ -22,8 +22,12 @@ function romanino_footer_defaults() {
             array( 'label' => 'سه ماه',  'price' => '۴۱۵,۰۰۰', 'color' => 'purple',  'link' => '' ),
         ),
         'footer_description' => 'رمانینو؛ مرجع دانلود رمان‌های عاشقانه، ترسناک و جنایی ایرانی و خارجی با قابلیت دانلود آنی پس از پرداخت.',
-        'social_instagram' => '',
-        'social_telegram'  => '',
+        /* شبکه‌های اجتماعی — تکرارشونده (بدون محدودیت تعداد).
+           قبلاً فقط دو فیلد ثابت «اینستاگرام» و «تلگرام» وجود داشت؛ حالا مدیر
+           سایت هر تعداد لینک دلخواه با آیکون دلخواه اضافه می‌کند (تلگرام،
+           روبیکا، ایتا، واتساپ یا هر چیز دیگر). اگر هیچ ردیفی نباشد، کل بخش
+           در فوتر رندر نمی‌شود. */
+        'social_links'     => array(),
         'about_links'      => array(
             array( 'title' => 'درباره ما',        'url' => '' ),
             array( 'title' => 'قوانین و مقررات',  'url' => '' ),
@@ -34,6 +38,11 @@ function romanino_footer_defaults() {
             array( 'title' => 'راهنمای دانلود', 'url' => '' ),
             array( 'title' => 'پیگیری سفارش',   'url' => '' ),
         ),
+        /* بخش «دانلود اپلیکیشن» فوتر.
+           app_enabled پیش‌فرض خاموش است: تا وقتی اپلیکیشنی منتشر نشده، این
+           ستون اصلاً در فوتر نمایش داده نمی‌شود. هر دکمه‌ی فروشگاه هم فقط
+           وقتی رندر می‌شود که لینکش واقعاً پر شده باشد. */
+        'app_enabled' => 0,
         'app_google'  => '',
         'app_bazaar'  => '',
         'app_myket'   => '',
@@ -137,8 +146,72 @@ function romanino_get_footer_options() {
     static $opts = null;
     if ( null === $opts ) {
         $opts = wp_parse_args( get_option( 'romanino_footer_options', array() ), romanino_footer_defaults() );
+        $opts = romanino_migrate_legacy_social_links( $opts );
     }
     return $opts;
+}
+
+/**
+ * مهاجرت خودکار دو فیلد قدیمی «اینستاگرام/تلگرام» به آرایه‌ی social_links.
+ *
+ * این کار در لحظه‌ی خواندن انجام می‌شود (نه با نوشتن در دیتابیس) تا اگر
+ * تنظیمات هنوز ذخیره‌ی مجدد نشده باشد، لینک‌های فعلی سایت از بین نروند.
+ * به‌محض اینکه مدیر سایت یک بار فرم فوتر را ذخیره کند، مقادیر در قالب جدید
+ * نوشته می‌شوند و این تابع دیگر کاری نمی‌کند.
+ *
+ * @param array $opts تنظیمات فوتر
+ * @return array
+ */
+function romanino_migrate_legacy_social_links( array $opts ): array {
+    if ( ! empty( $opts['social_links'] ) ) {
+        return $opts; // از قبل مهاجرت شده
+    }
+
+    $legacy = array(
+        'اینستاگرام' => $opts['social_instagram'] ?? '',
+        'تلگرام'     => $opts['social_telegram'] ?? '',
+    );
+
+    $migrated = array();
+    foreach ( $legacy as $title => $url ) {
+        $url = trim( (string) $url );
+        if ( '' !== $url ) {
+            $migrated[] = array( 'title' => $title, 'url' => $url, 'icon' => '' );
+        }
+    }
+
+    if ( $migrated ) {
+        $opts['social_links'] = $migrated;
+    }
+    return $opts;
+}
+
+/**
+ * پاک‌سازی ردیف‌های شبکه‌های اجتماعی.
+ *
+ * @param mixed $items ورودی خام از فرم
+ * @return array<int, array{title:string, url:string, icon:string}>
+ */
+function romanino_sanitize_social_links( $items ): array {
+    $clean = array();
+    if ( ! is_array( $items ) ) {
+        return $clean;
+    }
+    foreach ( $items as $item ) {
+        if ( ! is_array( $item ) ) {
+            continue;
+        }
+        $url = isset( $item['url'] ) ? esc_url_raw( trim( wp_unslash( $item['url'] ) ) ) : '';
+        if ( '' === $url ) {
+            continue; // ردیف بدون لینک اصلاً ذخیره نمی‌شود
+        }
+        $clean[] = array(
+            'title' => isset( $item['title'] ) ? sanitize_text_field( wp_unslash( $item['title'] ) ) : '',
+            'url'   => $url,
+            'icon'  => isset( $item['icon'] ) ? esc_url_raw( trim( wp_unslash( $item['icon'] ) ) ) : '',
+        );
+    }
+    return $clean;
 }
 
 function romanino_get_header_options() {
@@ -276,6 +349,48 @@ function romanino_kses_trust_seal( string $html ): string {
     ), array( 'https', 'http' ) );
 }
 
+/**
+ * ذخیره‌ی موفق → ریدایرکت به همان تب (الگوی Post/Redirect/Get).
+ *
+ * FIX: قبلاً بعد از ذخیره، پیام موفقیت با add_action('admin_notices') در
+ * «همان ریکوئستِ POST» چاپ می‌شد. دو مشکل داشت:
+ *   ۱) رفرش کردن صفحه، مرورگر را وادار به ارسال دوباره‌ی فرم می‌کرد
+ *      («آیا می‌خواهید فرم را دوباره ارسال کنید؟») و تنظیمات دوباره ذخیره می‌شد.
+ *   ۲) چون آدرس صفحه پارامتر tab نداشت، بعد از ذخیره همیشه به تب «فوتر»
+ *      برمی‌گشت — حتی اگر کاربر تب پیامک را ذخیره کرده بود.
+ * حالا بعد از ذخیره یک ریدایرکت واقعی انجام می‌شود و پیام از طریق یک
+ * ترنزینت کوتاه‌عمر (مخصوص همان کاربر) منتقل می‌شود.
+ *
+ * @param string $tab     تبی که باید بعد از ریدایرکت فعال باشد
+ * @param string $message پیام موفقیت
+ */
+function romanino_options_saved_redirect( string $tab, string $message ): void {
+    set_transient( 'romanino_options_notice_' . get_current_user_id(), $message, 30 );
+
+    wp_safe_redirect( add_query_arg(
+        array(
+            'page' => 'romanino-theme-options',
+            'tab'  => $tab,
+        ),
+        admin_url( 'admin.php' )
+    ) );
+    exit;
+}
+
+/** نمایش پیام موفقیتِ منتقل‌شده از ریکوئست قبلی. */
+function romanino_render_saved_notice(): void {
+    $key     = 'romanino_options_notice_' . get_current_user_id();
+    $message = get_transient( $key );
+    if ( ! $message ) {
+        return;
+    }
+    delete_transient( $key );
+    printf(
+        '<div class="notice notice-success is-dismissible"><p>%s</p></div>',
+        esc_html( $message )
+    );
+}
+
 function romanino_sanitize_link_repeater( $items, $limit = 0 ) {
     $clean = array();
     if ( ! is_array( $items ) ) return $clean;
@@ -322,10 +437,10 @@ add_action( 'admin_init', function () {
             'sub_subtitle'        => sanitize_textarea_field( wp_unslash( $_POST['sub_subtitle'] ?? $defaults['sub_subtitle'] ) ),
             'sub_plans'           => $plans,
             'footer_description'  => sanitize_textarea_field( wp_unslash( $_POST['footer_description'] ?? '' ) ),
-            'social_instagram'   => esc_url_raw( trim( wp_unslash( $_POST['social_instagram'] ?? '' ) ) ),
-            'social_telegram'    => esc_url_raw( trim( wp_unslash( $_POST['social_telegram'] ?? '' ) ) ),
+            'social_links'       => romanino_sanitize_social_links( $_POST['social_links'] ?? array() ),
             'about_links'        => romanino_sanitize_link_repeater( $_POST['about_links'] ?? array() ),
             'guide_links'        => romanino_sanitize_link_repeater( $_POST['guide_links'] ?? array(), 5 ),
+            'app_enabled'        => isset( $_POST['app_enabled'] ) ? 1 : 0,
             'app_google'         => esc_url_raw( trim( wp_unslash( $_POST['app_google'] ?? '' ) ) ),
             'app_bazaar'         => esc_url_raw( trim( wp_unslash( $_POST['app_bazaar'] ?? '' ) ) ),
             'app_myket'          => esc_url_raw( trim( wp_unslash( $_POST['app_myket'] ?? '' ) ) ),
@@ -339,9 +454,7 @@ add_action( 'admin_init', function () {
         );
 
         update_option( 'romanino_footer_options', $data );
-        add_action( 'admin_notices', function () {
-            echo '<div class="notice notice-success is-dismissible"><p>تنظیمات فوتر با موفقیت ذخیره شد.</p></div>';
-        } );
+        romanino_options_saved_redirect( 'footer', 'تنظیمات فوتر با موفقیت ذخیره شد.' );
     }
 
     // ذخیره هدر
@@ -352,9 +465,7 @@ add_action( 'admin_init', function () {
             'notification_text'    => wp_kses_post( wp_unslash( $_POST['notification_text'] ?? '' ) ),
         );
         update_option( 'romanino_header_options', $data );
-        add_action( 'admin_notices', function () {
-            echo '<div class="notice notice-success is-dismissible"><p>تنظیمات هدر با موفقیت ذخیره شد.</p></div>';
-        } );
+        romanino_options_saved_redirect( 'header', 'تنظیمات هدر با موفقیت ذخیره شد.' );
     }
 
     // FIX (Task 1.5): هندلر ذخیره «رمان‌های ویژه» حذف شد — این بخش کاملاً از سایت حذف شده است.
@@ -381,9 +492,7 @@ add_action( 'admin_init', function () {
             'trust_titles' => $titles,
         );
         update_option( 'romanino_sidebar_options', $data );
-        add_action( 'admin_notices', function () {
-            echo '<div class="notice notice-success is-dismissible"><p>تنظیمات باکس اعتماد محصول با موفقیت ذخیره شد.</p></div>';
-        } );
+        romanino_options_saved_redirect( 'sidebar', 'تنظیمات باکس اعتماد محصول با موفقیت ذخیره شد.' );
     }
 
     // ذخیره سوالات متداول
@@ -398,9 +507,7 @@ add_action( 'admin_init', function () {
             $items[] = array( 'q' => $q, 'a' => $a );
         }
         update_option( 'romanino_faq_options', array( 'items' => $items ) );
-        add_action( 'admin_notices', function () {
-            echo '<div class="notice notice-success is-dismissible"><p>سوالات متداول با موفقیت ذخیره شد.</p></div>';
-        } );
+        romanino_options_saved_redirect( 'faq', 'سوالات متداول با موفقیت ذخیره شد.' );
     }
 
     // ذخیره تنظیمات پیشخوان مشتری
@@ -411,9 +518,7 @@ add_action( 'admin_init', function () {
             'dashboard_coupon'  => sanitize_text_field( wp_unslash( $_POST['dashboard_coupon'] ?? '' ) ),
         );
         update_option( 'romanino_myaccount_options', $data );
-        add_action( 'admin_notices', function () {
-            echo '<div class="notice notice-success is-dismissible"><p>تنظیمات پیشخوان مشتری با موفقیت ذخیره شد.</p></div>';
-        } );
+        romanino_options_saved_redirect( 'myaccount', 'تنظیمات پیشخوان مشتری با موفقیت ذخیره شد.' );
     }
 
     // ذخیره تنظیمات پیامک (ippanel)
@@ -426,9 +531,7 @@ add_action( 'admin_init', function () {
             'ippanel_pattern_otp' => sanitize_text_field( wp_unslash( $_POST['ippanel_pattern_otp'] ?? '' ) ),
         );
         update_option( 'romanino_sms_options', $data );
-        add_action( 'admin_notices', function () {
-            echo '<div class="notice notice-success is-dismissible"><p>تنظیمات پیامک با موفقیت ذخیره شد.</p></div>';
-        } );
+        romanino_options_saved_redirect( 'sms', 'تنظیمات پیامک با موفقیت ذخیره شد.' );
     }
 } );
 
@@ -455,17 +558,39 @@ function romanino_render_options_page() {
         <h1>تنظیمات قالب رمانینو</h1>
         <p class="description">از این صفحه می‌توانید محتوای بخش‌های مختلف سایت را بدون نیاز به کدنویسی مدیریت کنید. جلوی هر تب مشخص شده که مربوط به کدام بخش سایت است.</p>
 
-        <h2 class="nav-tab-wrapper">
-            <a href="?page=romanino-theme-options&tab=footer" class="nav-tab <?php echo $tab === 'footer' ? 'nav-tab-active' : ''; ?>">فوتر</a>
-            <a href="?page=romanino-theme-options&tab=header" class="nav-tab <?php echo $tab === 'header' ? 'nav-tab-active' : ''; ?>">هدر (سرچ + زنگوله نوتیف)</a>
-            <?php // FIX (Task 1.5 + 2.1): تب‌های «هدر (رمان‌های ویژه)» و «صفحه اصلی (رمان‌های پرطرفدار)» طبق درخواست حذف شدند. ?>
-            <a href="?page=romanino-theme-options&tab=sidebar" class="nav-tab <?php echo $tab === 'sidebar' ? 'nav-tab-active' : ''; ?>">صفحه محصول (باکس اعتماد)</a>
-            <a href="?page=romanino-theme-options&tab=faq" class="nav-tab <?php echo $tab === 'faq' ? 'nav-tab-active' : ''; ?>">صفحه اصلی (سوالات متداول)</a>
-            <a href="?page=romanino-theme-options&tab=myaccount" class="nav-tab <?php echo $tab === 'myaccount' ? 'nav-tab-active' : ''; ?>">پیشخوان مشتری</a>
-            <a href="?page=romanino-theme-options&tab=sms" class="nav-tab <?php echo $tab === 'sms' ? 'nav-tab-active' : ''; ?>">پیامک (OTP)</a>
+        <?php romanino_render_saved_notice(); ?>
+
+        <?php
+        /* FIX (تب‌های بدون بارگذاری مجدد): قبلاً هر تب یک لینک معمولی بود و
+           کلیک روی آن، کل صفحه‌ی پیشخوان را از سرور دوباره می‌گرفت — یعنی
+           برای دیدن یک فرم، همه‌ی کوئری‌های وردپرس، منوی پیشخوان و اسکریپت‌ها
+           دوباره لود می‌شدند.
+           حالا هر شش پنل یک‌بار در همان صفحه رندر می‌شوند و جابه‌جایی بینشان
+           فقط نمایش/پنهان‌سازی است: بدون هیچ درخواست شبکه، بدون تأخیر.
+           این از AJAX هم سریع‌تر است چون اصلاً رفت‌وبرگشتی به سرور ندارد.
+           آدرس صفحه با history.replaceState هماهنگ می‌ماند، پس رفرش کردن یا
+           بوکمارک کردن یک تب همچنان همان تب را باز می‌کند. */
+        $romanino_tabs = array(
+            'footer'    => 'فوتر',
+            'header'    => 'هدر (سرچ + زنگوله نوتیف)',
+            'sidebar'   => 'صفحه محصول (باکس اعتماد)',
+            'faq'       => 'صفحه اصلی (سوالات متداول)',
+            'myaccount' => 'پیشخوان مشتری',
+            'sms'       => 'پیامک (OTP)',
+        );
+        ?>
+        <h2 class="nav-tab-wrapper romanino-tab-nav">
+            <?php foreach ( $romanino_tabs as $romanino_tab_key => $romanino_tab_label ) : ?>
+                <a href="<?php echo esc_url( add_query_arg( array( 'page' => 'romanino-theme-options', 'tab' => $romanino_tab_key ), admin_url( 'admin.php' ) ) ); ?>"
+                    class="nav-tab <?php echo $tab === $romanino_tab_key ? 'nav-tab-active' : ''; ?>"
+                    data-romanino-tab="<?php echo esc_attr( $romanino_tab_key ); ?>">
+                    <?php echo esc_html( $romanino_tab_label ); ?>
+                </a>
+            <?php endforeach; ?>
         </h2>
 
-        <?php if ( $tab === 'footer' ) : ?>
+
+        <div class="romanino-tab-panel" data-romanino-panel="footer"<?php echo $tab === 'footer' ? '' : ' hidden'; ?>>
 
         <form method="post" class="romanino-admin-form">
             <?php wp_nonce_field( 'romanino_footer_nonce', 'romanino_footer_nonce_field' ); ?>
@@ -511,15 +636,30 @@ function romanino_render_options_page() {
                         <th><label for="footer_description">توضیح زیر لوگو</label></th>
                         <td><textarea id="footer_description" name="footer_description" class="large-text" rows="3"><?php echo esc_textarea( $footer['footer_description'] ); ?></textarea></td>
                     </tr>
-                    <tr>
-                        <th><label for="social_instagram">لینک اینستاگرام</label></th>
-                        <td><input type="url" id="social_instagram" name="social_instagram" class="large-text" value="<?php echo esc_attr( $footer['social_instagram'] ); ?>" placeholder="https://instagram.com/..."></td>
-                    </tr>
-                    <tr>
-                        <th><label for="social_telegram">لینک تلگرام</label></th>
-                        <td><input type="url" id="social_telegram" name="social_telegram" class="large-text" value="<?php echo esc_attr( $footer['social_telegram'] ); ?>" placeholder="https://t.me/..."></td>
-                    </tr>
                 </table>
+
+                <h3>شبکه‌های اجتماعی و راه‌های ارتباطی</h3>
+                <p class="description">
+                    هر ردیف یک آیکون در فوتر می‌سازد. عنوان برای دسترس‌پذیری (توضیح صفحه‌خوان و tooltip) استفاده می‌شود،
+                    آیکون هم از کتابخانه‌ی رسانه انتخاب می‌شود (فرمت پیشنهادی WEBP یا SVG).
+                    <strong>محدودیتی در تعداد نیست</strong> — تلگرام، روبیکا، ایتا، واتساپ یا هر چیز دیگری.
+                    اگر هیچ ردیفی نسازید یا لینک را خالی بگذارید، این بخش اصلاً در فوتر نمایش داده نمی‌شود.
+                </p>
+                <div id="romanino-repeater-social" class="romanino-repeater">
+                    <?php foreach ( $footer['social_links'] as $i => $social ) : ?>
+                        <div class="romanino-repeater-row romanino-repeater-row-social">
+                            <input type="text" name="social_links[<?php echo (int) $i; ?>][title]" placeholder="عنوان، مثلا: تلگرام" value="<?php echo esc_attr( $social['title'] ?? '' ); ?>">
+                            <input type="text" name="social_links[<?php echo (int) $i; ?>][url]" placeholder="آدرس لینک (اجباری)" value="<?php echo esc_attr( $social['url'] ?? '' ); ?>">
+                            <div class="romanino-media-field">
+                                <input type="text" class="romanino-media-url" name="social_links[<?php echo (int) $i; ?>][icon]" placeholder="آدرس آیکون" value="<?php echo esc_attr( $social['icon'] ?? '' ); ?>" readonly>
+                                <img class="romanino-media-preview" src="<?php echo esc_url( $social['icon'] ?? '' ); ?>" style="<?php echo ! empty( $social['icon'] ) ? '' : 'display:none;'; ?>">
+                                <button type="button" class="button romanino-upload-logo">انتخاب آیکون</button>
+                            </div>
+                            <button type="button" class="button romanino-remove-row">حذف</button>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <button type="button" class="button button-secondary" id="romanino-add-social">+ افزودن شبکه اجتماعی</button>
             </div>
 
             <div class="romanino-box">
@@ -554,7 +694,22 @@ function romanino_render_options_page() {
 
             <div class="romanino-box">
                 <h2>۵. دانلود اپلیکیشن</h2>
+                <p class="description">
+                    عنوان «اپلیکیشن رمانینو» و متن تبلیغاتی زیر آن از فوتر حذف شدند.
+                    تا وقتی تیک زیر را نزنید، کل این ستون در فوتر نمایش داده نمی‌شود؛
+                    هر دکمه‌ی فروشگاه هم فقط در صورتی رندر می‌شود که لینکش را پر کرده باشید.
+                </p>
                 <table class="form-table">
+                    <tr>
+                        <th>نمایش داده شود؟</th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="app_enabled" value="1" <?php checked( $footer['app_enabled'], 1 ); ?>>
+                                بخش «دانلود اپلیکیشن» در فوتر نمایش داده شود
+                            </label>
+                            <p class="description">وقتی اپلیکیشن منتشر شد، این تیک را بزنید.</p>
+                        </td>
+                    </tr>
                     <tr>
                         <th><label for="app_google">لینک Google Play</label></th>
                         <td><input type="text" id="app_google" name="app_google" class="large-text" value="<?php echo esc_attr( $footer['app_google'] ); ?>"></td>
@@ -616,7 +771,9 @@ function romanino_render_options_page() {
             <p><button type="submit" name="romanino_save_footer" value="1" class="button button-primary button-hero">ذخیره تنظیمات فوتر</button></p>
         </form>
 
-        <?php elseif ( $tab === 'header' ) : ?>
+        </div>
+
+        <div class="romanino-tab-panel" data-romanino-panel="header"<?php echo $tab === 'header' ? '' : ' hidden'; ?>>
 
         <form method="post" class="romanino-admin-form">
             <?php wp_nonce_field( 'romanino_header_nonce', 'romanino_header_nonce_field' ); ?>
@@ -650,7 +807,9 @@ function romanino_render_options_page() {
 
         <?php // FIX (Task 1.5 + 2.1): تب‌های «هدر (رمان‌های ویژه)» و «صفحه اصلی (رمان‌های پرطرفدار)» طبق درخواست کاملاً حذف شدند — دیگر انتخاب دستی امکان‌پذیر نیست. ?>
 
-        <?php elseif ( $tab === 'sidebar' ) : ?>
+        </div>
+
+        <div class="romanino-tab-panel" data-romanino-panel="sidebar"<?php echo $tab === 'sidebar' ? '' : ' hidden'; ?>>
 
         <form method="post" class="romanino-admin-form">
             <?php wp_nonce_field( 'romanino_sidebar_nonce', 'romanino_sidebar_nonce_field' ); ?>
@@ -684,7 +843,9 @@ function romanino_render_options_page() {
             <p><button type="submit" name="romanino_save_sidebar" value="1" class="button button-primary button-hero">ذخیره باکس اعتماد</button></p>
         </form>
 
-        <?php elseif ( $tab === 'faq' ) : ?>
+        </div>
+
+        <div class="romanino-tab-panel" data-romanino-panel="faq"<?php echo $tab === 'faq' ? '' : ' hidden'; ?>>
 
         <form method="post" class="romanino-admin-form">
             <?php wp_nonce_field( 'romanino_faq_nonce', 'romanino_faq_nonce_field' ); ?>
@@ -705,7 +866,9 @@ function romanino_render_options_page() {
             <p><button type="submit" name="romanino_save_faq" value="1" class="button button-primary button-hero">ذخیره سوالات متداول</button></p>
         </form>
 
-        <?php elseif ( $tab === 'myaccount' ) : ?>
+        </div>
+
+        <div class="romanino-tab-panel" data-romanino-panel="myaccount"<?php echo $tab === 'myaccount' ? '' : ' hidden'; ?>>
 
         <form method="post" class="romanino-admin-form">
             <?php wp_nonce_field( 'romanino_myaccount_nonce', 'romanino_myaccount_nonce_field' ); ?>
@@ -730,9 +893,9 @@ function romanino_render_options_page() {
             <p><button type="submit" name="romanino_save_myaccount" value="1" class="button button-primary button-hero">ذخیره تنظیمات پیشخوان</button></p>
         </form>
 
-        <?php endif; ?>
+        </div>
 
-        <?php if ( $tab === 'sms' ) : ?>
+        <div class="romanino-tab-panel" data-romanino-panel="sms"<?php echo $tab === 'sms' ? '' : ' hidden'; ?>>
 
         <form method="post" class="romanino-admin-form">
             <?php wp_nonce_field( 'romanino_sms_nonce', 'romanino_sms_nonce_field' ); ?>
@@ -773,7 +936,7 @@ function romanino_render_options_page() {
             <p><button type="submit" name="romanino_save_sms" value="1" class="button button-primary button-hero">ذخیره تنظیمات پیامک</button></p>
         </form>
 
-        <?php endif; ?>
+        </div>
     </div>
     <?php
 }

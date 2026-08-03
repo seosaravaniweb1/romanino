@@ -87,7 +87,19 @@ $romanino_plan_colors = romanino_plan_color_map();
             <!-- برند و توضیحات -->
             <div class="col-span-2 md:col-span-4 lg:col-span-4">
                 <div class="mb-4">
-                    <?php if ( has_custom_logo() ) : the_custom_logo(); else : ?>
+                    <?php
+                    /* FIX (لوگوی بزرگ در فوتر): the_custom_logo() قبلاً بدون هیچ
+                       wrapper صدا زده می‌شد. وردپرس لوگو را همیشه در اندازه‌ی
+                       «full» چاپ می‌کند — آرگومان‌های height/width در
+                       add_theme_support فقط راهنمای برش در سفارشی‌ساز هستند و
+                       سقف خروجی نیستند — پس یک فایل ۱۵۰۰ پیکسلی عیناً با همان
+                       عرض رندر می‌شد. هدر از قبل کلاس محافظ
+                       .romanino-site-logo داشت ولی فوتر از قلم افتاده بود.
+                       سقف اینجا ۲۰۰×۱۰۰ پیکسل است (assets/css/tailwind-src.css). */
+                    ?>
+                    <?php if ( has_custom_logo() ) : ?>
+                        <div class="romanino-footer-logo"><?php the_custom_logo(); ?></div>
+                    <?php else : ?>
                         <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="flex items-center gap-2">
                             <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#eab308]/15 text-[#eab308] ring-1 ring-[#eab308]/40">
                                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
@@ -100,18 +112,44 @@ $romanino_plan_colors = romanino_plan_color_map();
                     <?php echo esc_html( $romanino_footer_opts['footer_description'] ); ?>
                 </p>
 
-                <div class="mt-6 flex items-center gap-3">
-                    <?php if ( ! empty( $romanino_footer_opts['social_instagram'] ) ) : ?>
-                    <a href="<?php echo esc_url( $romanino_footer_opts['social_instagram'] ); ?>" target="_blank" rel="nofollow noopener" aria-label="اینستاگرام رمانینو" class="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-300 transition-all duration-150 hover:border-[#eab308]/40 hover:text-[#eab308] hover:shadow-[0_0_16px_-4px_rgba(234,179,8,0.5)]">
-                        <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="0.6" fill="currentColor" stroke="none"/></svg>
+                <?php
+                /* شبکه‌های اجتماعی — تکرارشونده و کاملاً اختیاری.
+                   قبلاً دو آیکون ثابت (اینستاگرام/تلگرام) با SVG هاردکد بود.
+                   حالا مدیر سایت هر تعداد لینک با آیکون دلخواه اضافه می‌کند و
+                   اگر هیچ ردیفی نباشد، کل این بلوک رندر نمی‌شود. */
+                $romanino_socials = array_filter(
+                    (array) ( $romanino_footer_opts['social_links'] ?? array() ),
+                    static function ( $item ) {
+                        return ! empty( $item['url'] );
+                    }
+                );
+                ?>
+                <?php if ( $romanino_socials ) : ?>
+                <div class="mt-6 flex flex-wrap items-center gap-3">
+                    <?php foreach ( $romanino_socials as $romanino_social ) :
+                        $romanino_social_title = trim( (string) ( $romanino_social['title'] ?? '' ) );
+                        $romanino_social_icon  = trim( (string) ( $romanino_social['icon'] ?? '' ) );
+                        $romanino_social_label = $romanino_social_title !== ''
+                            ? $romanino_social_title
+                            : 'شبکه اجتماعی';
+                    ?>
+                    <a href="<?php echo esc_url( $romanino_social['url'] ); ?>"
+                        target="_blank" rel="nofollow noopener"
+                        title="<?php echo esc_attr( $romanino_social_label ); ?>"
+                        aria-label="<?php echo esc_attr( $romanino_social_label ); ?>"
+                        class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/[0.04] text-slate-300 transition-all duration-150 hover:border-[#eab308]/40 hover:text-[#eab308] hover:shadow-[0_0_16px_-4px_rgba(234,179,8,0.5)]">
+                        <?php if ( $romanino_social_icon ) : ?>
+                            <img src="<?php echo esc_url( $romanino_social_icon ); ?>"
+                                alt="<?php echo esc_attr( $romanino_social_label ); ?>"
+                                class="h-5 w-5 object-contain" loading="lazy" width="20" height="20" />
+                        <?php else : ?>
+                            <?php // آیکون پیش‌فرض «لینک» برای ردیف‌هایی که تصویر انتخاب نشده ?>
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                        <?php endif; ?>
                     </a>
-                    <?php endif; ?>
-                    <?php if ( ! empty( $romanino_footer_opts['social_telegram'] ) ) : ?>
-                    <a href="<?php echo esc_url( $romanino_footer_opts['social_telegram'] ); ?>" target="_blank" rel="nofollow noopener" aria-label="تلگرام رمانینو" class="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-300 transition-all duration-150 hover:border-[#06b6d4]/40 hover:text-[#06b6d4] hover:shadow-[0_0_16px_-4px_rgba(6,182,212,0.5)]">
-                        <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-                    </a>
-                    <?php endif; ?>
+                    <?php endforeach; ?>
                 </div>
+                <?php endif; ?>
             </div>
 
             <!-- ستون لینک ۱: درباره رمانینو -->
@@ -194,40 +232,69 @@ $romanino_plan_colors = romanino_plan_color_map();
                 </div>
             </div>
 
+            <?php
+            /* ستون «دانلود اپلیکیشن».
+               FIX: عنوان هاردکد «اپلیکیشن رمانینو» و متن تبلیغاتی زیر آن
+               («رمان‌هات رو نصب کن و همه‌جا همراه داشته باش…») طبق درخواست
+               مالک سایت حذف شدند.
+               همچنین کل ستون پشت یک تیک نمایش رفت: تا وقتی اپلیکیشنی منتشر
+               نشده، این بخش اصلاً رندر نمی‌شود. قبلاً هر سه دکمه همیشه دیده
+               می‌شدند و اگر لینکشان خالی بود به /app/ می‌رفتند — صفحه‌ای که
+               وجود ندارد، یعنی سه لینک ۴۰۴ در فوترِ هر صفحه‌ی سایت. */
+            $romanino_app_stores = array();
+            if ( ! empty( $romanino_footer_opts['app_enabled'] ) ) {
+                $romanino_app_stores = array_filter( array(
+                    'google' => array(
+                        'url'   => $romanino_footer_opts['app_google'] ?? '',
+                        'label' => 'Google Play',
+                        'color' => '#10b981',
+                        'icon'  => '<path d="M3 3.5c0-.4.22-.77.58-.94.35-.18.77-.13 1.08.11l12.1 8.5c.28.2.44.51.44.83s-.16.64-.44.83l-12.1 8.5a1.06 1.06 0 0 1-1.08.11A1.05 1.05 0 0 1 3 20.5v-17Z"/>',
+                        'fill'  => true,
+                    ),
+                    'bazaar' => array(
+                        'url'   => $romanino_footer_opts['app_bazaar'] ?? '',
+                        'label' => 'کافه بازار',
+                        'color' => '#eab308',
+                        'icon'  => '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/>',
+                        'fill'  => false,
+                    ),
+                    'myket' => array(
+                        'url'   => $romanino_footer_opts['app_myket'] ?? '',
+                        'label' => 'مایکت',
+                        'color' => '#06b6d4',
+                        'icon'  => '<rect x="4" y="2" width="16" height="20" rx="3"/><path d="M12 18h.01"/>',
+                        'fill'  => false,
+                    ),
+                ), static function ( $store ) {
+                    return ! empty( $store['url'] ); // دکمه‌ی بدون لینک اصلاً ساخته نمی‌شود
+                } );
+            }
+            ?>
+            <?php if ( $romanino_app_stores ) : ?>
             <!-- ستون اپلیکیشن -->
             <div class="col-span-2 md:col-span-2 lg:col-span-2">
-                <h4 class="mb-3 text-sm font-extrabold text-white">اپلیکیشن رمانینو</h4>
-                <p class="mb-4 text-xs leading-relaxed text-slate-400">رمان‌هات رو نصب کن و همه‌جا همراه داشته باش، آفلاین و بدون دردسر.</p>
                 <div class="flex flex-col gap-2.5">
-                    <a href="<?php echo esc_url( ! empty( $romanino_footer_opts['app_google'] ) ? $romanino_footer_opts['app_google'] : home_url( '/app/' ) ); ?>" class="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 transition-all duration-150 hover:border-[#10b981]/40 hover:bg-[#10b981]/10">
-                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#10b981]/15 text-[#10b981]">
-                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3.5c0-.4.22-.77.58-.94.35-.18.77-.13 1.08.11l12.1 8.5c.28.2.44.51.44.83s-.16.64-.44.83l-12.1 8.5a1.06 1.06 0 0 1-1.08.11A1.05 1.05 0 0 1 3 20.5v-17Z"/></svg>
+                    <?php foreach ( $romanino_app_stores as $romanino_store ) : ?>
+                    <a href="<?php echo esc_url( $romanino_store['url'] ); ?>" target="_blank" rel="nofollow noopener"
+                        class="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 transition-all duration-150 hover:bg-white/[0.08]"
+                        style="--rmn-store: <?php echo esc_attr( $romanino_store['color'] ); ?>;">
+                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                            style="background: <?php echo esc_attr( $romanino_store['color'] ); ?>26; color: <?php echo esc_attr( $romanino_store['color'] ); ?>;">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24"
+                                <?php echo $romanino_store['fill']
+                                    ? 'fill="currentColor"'
+                                    : 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"'; ?>
+                                aria-hidden="true"><?php echo $romanino_store['icon']; // phpcs:ignore WordPress.Security.EscapeOutput -- مسیر SVG ثابت و داخلی است ?></svg>
                         </span>
                         <span class="flex flex-col leading-tight">
                             <span class="text-[10px] text-slate-400">دانلود از</span>
-                            <span class="text-xs font-bold text-white">Google Play</span>
+                            <span class="text-xs font-bold text-white"><?php echo esc_html( $romanino_store['label'] ); ?></span>
                         </span>
                     </a>
-                    <a href="<?php echo esc_url( ! empty( $romanino_footer_opts['app_bazaar'] ) ? $romanino_footer_opts['app_bazaar'] : home_url( '/app/' ) ); ?>" class="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 transition-all duration-150 hover:border-[#eab308]/40 hover:bg-[#eab308]/10">
-                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#eab308]/15 text-[#eab308]">
-                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/></svg>
-                        </span>
-                        <span class="flex flex-col leading-tight">
-                            <span class="text-[10px] text-slate-400">دانلود از</span>
-                            <span class="text-xs font-bold text-white">کافه بازار</span>
-                        </span>
-                    </a>
-                    <a href="<?php echo esc_url( ! empty( $romanino_footer_opts['app_myket'] ) ? $romanino_footer_opts['app_myket'] : home_url( '/app/' ) ); ?>" class="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 transition-all duration-150 hover:border-[#06b6d4]/40 hover:bg-[#06b6d4]/10">
-                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#06b6d4]/15 text-[#06b6d4]">
-                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="3"/><path d="M12 18h.01"/></svg>
-                        </span>
-                        <span class="flex flex-col leading-tight">
-                            <span class="text-[10px] text-slate-400">دانلود از</span>
-                            <span class="text-xs font-bold text-white">مایکت</span>
-                        </span>
-                    </a>
+                    <?php endforeach; ?>
                 </div>
             </div>
+            <?php endif; ?>
 
         </div>
     </div>
