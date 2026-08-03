@@ -193,14 +193,37 @@ remove_action( 'wp_head', 'wp_shortlink_wp_head' );
 remove_action( 'wp_head', 'rest_output_link_wp_head' );
 remove_action( 'template_redirect', 'rest_output_link_header', 11 );
 
-/* FIX (بحرانی سئو): حذف canonical پیش‌فرض هسته‌ی وردپرس.
-   inc/seo-functions.php::romanino_canonical_url() یک canonical سفارشی برای
-   صفحه اصلی/محصول/دسته‌بندی/فروشگاه چاپ می‌کند. اما تا همین الان، اکشن
-   پیش‌فرض هسته‌ی وردپرس (rel_canonical، هوکشده روی wp_head با اولویت ۱۰)
-   هرگز غیرفعال نشده بود — یعنی روی همان صفحات، «دو» تگ
-   <link rel="canonical"> هم‌زمان چاپ می‌شد (heartbeat یکسان ولی تکرار
-   نامعتبر HTML و مبهم برای گوگل‌بات). */
-remove_action( 'wp_head', 'rel_canonical' );
+/* FIX (بحرانی سئو): این خط قبلاً بدون هیچ شرطی canonical هسته‌ی وردپرس را
+   در «کل سایت» حذف می‌کرد، در حالی که
+   inc/seo-functions.php::romanino_canonical_url() فقط برای ۴ نوع صفحه
+   (صفحه اصلی، محصول، دسته‌بندی محصول، فروشگاه) canonical می‌سازد.
+   نتیجه‌ی آن دو باگ هم‌زمان بود:
+
+     ۱) تمام صفحات دیگر — پست‌های وبلاگ، برگه‌ها، دسته/برچسب وبلاگ، آرشیو
+        برچسب محصول و مخصوصاً همه‌ی صفحات صفحه‌بندی‌شده (?paged=2) — هیچ
+        canonical‌ای نداشتند.
+     ۲) روی همان ۴ نوع صفحه، اگر افزونه‌ی سئو فعال بود، canonical آن افزونه
+        به‌علاوه‌ی canonical قالب چاپ می‌شد (دو تگ متناقض).
+
+   حالا: اگر افزونه‌ی سئو فعال است، اصلاً دست نمی‌زنیم (خودش canonical هسته
+   را حذف و نسخه‌ی خودش را چاپ می‌کند). اگر نیست، فقط روی همان صفحاتی که
+   خودمان جایگزین داریم حذف می‌کنیم تا بقیه بدون canonical نمانند.
+   اجرا روی هوک wp لازم است چون توابع شرطی (is_singular و…) قبل از آن
+   هنوز قابل استفاده نیستند. */
+add_action( 'wp', 'romanino_maybe_remove_core_canonical' );
+function romanino_maybe_remove_core_canonical(): void {
+    if ( ! function_exists( 'romanino_seo_plugin_active' ) || romanino_seo_plugin_active() ) {
+        return;
+    }
+    $has_custom_canonical = is_front_page()
+        || is_singular( 'product' )
+        || ( function_exists( 'is_product_category' ) && is_product_category() )
+        || ( function_exists( 'is_shop' ) && is_shop() );
+
+    if ( $has_custom_canonical ) {
+        remove_action( 'wp_head', 'rel_canonical' );
+    }
+}
 
 // غیرفعال‌کردن XML-RPC — نه در این قالب استفاده می‌شود و نه توسط اپ موبایلی؛
 // هم کمی سربار سرور را کم می‌کند و هم یک مسیر شناخته‌شده‌ی حمله را می‌بندد.

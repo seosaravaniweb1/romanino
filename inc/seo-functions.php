@@ -12,11 +12,54 @@
 defined( 'ABSPATH' ) || exit;
 
 /* ==========================================================================
+   ۰. سوییچ مرکزی «افزونه‌ی سئو فعال است یا نه»
+   ─────────────────────────────────────────────────────────────────────────
+   FIX (بحرانی سئو): تا الان قالب canonical، meta description، تگ‌های
+   Open Graph/Twitter و چهار نوع Schema (Organization, WebSite,
+   BreadcrumbList, CollectionPage) را «بدون قید و شرط» چاپ می‌کرد — در حالی
+   که Rank Math (که طبق کامنت functions.php روی این سایت نصب و فعال است)
+   دقیقاً همه‌ی این‌ها را خودش تولید می‌کند. نتیجه: روی هر صفحه‌ی محصول،
+   دسته‌بندی، فروشگاه و صفحه‌ی اصلی، «دو» نسخه از هر تگ چاپ می‌شد.
+
+   گوگل در حالت canonical تکراری، هر دو را نادیده می‌گیرد و خودش تصمیم
+   می‌گیرد؛ در حالت Schema تکراری هم در Search Console خطای
+   «Duplicate field» می‌دهد. هر دو حالت مستقیماً به سئو ضربه می‌زند.
+
+   حالا تمام این خروجی‌ها فقط وقتی چاپ می‌شوند که هیچ افزونه‌ی سئویی فعال
+   نباشد — یعنی قالب به‌عنوان یک fallback عمل می‌کند، نه یک منبع موازی.
+   ========================================================================== */
+
+/**
+ * آیا یک افزونه‌ی سئوی شناخته‌شده فعال است و خودش متا/اسکیما تولید می‌کند؟
+ *
+ * @return bool
+ */
+function romanino_seo_plugin_active(): bool {
+    static $active = null;
+    if ( null !== $active ) {
+        return $active;
+    }
+    $active = defined( 'RANK_MATH_VERSION' )   // Rank Math
+        || defined( 'WPSEO_VERSION' )          // Yoast SEO
+        || defined( 'SEOPRESS_VERSION' )       // SEOPress
+        || defined( 'AIOSEO_VERSION' );        // All in One SEO
+
+    /**
+     * امکان override دستی — اگر افزونه‌ی سئوی دیگری استفاده می‌کنید که در
+     * لیست بالا نیست، با این فیلتر خروجی سئوی قالب را خاموش کنید:
+     *     add_filter( 'romanino_seo_plugin_active', '__return_true' );
+     */
+    $active = (bool) apply_filters( 'romanino_seo_plugin_active', $active );
+    return $active;
+}
+
+/* ==========================================================================
    ۱. Open Graph + Twitter Card برای صفحات محصول
    ========================================================================== */
 
 add_action( 'wp_head', 'romanino_inject_og_tags', 5 );
 function romanino_inject_og_tags(): void {
+    if ( romanino_seo_plugin_active() ) return; // Rank Math خودش OG می‌سازد
     if ( ! is_singular( 'product' ) ) return;
 
     global $product;
@@ -50,6 +93,7 @@ function romanino_inject_og_tags(): void {
    ========================================================================== */
 add_action( 'wp_head', 'romanino_inject_homepage_og_tags', 5 );
 function romanino_inject_homepage_og_tags(): void {
+    if ( romanino_seo_plugin_active() ) return; // Rank Math خودش OG صفحه اصلی را می‌سازد
     if ( ! is_front_page() ) return;
 
     $title       = esc_attr( romanino_get_homepage_seo_title() );
@@ -80,6 +124,7 @@ function romanino_inject_homepage_og_tags(): void {
 
 add_action( 'wp_head', 'romanino_canonical_url', 3 );
 function romanino_canonical_url(): void {
+    if ( romanino_seo_plugin_active() ) return; // canonical توسط افزونه‌ی سئو مدیریت می‌شود
     $canonical = '';
 
     if ( is_front_page() ) {
@@ -106,6 +151,7 @@ function romanino_canonical_url(): void {
    ========================================================================== */
 add_action( 'wp_head', 'romanino_homepage_hreflang', 4 );
 function romanino_homepage_hreflang(): void {
+    if ( romanino_seo_plugin_active() ) return; // hreflang توسط افزونه‌ی سئو مدیریت می‌شود
     if ( ! is_front_page() ) return;
     $url = esc_url( home_url( '/' ) );
     echo '<link rel="alternate" hreflang="fa-ir" href="' . $url . '" />' . "\n";
@@ -148,6 +194,7 @@ function romanino_seo_document_title_parts( array $title ): array {
 // چاپ واقعی <meta name="description"> — قبلاً این تگ در کل قالب چاپ نمی‌شد.
 add_action( 'wp_head', 'romanino_meta_description_tag', 2 );
 function romanino_meta_description_tag(): void {
+    if ( romanino_seo_plugin_active() ) return; // meta description توسط افزونه‌ی سئو تولید می‌شود
     $description = '';
 
     if ( is_front_page() ) {
@@ -182,8 +229,17 @@ function romanino_product_page_title( string $title ): string {
    ۴. Sitemap اختصاصی رمان‌ها (بدون نیاز به پلاگین)
    ========================================================================== */
 
+/* FIX (سئو + پرفورمنس): سایت‌مپ اختصاصی قالب فقط وقتی فعال می‌شود که هیچ
+   افزونه‌ی سئویی نصب نباشد. دلیل:
+   ۱) با Rank Math فعال، سه سایت‌مپ موازی برای یک مجموعه URL وجود داشت
+      (هسته‌ی وردپرس + Rank Math + قالب) که فقط بودجه‌ی خزش را هدر می‌دهد.
+   ۲) نسخه‌ی قالب صفحه‌بندی ندارد: برای ۱۲٬۰۰۰ محصول، ۲۴ بار WP_Query
+      به‌علاوه‌ی ۱۲٬۰۰۰ فراخوانی wc_get_product() در یک ریکوئست انجام
+      می‌دهد که تقریباً قطعاً به max_execution_time یا memory_limit می‌خورد.
+   افزونه‌های سئو هر دو مشکل را با سایت‌مپ صفحه‌بندی‌شده و کش‌شده حل کرده‌اند. */
 add_action( 'init', 'romanino_register_sitemap_rewrite' );
 function romanino_register_sitemap_rewrite(): void {
+    if ( romanino_seo_plugin_active() ) return;
     add_rewrite_rule( '^sitemap-novels\.xml$', 'index.php?romanino_sitemap=novels', 'top' );
     add_rewrite_rule( '^sitemap-authors\.xml$', 'index.php?romanino_sitemap=authors', 'top' );
     add_rewrite_rule( '^sitemap-categories\.xml$', 'index.php?romanino_sitemap=categories', 'top' );
@@ -196,6 +252,7 @@ add_filter( 'query_vars', function( array $vars ): array {
 
 add_action( 'template_redirect', 'romanino_serve_sitemap' );
 function romanino_serve_sitemap(): void {
+    if ( romanino_seo_plugin_active() ) return;
     $type = get_query_var( 'romanino_sitemap' );
     if ( ! $type ) return;
 
@@ -293,8 +350,13 @@ function romanino_add_sitemap_to_robots( string $output, bool $public ): string 
     // FIX: مسیر واسط دانلود رایگان نباید کراول شود — نه ارزش سئویی دارد و نه
     // باید بودجه‌ی خزش را مصرف کند (هر بازدید گوگل‌بات یک ریدایرکت است).
     $output .= "\nDisallow: /dl/\n";
-    $output .= "\nSitemap: " . home_url( '/sitemap-novels.xml' ) . "\n";
-    $output .= "Sitemap: " . home_url( '/sitemap-categories.xml' ) . "\n";
+
+    // سایت‌مپ قالب فقط وقتی معرفی می‌شود که واقعاً تولید هم بشود؛ در غیر این
+    // صورت افزونه‌ی سئو خودش سایت‌مپ خودش را به robots.txt اضافه می‌کند.
+    if ( ! romanino_seo_plugin_active() ) {
+        $output .= "\nSitemap: " . home_url( '/sitemap-novels.xml' ) . "\n";
+        $output .= "Sitemap: " . home_url( '/sitemap-categories.xml' ) . "\n";
+    }
     return $output;
 }
 
@@ -313,6 +375,7 @@ function romanino_add_sitemap_to_robots( string $output, bool $public ): string 
 
 add_action( 'wp_head', 'romanino_archive_schema' );
 function romanino_archive_schema(): void {
+    if ( romanino_seo_plugin_active() ) return; // Schema آرشیو توسط افزونه‌ی سئو تولید می‌شود
     if ( ! is_shop() && ! is_product_category() ) return;
 
     $name     = is_shop() ? get_bloginfo('name') . ' — فروشگاه رمان' : single_term_title( '', false );
@@ -337,6 +400,7 @@ function romanino_archive_schema(): void {
 
 add_action( 'wp_head', 'romanino_breadcrumb_schema' );
 function romanino_breadcrumb_schema(): void {
+    if ( romanino_seo_plugin_active() ) return; // BreadcrumbList توسط افزونه‌ی سئو تولید می‌شود
     $items = array();
 
     if ( is_product_category() ) {
@@ -407,6 +471,7 @@ function romanino_breadcrumb_schema(): void {
 
 add_action( 'wp_head', 'romanino_homepage_schema' );
 function romanino_homepage_schema(): void {
+    if ( romanino_seo_plugin_active() ) return; // Schema WebSite توسط افزونه‌ی سئو تولید می‌شود
     if ( ! is_front_page() ) return;
 
     $schema = [
@@ -458,6 +523,7 @@ function romanino_get_homepage_faqs(): array {
    ========================================================================== */
 add_action( 'wp_head', 'romanino_organization_schema' );
 function romanino_organization_schema(): void {
+    if ( romanino_seo_plugin_active() ) return; // Schema Organization توسط افزونه‌ی سئو تولید می‌شود
     if ( ! is_front_page() ) return;
 
     $logo_id  = get_theme_mod( 'custom_logo' );
@@ -515,6 +581,7 @@ function romanino_organization_schema(): void {
    ========================================================================== */
 add_action( 'wp_head', 'romanino_homepage_faq_schema' );
 function romanino_homepage_faq_schema(): void {
+    if ( romanino_seo_plugin_active() ) return; // FAQ Schema در Rank Math با بلاک FAQ ساخته می‌شود
     if ( ! is_front_page() ) return;
 
     $faqs = romanino_get_homepage_faqs();
