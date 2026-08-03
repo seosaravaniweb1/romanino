@@ -1052,6 +1052,7 @@ if ( version_compare( PHP_VERSION, ROMANINO_MIN_PHP, '<' ) ) {
     } );
 } else {
     $romanino_modules = [
+        'inc/class-romanino-nav-walker.php',
         'inc/misc-functions.php',
         'inc/sms-functions.php',
         'inc/auth-functions.php',

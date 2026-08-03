@@ -238,16 +238,19 @@
             <div class="flex items-center gap-1 text-sm font-medium text-slate-300">
                 <?php
                 if ( has_nav_menu( 'primary' ) ) :
+                    // FIX (M7): Walker ناشناس با یک کلاس واقعی در
+                    // inc/class-romanino-nav-walker.php جایگزین شد. ظاهر منو
+                    // دقیقاً مثل قبل است؛ چیزی که اضافه شده: حفظ کلاس‌های
+                    // سفارشی آیتم منو، علامت‌گذاری آیتم صفحه‌ی جاری، و
+                    // aria-current برای صفحه‌خوان‌ها.
+                    // depth=1 عمدی است: زیرشاخه‌ها در مگامنو نمایش داده
+                    // می‌شوند، نه به‌صورت دراپ‌داون روی این نوار.
                     wp_nav_menu( array(
                         'theme_location' => 'primary',
                         'container'      => false,
                         'items_wrap'     => '%3$s',
-                        'link_before'    => '',
-                        'walker'         => new class extends Walker_Nav_Menu {
-                            function start_el( &$output, $item, $depth = 0, $args = null, $id = 0 ) {
-                                $output .= '<a href="' . esc_url( $item->url ) . '" class="rounded-lg px-3 py-1.5 transition-colors duration-150 hover:bg-white/10 hover:text-[#06b6d4]">' . esc_html( $item->title ) . '</a>';
-                            }
-                        },
+                        'depth'          => 1,
+                        'walker'         => new Romanino_Nav_Walker(),
                         'fallback_cb'    => false,
                     ) );
                 else :

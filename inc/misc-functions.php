@@ -73,6 +73,47 @@ function romanino_check_rate_limit( string $action, string $identifier, int $max
 }
 
 /**
+ * ردیابی «تعداد شماره‌های متمایزی» که یک IP بررسی کرده است.
+ *
+ * سقف‌های معمول rate-limit تعداد «درخواست» را می‌شمارند و جلوی حمله‌ی شمارش
+ * حساب (account enumeration) را نمی‌گیرند: مهاجم هر شماره را فقط یک بار
+ * می‌پرسد و هیچ‌وقت به سقف نمی‌خورد. آنچه شمارش را لو می‌دهد، «تنوع» است نه
+ * «تکرار» — پس همان را می‌شماریم.
+ *
+ * پیاده‌سازی عمداً سبک است: به‌جای نگه‌داشتن خود شماره‌ها، فقط هش کوتاه آن‌ها
+ * ذخیره می‌شود (بدون داده‌ی شخصی) و کل مجموعه در یک ترنزینت جا می‌شود.
+ *
+ * @param string $ip          آی‌پی درخواست‌دهنده
+ * @param string $phone       شماره‌ی بررسی‌شده
+ * @param int    $max_distinct حداکثر شماره‌ی متمایز مجاز در پنجره‌ی زمانی
+ * @param int    $window      طول پنجره بر حسب ثانیه
+ * @return bool true یعنی از سقف رد شده و باید بلاک شود
+ */
+function romanino_track_distinct_phone_lookups( string $ip, string $phone, int $max_distinct, int $window ): bool {
+    $key  = 'romanino_enum_' . md5( $ip );
+    $seen = get_transient( $key );
+    if ( ! is_array( $seen ) ) {
+        $seen = array();
+    }
+
+    $fingerprint = substr( md5( $phone ), 0, 8 );
+
+    // شماره‌ای که قبلاً از همین IP پرسیده شده، «تنوع» جدید محسوب نمی‌شود
+    // (کاربر واقعی که چند بار تلاش می‌کند نباید بلاک شود).
+    if ( in_array( $fingerprint, $seen, true ) ) {
+        return false;
+    }
+
+    if ( count( $seen ) >= $max_distinct ) {
+        return true;
+    }
+
+    $seen[] = $fingerprint;
+    set_transient( $key, $seen, $window );
+    return false;
+}
+
+/**
  * پاک‌کردن شمارنده‌ی rate-limit پس از یک عملیات موفق (نسخه‌ی v2).
  * معادل romanino_clear_rate_limit() است ولی روی کلیدهای romanino_rl2_ کار
  * می‌کند — یعنی همان کلیدهایی که romanino_check_rate_limit() می‌سازد.
@@ -465,21 +506,97 @@ function romanino_render_category_tag_author_tabs( string $id_prefix, string $la
             </button>
         <?php endforeach; ?>
     </div>
+    <?php
+    // زیردسته‌ها فقط برای تب «دسته‌بندی» و فقط یک‌بار خوانده می‌شوند (کش‌شده).
+    $subcats_map = romanino_get_product_subcategories_map( 12 );
+    ?>
     <?php foreach ( $panels as $key => $panel ) : ?>
         <div id="<?php echo esc_attr( $id_prefix ); ?>-tabpanel-<?php echo esc_attr( $key ); ?>"
             class="romanino-tax-tabpanel-<?php echo esc_attr( $id_prefix ); ?> <?php echo $wrap_class; ?> <?php echo $key === 'cat' ? '' : 'hidden'; ?>">
             <?php if ( ! empty( $panel['terms'] ) ) : ?>
-                <?php foreach ( $panel['terms'] as $term ) : ?>
-                    <a href="<?php echo esc_url( get_term_link( $term ) ); ?>" class="<?php echo $link_class; ?>">
-                        <?php echo $dot; ?>
-                        <?php echo esc_html( $term->name ); ?>
-                    </a>
+                <?php foreach ( $panel['terms'] as $term ) :
+                    $term_link = get_term_link( $term );
+                    if ( is_wp_error( $term_link ) ) {
+                        continue;
+                    }
+                    // FIX (M7): زیردسته‌ها زیر دسته‌ی والدشان در مگامنو نمایش
+                    // داده می‌شوند. ناوبری اصلی هدر عمداً تک‌سطحی می‌ماند —
+                    // طبق تصمیم مالک سایت، جای نمایش زیرشاخه‌ها مگامنوست، نه
+                    // یک دراپ‌داون روی نوار منو.
+                    $subs = ( 'cat' === $key && isset( $subcats_map[ $term->term_id ] ) )
+                        ? $subcats_map[ $term->term_id ]
+                        : array();
+                ?>
+                    <div class="<?php echo 'grid' === $layout ? '' : 'w-full'; ?>">
+                        <a href="<?php echo esc_url( $term_link ); ?>" class="<?php echo $link_class; ?>">
+                            <?php echo $dot; ?>
+                            <?php echo esc_html( $term->name ); ?>
+                        </a>
+                        <?php if ( ! empty( $subs ) ) : ?>
+                            <div class="mt-0.5 flex flex-col gap-0.5 <?php echo 'grid' === $layout ? 'pr-6' : 'pr-8'; ?>">
+                                <?php foreach ( $subs as $sub ) :
+                                    $sub_link = get_term_link( $sub );
+                                    if ( is_wp_error( $sub_link ) ) {
+                                        continue;
+                                    }
+                                ?>
+                                    <a href="<?php echo esc_url( $sub_link ); ?>"
+                                        class="truncate rounded-lg px-2 py-1 text-xs text-slate-400 transition-colors duration-150 hover:text-[#eab308]">
+                                        <?php echo esc_html( $sub->name ); ?>
+                                    </a>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
                 <?php endforeach; ?>
             <?php else : ?>
                 <span class="px-3 py-2 text-xs text-slate-500">موردی یافت نشد.</span>
             <?php endif; ?>
         </div>
     <?php endforeach;
+}
+
+/**
+ * نگاشت «شناسه‌ی دسته‌ی والد ← زیردسته‌هایش» برای مگامنو — کش‌شده.
+ *
+ * یک get_terms واحد برای همه‌ی زیردسته‌ها زده می‌شود، نه یکی به‌ازای هر والد.
+ * نتیجه در همان ترنزینتی نگه‌داری می‌شود که با افزودن/ویرایش/حذف دسته‌بندی
+ * باطل می‌شود.
+ *
+ * @param int $per_parent حداکثر زیردسته‌ی نمایش‌داده‌شده زیر هر والد
+ * @return array<int, WP_Term[]>
+ */
+function romanino_get_product_subcategories_map( int $per_parent = 12 ): array {
+    $cache_key = 'romanino_subcats_map';
+    $map       = get_transient( $cache_key );
+
+    if ( false === $map ) {
+        $map      = array();
+        $children = get_terms( array(
+            'taxonomy'   => 'product_cat',
+            'hide_empty' => true,
+            'orderby'    => 'name',
+            'number'     => 200, // سقف ایمنی برای سایت‌هایی با تعداد زیاد دسته
+        ) );
+
+        if ( ! is_wp_error( $children ) ) {
+            foreach ( $children as $child ) {
+                if ( ! $child->parent ) {
+                    continue; // فقط زیردسته‌ها
+                }
+                $map[ $child->parent ][] = $child;
+            }
+        }
+        set_transient( $cache_key, $map, HOUR_IN_SECONDS );
+    }
+
+    if ( $per_parent > 0 ) {
+        foreach ( $map as $parent_id => $subs ) {
+            $map[ $parent_id ] = array_slice( $subs, 0, $per_parent );
+        }
+    }
+
+    return (array) $map;
 }
 
 /**
@@ -844,6 +961,7 @@ function romanino_flush_top_cats_cache(): void {
     foreach ( array( 12, 20 ) as $romanino_n ) {
         delete_transient( 'romanino_top_cats_' . $romanino_n );
     }
+    delete_transient( 'romanino_subcats_map' ); // نگاشت زیردسته‌های مگامنو
 }
 
 /**
