@@ -420,15 +420,14 @@ function romanino_maybe_add_phone_meta_index(): void {
  * @param string $layout    'grid' برای مگامنوی دسکتاپ، 'list' برای منوی موبایل
  */
 function romanino_render_category_tag_author_tabs( string $id_prefix, string $layout = 'grid' ): void {
+    /* FIX (پرفورمنس): این تابع دو بار در هر صفحه صدا زده می‌شود (یک‌بار برای
+       منوی موبایل و یک‌بار برای مگامنوی دسکتاپ). قبلاً هر بار ۲ get_terms
+       بدون کش می‌زد — یعنی ۴ کوئری اضافه در «هر» صفحه‌ی سایت، و get_terms
+       مربوط به برچسب‌ها هیچ سقفی هم نداشت. حالا هر سه از توابع کش‌شده
+       می‌آیند و در نتیجه فراخوانی دوم عملاً هزینه‌ای ندارد. */
     $cats    = romanino_get_top_level_product_categories( 12 );
-    $tags    = get_terms( array( 'taxonomy' => 'product_tag', 'hide_empty' => true ) );
-    if ( is_wp_error( $tags ) ) $tags = array();
-    $brand_tax = romanino_get_brand_taxonomy();
-    $authors   = array();
-    if ( $brand_tax ) {
-        $authors = get_terms( array( 'taxonomy' => $brand_tax, 'hide_empty' => true, 'number' => 20 ) );
-        if ( is_wp_error( $authors ) ) $authors = array();
-    }
+    $tags    = romanino_get_cached_product_tags( 20 );
+    $authors = romanino_get_cached_brand_terms( 20 );
 
     $wrap_class = $layout === 'grid' ? 'grid grid-cols-4 gap-2' : 'flex flex-col gap-1';
     $link_class = $layout === 'grid'
@@ -480,8 +479,8 @@ function romanino_render_category_tag_author_tabs( string $id_prefix, string $la
  * و taxonomy-product_cat.php استفاده می‌شود.
  */
 function romanino_render_listing_filters(): void {
-    $tags = get_terms( array( 'taxonomy' => 'product_tag', 'hide_empty' => true ) );
-    if ( is_wp_error( $tags ) ) $tags = array();
+    // FIX (پرفورمنس): get_terms بدون سقف و بدون کش، روی هر بار لود آرشیو.
+    $tags = romanino_get_cached_product_tags( 20 );
 
     $attribute_taxonomies = array(
         'pa_format'      => 'فرمت رمان',
@@ -572,6 +571,177 @@ add_action( 'pre_get_posts', function ( $query ) {
         $query->set( 'tax_query', $tax_query );
     }
 } );
+
+/* ==========================================================================
+   FIX (بحرانی — پرفورمنس): بلوک‌های محصولِ صفحه اصلی/فوتر
+   ─────────────────────────────────────────────────────────────────────────
+   قبل از این تغییر، هر بار لود صفحه‌ی اصلی این کوئری‌ها زده می‌شد:
+     - ۵ WP_Query برای «پرطرفدار / جدیدترین / پرفروش / پربحث / رایگان»
+     - ۱ get_terms بدون محدودیت روی product_tag، و سپس «یک WP_Query کامل
+       به ازای هر برچسب» (با ۴۰ برچسب یعنی ۴۰ کوئری اضافه)
+     - ۲ WP_Query دیگر در فوتر
+   جمعاً حدود ۵۰ تا ۶۰ کوئری، برای محتوایی که در ساعت‌ها تغییر نمی‌کند.
+   روی کاتالوگ ۱۲٬۰۰۰ محصولی این گلوگاه اصلی TTFB بود.
+
+   حالا همه‌ی این بلوک‌ها از یک تابع واحد و کش‌شده رد می‌شوند که:
+     - فقط شناسه (fields => ids) می‌گیرد، نه آبجکت کامل پست
+     - no_found_rows می‌گذارد تا SQL_CALC_FOUND_ROWS اضافی حذف شود
+     - کش ترم/متا را وقتی لازم نیست غیرفعال می‌کند
+     - نتیجه را در Transient نگه می‌دارد و با ذخیره‌ی هر محصول باطل می‌کند
+   ========================================================================== */
+
+/**
+ * لیست کش‌شده‌ی شناسه‌ی محصولات برای بلوک‌های ثابت صفحه اصلی و فوتر.
+ *
+ * @param string $key   شناسه‌ی یکتای بلوک (برای کلید کش)
+ * @param array  $args  آرگومان‌های اضافه‌ی WP_Query
+ * @param int    $limit تعداد محصول
+ * @param int    $ttl   طول عمر کش بر حسب ثانیه
+ * @return int[]
+ */
+function romanino_get_cached_product_ids( string $key, array $args, int $limit = 8, int $ttl = 0 ): array {
+    $ttl       = $ttl ?: 6 * HOUR_IN_SECONDS;
+    $cache_key = 'romanino_pids_' . $key . '_' . $limit;
+
+    $ids = get_transient( $cache_key );
+    if ( false !== $ids ) {
+        return (array) $ids;
+    }
+
+    $ids = get_posts( wp_parse_args( $args, array(
+        'post_type'              => 'product',
+        'post_status'            => 'publish',
+        'posts_per_page'         => $limit,
+        'fields'                 => 'ids',
+        'no_found_rows'          => true,   // حذف SQL_CALC_FOUND_ROWS
+        'ignore_sticky_posts'    => true,
+        'update_post_term_cache' => false,  // ترم‌ها در این بلوک‌ها لازم نیستند
+        'suppress_filters'       => false,
+    ) ) );
+
+    $ids = array_map( 'absint', (array) $ids );
+    set_transient( $cache_key, $ids, $ttl );
+
+    return $ids;
+}
+
+/**
+ * پاک‌سازی کش بلوک‌های محصول. با ذخیره/حذف هر محصول اجرا می‌شود تا محتوای
+ * صفحه اصلی هیچ‌وقت بیش از یک ذخیره‌سازی عقب نماند.
+ */
+function romanino_flush_product_block_cache(): void {
+    $keys = array(
+        'popular_4', 'newest_8', 'newest_4', 'bestsellers_8', 'bestsellers_4',
+        'discussed_8', 'free_8',
+    );
+    foreach ( $keys as $key ) {
+        delete_transient( 'romanino_pids_' . $key );
+    }
+    // تب‌های ژانر (کلید شامل شناسه‌ی ترم است) با هوک اختصاصی خودشان پاک می‌شوند.
+    delete_transient( 'romanino_menu_tags' );
+    delete_transient( 'romanino_menu_authors' );
+}
+add_action( 'save_post_product', 'romanino_flush_product_block_cache' );
+add_action( 'deleted_post', 'romanino_flush_product_block_cache' );
+add_action( 'woocommerce_product_set_stock_status', 'romanino_flush_product_block_cache' );
+
+/**
+ * محصولات یک برچسب (ژانر) برای تب‌های صفحه اصلی — کش‌شده به تفکیک ترم.
+ *
+ * @return int[]
+ */
+function romanino_get_genre_product_ids( int $term_id, int $limit = 5 ): array {
+    $cache_key = 'romanino_genre_' . $term_id . '_' . $limit;
+    $ids       = get_transient( $cache_key );
+
+    if ( false === $ids ) {
+        $ids = get_posts( array(
+            'post_type'              => 'product',
+            'post_status'            => 'publish',
+            'posts_per_page'         => $limit,
+            'fields'                 => 'ids',
+            'no_found_rows'          => true,
+            'ignore_sticky_posts'    => true,
+            'update_post_term_cache' => false,
+            'tax_query'              => array( array(
+                'taxonomy' => 'product_tag',
+                'field'    => 'term_id',
+                'terms'    => $term_id,
+            ) ),
+        ) );
+        $ids = array_map( 'absint', (array) $ids );
+        set_transient( $cache_key, $ids, 6 * HOUR_IN_SECONDS );
+    }
+
+    return (array) $ids;
+}
+// با ذخیره‌ی هر محصول، فقط کش برچسب‌های همان محصول باطل می‌شود.
+add_action( 'save_post_product', function ( $post_id ) {
+    $term_ids = wp_get_post_terms( (int) $post_id, 'product_tag', array( 'fields' => 'ids' ) );
+    if ( is_wp_error( $term_ids ) ) {
+        return;
+    }
+    foreach ( $term_ids as $term_id ) {
+        delete_transient( 'romanino_genre_' . (int) $term_id . '_5' );
+    }
+} );
+
+/**
+ * برچسب‌های محصول برای منو/تب‌ها — کش‌شده و محدود.
+ *
+ * @return WP_Term[]
+ */
+function romanino_get_cached_product_tags( int $number = 20 ): array {
+    $cache_key = 'romanino_menu_tags';
+    $tags      = get_transient( $cache_key );
+
+    if ( false === $tags ) {
+        $tags = get_terms( array(
+            'taxonomy'   => 'product_tag',
+            'hide_empty' => true,
+            'number'     => 20,           // FIX: قبلاً هیچ سقفی نداشت
+            'orderby'    => 'count',
+            'order'      => 'DESC',
+        ) );
+        if ( is_wp_error( $tags ) ) {
+            $tags = array();
+        }
+        set_transient( $cache_key, $tags, DAY_IN_SECONDS );
+    }
+
+    return array_slice( (array) $tags, 0, max( 1, $number ) );
+}
+
+/**
+ * ترم‌های تکسونومی برند (نویسندگان) — کش‌شده و محدود.
+ *
+ * @return WP_Term[]
+ */
+function romanino_get_cached_brand_terms( int $number = 20 ): array {
+    $taxonomy = romanino_get_brand_taxonomy();
+    if ( ! $taxonomy ) {
+        return array();
+    }
+
+    $cache_key = 'romanino_menu_authors';
+    $authors   = get_transient( $cache_key );
+
+    if ( false === $authors ) {
+        $authors = get_terms( array(
+            'taxonomy'   => $taxonomy,
+            'hide_empty' => true,
+            'number'     => 20,
+            'orderby'    => 'count',
+            'order'      => 'DESC',
+        ) );
+        if ( is_wp_error( $authors ) ) {
+            $authors = array();
+        }
+        set_transient( $cache_key, $authors, DAY_IN_SECONDS );
+    }
+
+    return array_slice( (array) $authors, 0, max( 1, $number ) );
+}
 
 /* ==========================================================================
    کش دسته‌بندی‌های سطح اول محصولات (Transient) — جلوگیری از get_terms()

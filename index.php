@@ -33,55 +33,29 @@
              را داشته‌اند نمایش داده می‌شوند. ساختار HTML/Tailwind دقیقاً همان
              قبلی (ردیف هشتگی زیر کادر جست‌وجو) حفظ شده، فقط منبع داده تغییر کرده. -->
         <?php
-        $romanino_popular_query = new WP_Query( array(
-            'post_type'      => 'product',
-            'posts_per_page' => 4,
-            'post_status'    => 'publish',
-            'meta_key'       => '_romanino_view_count',
-            'orderby'        => 'meta_value_num',
-            'order'          => 'DESC',
-            'no_found_rows'  => true,
-        ) );
+        // FIX (پرفورمنس): کوئری کش‌شده به‌جای WP_Query مستقیم در هر بار لود.
         $romanino_hashtags = array();
-        foreach ( $romanino_popular_query->posts as $romanino_p_post ) {
+        foreach ( romanino_get_cached_product_ids( 'popular', array(
+            'meta_key' => '_romanino_view_count',
+            'orderby'  => 'meta_value_num',
+            'order'    => 'DESC',
+        ), 4 ) as $romanino_p_id ) {
             $romanino_hashtags[] = array(
-                'label' => get_the_title( $romanino_p_post ),
-                'link'  => get_permalink( $romanino_p_post ),
+                'label' => get_the_title( $romanino_p_id ),
+                'link'  => get_permalink( $romanino_p_id ),
             );
         }
-        wp_reset_postdata();
-        // چون همیشه دقیقاً حداکثر ۴ محصول است، دیگر نیازی به حالت کاروسل نیست.
-        $romanino_hashtags_is_carousel = false;
         ?>
         <?php if ( ! empty( $romanino_hashtags ) ) : ?>
         <div class="relative mx-auto mt-6 max-w-3xl px-4">
-            <?php if ( $romanino_hashtags_is_carousel ) : ?>
-                <!-- کاروسل: هر «صفحه» دقیقاً ۴ هشتگ، اسکرول افقی با اسنپ -->
-                <div class="flex items-center gap-2">
-                    <button type="button" onclick="document.getElementById('romanino-hashtag-slider').scrollBy({left: -320, behavior:'smooth'})" class="glass hidden shrink-0 rounded-full p-2 sm:flex" aria-label="قبلی">
-                        <svg class="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                    </button>
-                    <div id="romanino-hashtag-slider" class="no-scrollbar flex flex-1 snap-x snap-mandatory gap-2 overflow-x-auto" style="scrollbar-width: none; -ms-overflow-style: none;">
-                        <?php foreach ( $romanino_hashtags as $romanino_ht ) : ?>
-                            <a href="<?php echo esc_url( $romanino_ht['link'] ); ?>" class="glass inline-flex shrink-0 snap-start items-center gap-1 whitespace-nowrap rounded-full px-4 py-1.5 text-xs font-bold text-[#06b6d4] transition-all duration-150 hover:glow-cyan hover:text-white">
-                                <span class="text-[#eab308]" aria-hidden="true">#</span><?php echo esc_html( $romanino_ht['label'] ); ?>
-                            </a>
-                        <?php endforeach; ?>
-                    </div>
-                    <button type="button" onclick="document.getElementById('romanino-hashtag-slider').scrollBy({left: 320, behavior:'smooth'})" class="glass hidden shrink-0 rounded-full p-2 sm:flex" aria-label="بعدی">
-                        <svg class="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </button>
-                </div>
-            <?php else : ?>
-                <!-- ۴ محصول یا کمتر: همیشه دقیقاً در یک ردیف -->
-                <div class="flex items-center justify-center gap-2 overflow-x-auto">
-                    <?php foreach ( $romanino_hashtags as $romanino_ht ) : ?>
-                        <a href="<?php echo esc_url( $romanino_ht['link'] ); ?>" class="glass inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-4 py-1.5 text-xs font-bold text-[#06b6d4] transition-all duration-150 hover:glow-cyan hover:text-white">
-                            <span class="text-[#eab308]" aria-hidden="true">#</span><?php echo esc_html( $romanino_ht['label'] ); ?>
-                        </a>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
+            <?php // FIX (کد مرده): شاخه‌ی «کاروسل» حذف شد — شرط آن ($romanino_hashtags_is_carousel) همیشه false بود. ?>
+            <div class="flex items-center justify-center gap-2 overflow-x-auto">
+                <?php foreach ( $romanino_hashtags as $romanino_ht ) : ?>
+                    <a href="<?php echo esc_url( $romanino_ht['link'] ); ?>" class="glass inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-4 py-1.5 text-xs font-bold text-[#06b6d4] transition-all duration-150 hover:glow-cyan hover:text-white">
+                        <span class="text-[#eab308]" aria-hidden="true">#</span><?php echo esc_html( $romanino_ht['label'] ); ?>
+                    </a>
+                <?php endforeach; ?>
+            </div>
         </div>
         <?php endif; ?>
     </section>
@@ -153,28 +127,26 @@
         <!-- اسلایدر محصولات -->
         <div id="newest-slider" class="no-scrollbar -mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-2" style="scrollbar-width: none; -ms-overflow-style: none;">
             <?php
-            $newest_args = array(
-                'post_type'      => 'product',
-                'posts_per_page' => 8,
-                'orderby'        => 'date',
-                'order'          => 'DESC',
-            );
-            $newest_query = new WP_Query( $newest_args );
-            
-            if ( $newest_query->have_posts() ) :
-                while ( $newest_query->have_posts() ) : $newest_query->the_post();
-                    global $product;
+            // FIX (پرفورمنس): لیست کش‌شده به‌جای WP_Query در هر بار لود.
+            global $post, $product;
+            foreach ( romanino_get_cached_product_ids( 'newest', array(
+                'orderby' => 'date',
+                'order'   => 'DESC',
+            ), 8 ) as $romanino_new_id ) :
+                $post    = get_post( $romanino_new_id );
+                $product = wc_get_product( $romanino_new_id );
+                if ( ! $post || ! $product ) continue;
+                setup_postdata( $post );
             ?>
-                    <div class="w-44 shrink-0 snap-start md:w-52">
-                        <?php
-                        // کارت محصول مشترک: تصویر مربعی + نویسنده/مترجم + ملیت رمان + قیمت + دکمه خرید
-                        get_template_part( 'template-parts/product/book', 'card' );
-                        ?>
-                    </div>
-            <?php 
-                endwhile; 
-                wp_reset_postdata();
-            endif; 
+                <div class="w-44 shrink-0 snap-start md:w-52">
+                    <?php
+                    // کارت محصول مشترک: تصویر مربعی + نویسنده/مترجم + ملیت رمان + قیمت + دکمه خرید
+                    get_template_part( 'template-parts/product/book', 'card' );
+                    ?>
+                </div>
+            <?php
+            endforeach;
+            wp_reset_postdata();
             ?>
         </div>
     </section>
@@ -197,29 +169,18 @@
                 <div class="max-h-[400px] overflow-y-auto pl-1">
                 <ul class="flex flex-col gap-2.5">
                     <?php
-                    $bestsellers_query = new WP_Query( array('post_type' => 'product', 'posts_per_page' => 8, 'meta_key' => 'total_sales', 'orderby' => 'meta_value_num', 'order' => 'DESC') );
-                    while ( $bestsellers_query->have_posts() ) : $bestsellers_query->the_post(); global $product;
-                        $romanino_nat = romanino_get_product_nationality( get_the_ID() );
-                    ?>
-                    <li>
-                        <a href="<?php the_permalink(); ?>" class="glass flex items-center gap-2.5 rounded-xl p-2.5 transition-colors duration-100 hover:border-white/25">
-                            <div class="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg">
-                                <img src="<?php echo get_the_post_thumbnail_url(get_the_ID(), 'thumbnail') ?: wc_placeholder_img_src(); ?>" alt="<?php the_title_attribute(); ?>" class="h-full w-full object-cover" loading="lazy" />
-                            </div>
-                            <div class="min-w-0 flex-1">
-                                <h4 class="line-clamp-1 text-sm font-bold text-white"><?php the_title(); ?></h4>
-                                <p class="mt-1 flex items-center gap-1 text-[11px] text-slate-400">
-                                    <?php echo esc_html( romanino_get_book_author( get_the_ID() ) ?: 'ناشناس' ); ?>
-                                    <span aria-hidden="true">·</span>
-                                    <span><?php echo esc_html( $romanino_nat['emoji'] . ' ' . $romanino_nat['label'] ); ?></span>
-                                </p>
-                                <p class="mt-1 text-xs font-bold text-[#eab308]"><?php echo $product->get_price() ? wc_price( $product->get_price() ) : 'رایگان'; ?></p>
-                            </div>
-                            <svg class="h-4 w-4 shrink-0 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                        </a>
-                    </li>
-                    <?php endwhile; wp_reset_postdata(); ?>
-                </ul>
+                    // FIX (پرفورمنس): لیست کش‌شده به‌جای WP_Query در هر بار لود.
+                    foreach ( romanino_get_cached_product_ids( 'bestsellers', array(
+                        'meta_key' => 'total_sales',
+                        'orderby'  => 'meta_value_num',
+                        'order'    => 'DESC',
+                    ), 8 ) as $romanino_bs_id ) :
+                        get_template_part( 'template-parts/product/list', 'item', array(
+                            'product_id' => $romanino_bs_id,
+                            'accent'     => '#eab308',
+                        ) );
+                    endforeach;
+                    ?>                </ul>
                 </div>
             </div>
 
@@ -232,29 +193,16 @@
                 <div class="max-h-[400px] overflow-y-auto pl-1">
                 <ul class="flex flex-col gap-2.5">
                     <?php
-                    $discussed_query = new WP_Query( array('post_type' => 'product', 'posts_per_page' => 8, 'orderby' => 'comment_count', 'order' => 'DESC') );
-                    while ( $discussed_query->have_posts() ) : $discussed_query->the_post(); global $product;
-                        $romanino_nat = romanino_get_product_nationality( get_the_ID() );
-                    ?>
-                    <li>
-                        <a href="<?php the_permalink(); ?>" class="glass flex items-center gap-2.5 rounded-xl p-2.5 transition-colors duration-100 hover:border-white/25">
-                            <div class="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg">
-                                <img src="<?php echo get_the_post_thumbnail_url(get_the_ID(), 'thumbnail') ?: wc_placeholder_img_src(); ?>" alt="<?php the_title_attribute(); ?>" class="h-full w-full object-cover" loading="lazy" />
-                            </div>
-                            <div class="min-w-0 flex-1">
-                                <h4 class="line-clamp-1 text-sm font-bold text-white"><?php the_title(); ?></h4>
-                                <p class="mt-1 flex items-center gap-1 text-[11px] text-slate-400">
-                                    <?php echo esc_html( romanino_get_book_author( get_the_ID() ) ?: 'ناشناس' ); ?>
-                                    <span aria-hidden="true">·</span>
-                                    <span><?php echo esc_html( $romanino_nat['emoji'] . ' ' . $romanino_nat['label'] ); ?></span>
-                                </p>
-                                <p class="mt-1 text-xs font-bold text-[#06b6d4]"><?php echo $product->get_price() ? wc_price( $product->get_price() ) : 'رایگان'; ?></p>
-                            </div>
-                            <svg class="h-4 w-4 shrink-0 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                        </a>
-                    </li>
-                    <?php endwhile; wp_reset_postdata(); ?>
-                </ul>
+                    foreach ( romanino_get_cached_product_ids( 'discussed', array(
+                        'orderby' => 'comment_count',
+                        'order'   => 'DESC',
+                    ), 8 ) as $romanino_dc_id ) :
+                        get_template_part( 'template-parts/product/list', 'item', array(
+                            'product_id' => $romanino_dc_id,
+                            'accent'     => '#06b6d4',
+                        ) );
+                    endforeach;
+                    ?>                </ul>
                 </div>
             </div>
 
@@ -267,42 +215,22 @@
                 <div class="max-h-[400px] overflow-y-auto pl-1">
                 <ul class="flex flex-col gap-2.5">
                     <?php
-                    // کوئری برای دریافت محصولاتی که قیمت صفر دارند (رایگان)
-                    $free_args = array(
-                        'post_type'      => 'product',
-                        'posts_per_page' => 8,
-                        'meta_query'     => array(
-                            array(
-                                'key'     => '_price',
-                                'value'   => 0,
-                                'compare' => '=',
-                                'type'    => 'NUMERIC'
-                            )
-                        )
-                    );
-                    $free_query = new WP_Query( $free_args );
-                    while ( $free_query->have_posts() ) : $free_query->the_post();
-                        $romanino_nat = romanino_get_product_nationality( get_the_ID() );
-                    ?>
-                    <li>
-                        <a href="<?php the_permalink(); ?>" class="glass flex items-center gap-2.5 rounded-xl p-2.5 transition-colors duration-100 hover:border-[#10b981]/40">
-                            <div class="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg">
-                                <img src="<?php echo get_the_post_thumbnail_url(get_the_ID(), 'thumbnail') ?: wc_placeholder_img_src(); ?>" alt="<?php the_title_attribute(); ?>" class="h-full w-full object-cover" loading="lazy" />
-                            </div>
-                            <div class="min-w-0 flex-1">
-                                <h4 class="line-clamp-1 text-sm font-bold text-white"><?php the_title(); ?></h4>
-                                <p class="mt-1 flex items-center gap-1 text-[11px] text-slate-400">
-                                    <?php echo esc_html( romanino_get_book_author( get_the_ID() ) ?: 'ناشناس' ); ?>
-                                    <span aria-hidden="true">·</span>
-                                    <span><?php echo esc_html( $romanino_nat['emoji'] . ' ' . $romanino_nat['label'] ); ?></span>
-                                </p>
-                                <p class="mt-1 text-xs font-bold text-[#10b981]">رایگان</p>
-                            </div>
-                            <svg class="h-4 w-4 shrink-0 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                        </a>
-                    </li>
-                    <?php endwhile; wp_reset_postdata(); ?>
-                </ul>
+                    // محصولاتی که قیمتشان صفر است (رایگان) — کش‌شده.
+                    foreach ( romanino_get_cached_product_ids( 'free', array(
+                        'meta_query' => array( array(
+                            'key'     => '_price',
+                            'value'   => 0,
+                            'compare' => '=',
+                            'type'    => 'NUMERIC',
+                        ) ),
+                    ), 8 ) as $romanino_fr_id ) :
+                        get_template_part( 'template-parts/product/list', 'item', array(
+                            'product_id' => $romanino_fr_id,
+                            'accent'     => '#10b981',
+                            'force_free' => true,
+                        ) );
+                    endforeach;
+                    ?>                </ul>
                 </div>
             </div>
 
@@ -316,14 +244,13 @@
         </div>
 
         <?php
-        // FIX: طبق درخواست، این بخش دیگر بر اساس دسته‌بندی نیست — همه‌ی
-        // برچسب‌های محصول (product_tag) این‌جا فراخوانی می‌شوند و هر تب فقط
-        // ۵ محصول نشان می‌دهد (به‌جای ۴) تا باکس‌ها کمی جمع‌وجورتر باشند.
-        $tab_categories = get_terms( array(
-            'taxonomy'   => 'product_tag',
-            'hide_empty' => true,
-        ) );
-        if ( is_wp_error( $tab_categories ) ) $tab_categories = array();
+        /* FIX (بحرانی — پرفورمنس): این بخش بزرگ‌ترین گلوگاه صفحه اصلی بود.
+           get_terms قبلی هیچ سقفی نداشت و «همه‌ی» برچسب‌های محصول را می‌گرفت،
+           سپس به ازای هر برچسب یک WP_Query کامل اجرا می‌شد. با ۴۰ برچسب یعنی
+           ۴۰ کوئری اضافه و رندر شدن ۲۰۰ محصول در DOM که ۹۵٪شان hidden بودند.
+           حالا: حداکثر ۶ تب (پرمحتواترین برچسب‌ها) و هر تب از یک لیست
+           کش‌شده‌ی جداگانه پر می‌شود. */
+        $tab_categories = romanino_get_cached_product_tags( 6 );
         ?>
 
         <!-- Tab Buttons -->
@@ -340,25 +267,16 @@
             <?php foreach ( $tab_categories as $index => $cat ) : ?>
                 <div id="tab-panel-<?php echo $index; ?>" class="genre-tab-panel grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 transition-opacity duration-300 <?php echo $index === 0 ? 'block opacity-100' : 'hidden opacity-0'; ?>">
                     <?php
-                    $genre_query = new WP_Query( array(
-                        'post_type'      => 'product',
-                        'posts_per_page' => 5,
-                        'tax_query'      => array(
-                            array(
-                                'taxonomy' => 'product_tag',
-                                'field'    => 'term_id',
-                                'terms'    => $cat->term_id,
-                            )
-                        )
-                    ) );
-                    
-                    if ( $genre_query->have_posts() ) :
-                        while ( $genre_query->have_posts() ) : $genre_query->the_post(); global $product;
-                            // کارت محصول مشترک: تصویر مربعی + نویسنده/مترجم + ملیت رمان + قیمت + دکمه خرید
-                            get_template_part( 'template-parts/product/book', 'card' );
-                        endwhile; 
-                        wp_reset_postdata();
-                    endif; 
+                    global $post, $product;
+                    foreach ( romanino_get_genre_product_ids( (int) $cat->term_id, 5 ) as $romanino_gn_id ) :
+                        $post    = get_post( $romanino_gn_id );
+                        $product = wc_get_product( $romanino_gn_id );
+                        if ( ! $post || ! $product ) continue;
+                        setup_postdata( $post );
+                        // کارت محصول مشترک: تصویر مربعی + نویسنده/مترجم + ملیت رمان + قیمت + دکمه خرید
+                        get_template_part( 'template-parts/product/book', 'card' );
+                    endforeach;
+                    wp_reset_postdata();
                     ?>
                 </div>
             <?php endforeach; ?>
@@ -396,23 +314,11 @@
         
         <div class="no-scrollbar flex snap-x gap-6 overflow-x-auto pb-2 md:justify-center">
             <?php
-            $brand_taxonomy = function_exists( 'romanino_get_brand_taxonomy' )
-                ? romanino_get_brand_taxonomy()
-                : ( taxonomy_exists( 'product_brand' ) ? 'product_brand' : '' );
-            $top_brands = array();
-            if ( $brand_taxonomy ) {
-                $top_brands = get_terms(
-                    array(
-                        'taxonomy'   => $brand_taxonomy,
-                        'hide_empty' => true,
-                        'orderby'    => 'count',
-                        'order'      => 'DESC',
-                    )
-                );
-                if ( is_wp_error( $top_brands ) ) {
-                    $top_brands = array();
-                }
-            }
+            // FIX (پرفورمنس): get_terms قبلی سقف نداشت و «همه‌ی» نویسنده‌ها را
+            // می‌گرفت و رندر می‌کرد. حالا از همان لیست کش‌شده‌ی مگامنو استفاده
+            // می‌شود (۱۲ نویسنده‌ی پرکارتر) — بدون کوئری اضافه.
+            $brand_taxonomy = romanino_get_brand_taxonomy();
+            $top_brands     = romanino_get_cached_brand_terms( 12 );
             foreach ( $top_brands as $brand ) :
                 $brand_link = get_term_link( $brand, $brand_taxonomy );
                 if ( is_wp_error( $brand_link ) ) {

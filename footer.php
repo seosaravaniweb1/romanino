@@ -135,31 +135,28 @@ $romanino_plan_colors = romanino_plan_color_map();
 
                 <div id="footer-panel-latest" class="footer-tab-panel flex flex-col gap-3.5">
                     <?php
-                    $romanino_latest = new WP_Query( array(
-                        'post_type'      => 'product',
-                        'posts_per_page' => 4,
-                        'post_status'    => 'publish',
-                        'orderby'        => 'date',
-                        'order'          => 'DESC',
-                    ) );
-                    if ( $romanino_latest->have_posts() ) :
-                        while ( $romanino_latest->have_posts() ) : $romanino_latest->the_post();
-                            global $product;
-                            $product = wc_get_product( get_the_ID() );
+                    // FIX (پرفورمنس): لیست کش‌شده به‌جای WP_Query در فوترِ «هر» صفحه‌ی سایت.
+                    $romanino_latest_ids = romanino_get_cached_product_ids( 'newest', array(
+                        'orderby' => 'date',
+                        'order'   => 'DESC',
+                    ), 4 );
+                    if ( $romanino_latest_ids ) :
+                        foreach ( $romanino_latest_ids as $romanino_f_id ) :
+                            $product = wc_get_product( $romanino_f_id );
                             if ( ! $product ) continue;
                             ?>
-                            <a href="<?php the_permalink(); ?>" class="group flex items-center gap-3" title="<?php the_title_attribute(); ?>">
+                            <a href="<?php echo esc_url( get_permalink( $romanino_f_id ) ); ?>" class="group flex items-center gap-3" title="<?php echo esc_attr( $product->get_name() ); ?>">
                                 <span class="block h-14 w-10 shrink-0 overflow-hidden rounded-md bg-white/5 ring-1 ring-white/10">
-                                    <?php if ( has_post_thumbnail() ) : ?>
-                                        <?php the_post_thumbnail( 'thumbnail', array( 'class' => 'h-full w-full object-cover transition-transform duration-300 group-hover:scale-110' ) ); ?>
+                                    <?php if ( has_post_thumbnail( $romanino_f_id ) ) : ?>
+                                        <?php echo get_the_post_thumbnail( $romanino_f_id, 'thumbnail', array( 'class' => 'h-full w-full object-cover transition-transform duration-300 group-hover:scale-110' ) ); ?>
                                     <?php endif; ?>
                                 </span>
                                 <span class="min-w-0">
-                                    <span class="line-clamp-2 block text-xs font-bold leading-relaxed text-slate-200 transition-colors duration-150 group-hover:text-[#eab308]"><?php the_title(); ?></span>
-                                    <span class="mt-1 block text-[11px] font-bold text-[#eab308]"><?php echo $product->get_price_html() ?: 'رایگان'; ?></span>
+                                    <span class="line-clamp-2 block text-xs font-bold leading-relaxed text-slate-200 transition-colors duration-150 group-hover:text-[#eab308]"><?php echo esc_html( $product->get_name() ); ?></span>
+                                    <span class="mt-1 block text-[11px] font-bold text-[#eab308]"><?php echo wp_kses_post( $product->get_price_html() ?: 'رایگان' ); ?></span>
                                 </span>
                             </a>
-                        <?php endwhile; wp_reset_postdata();
+                        <?php endforeach;
                     else :
                         echo '<p class="text-xs text-slate-500">فعلا محصولی ثبت نشده است.</p>';
                     endif;
@@ -168,32 +165,28 @@ $romanino_plan_colors = romanino_plan_color_map();
 
                 <div id="footer-panel-bestseller" class="footer-tab-panel hidden flex-col gap-3.5">
                     <?php
-                    $romanino_best = new WP_Query( array(
-                        'post_type'      => 'product',
-                        'posts_per_page' => 4,
-                        'post_status'    => 'publish',
-                        'meta_key'       => 'total_sales',
-                        'orderby'        => 'meta_value_num',
-                        'order'          => 'DESC',
-                    ) );
-                    if ( $romanino_best->have_posts() ) :
-                        while ( $romanino_best->have_posts() ) : $romanino_best->the_post();
-                            global $product;
-                            $product = wc_get_product( get_the_ID() );
+                    $romanino_best_ids = romanino_get_cached_product_ids( 'bestsellers', array(
+                        'meta_key' => 'total_sales',
+                        'orderby'  => 'meta_value_num',
+                        'order'    => 'DESC',
+                    ), 4 );
+                    if ( $romanino_best_ids ) :
+                        foreach ( $romanino_best_ids as $romanino_f_id ) :
+                            $product = wc_get_product( $romanino_f_id );
                             if ( ! $product ) continue;
                             ?>
-                            <a href="<?php the_permalink(); ?>" class="group flex items-center gap-3" title="<?php the_title_attribute(); ?>">
+                            <a href="<?php echo esc_url( get_permalink( $romanino_f_id ) ); ?>" class="group flex items-center gap-3" title="<?php echo esc_attr( $product->get_name() ); ?>">
                                 <span class="block h-14 w-10 shrink-0 overflow-hidden rounded-md bg-white/5 ring-1 ring-white/10">
-                                    <?php if ( has_post_thumbnail() ) : ?>
-                                        <?php the_post_thumbnail( 'thumbnail', array( 'class' => 'h-full w-full object-cover transition-transform duration-300 group-hover:scale-110' ) ); ?>
+                                    <?php if ( has_post_thumbnail( $romanino_f_id ) ) : ?>
+                                        <?php echo get_the_post_thumbnail( $romanino_f_id, 'thumbnail', array( 'class' => 'h-full w-full object-cover transition-transform duration-300 group-hover:scale-110' ) ); ?>
                                     <?php endif; ?>
                                 </span>
                                 <span class="min-w-0">
-                                    <span class="line-clamp-2 block text-xs font-bold leading-relaxed text-slate-200 transition-colors duration-150 group-hover:text-[#eab308]"><?php the_title(); ?></span>
-                                    <span class="mt-1 block text-[11px] font-bold text-[#eab308]"><?php echo $product->get_price_html() ?: 'رایگان'; ?></span>
+                                    <span class="line-clamp-2 block text-xs font-bold leading-relaxed text-slate-200 transition-colors duration-150 group-hover:text-[#eab308]"><?php echo esc_html( $product->get_name() ); ?></span>
+                                    <span class="mt-1 block text-[11px] font-bold text-[#eab308]"><?php echo wp_kses_post( $product->get_price_html() ?: 'رایگان' ); ?></span>
                                 </span>
                             </a>
-                        <?php endwhile; wp_reset_postdata();
+                        <?php endforeach;
                     else :
                         echo '<p class="text-xs text-slate-500">فعلا آمار فروشی ثبت نشده است.</p>';
                     endif;
