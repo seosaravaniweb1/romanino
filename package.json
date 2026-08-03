@@ -1,0 +1,13 @@
+{
+  "name": "romanino-theme",
+  "private": true,
+  "version": "1.0.0",
+  "description": "بیلد لوکال Tailwind برای قالب اختصاصی رمانینو",
+  "scripts": {
+    "build:css": "tailwindcss -i ./assets/css/tailwind-src.css -o ./assets/css/tailwind-build.css --minify",
+    "watch:css": "tailwindcss -i ./assets/css/tailwind-src.css -o ./assets/css/tailwind-build.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.19"
+  }
+}

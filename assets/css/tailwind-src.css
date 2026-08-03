@@ -1,0 +1,245 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   منبع اصلی استایل رمانینو — تنها منبعِ حقیقتِ رنگ‌ها و کلاس‌های سفارشی.
+   قبلاً این متغیرها و کلاس‌ها به‌طور تکراری هم در header.php و هم در
+   page-login.php کپی شده بودند (با مقادیر کمی متفاوت!). از این به بعد
+   فقط همین‌جا تعریف می‌شوند و همه‌ی صفحات (چه معمولی چه مستقل مثل
+   page-login.php) از طریق یک فایل CSS کامپایل‌شده به آن‌ها دسترسی دارند.
+   ───────────────────────────────────────────────────────────────────────── */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────────────────────────────────
+   فونت اختصاصی قالب — ایران‌سنس (self-hosted، بدون وابستگی به CDN گوگل)
+   ۴ وزن: Regular(400) / Medium(500) / Bold(700) / Black(900)
+   فایل‌ها از قبل woff2 هستند (سبک‌ترین فرمت وب)، پس فقط همین یک src کافیست.
+   ───────────────────────────────────────────────────────────────────────── */
+@font-face {
+	font-family: 'IRANSansWeb';
+	src: url('../fonts/IRANSansWeb-Regular.woff2') format('woff2');
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'IRANSansWeb';
+	src: url('../fonts/IRANSansWeb-Medium.woff2') format('woff2');
+	font-weight: 500;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'IRANSansWeb';
+	src: url('../fonts/IRANSansWeb-Bold.woff2') format('woff2');
+	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'IRANSansWeb';
+	src: url('../fonts/IRANSansWeb-Black.woff2') format('woff2');
+	font-weight: 800 900;
+	font-style: normal;
+	font-display: swap;
+}
+
+:root {
+	color-scheme: dark;
+	--background: #0b0514;
+	--foreground: #f8fafc;
+	--card: rgba(15, 7, 38, 0.75);
+	--popover: #0f0726;
+	--primary: #eab308;
+	--primary-foreground: #1a1206;
+	--gold: #eab308;
+	--cyan-glow: #06b6d4;
+	--emerald-glow: #10b981;
+	--secondary: rgba(255, 255, 255, 0.06);
+	--secondary-foreground: #f8fafc;
+	--muted: rgba(255, 255, 255, 0.05);
+	--muted-foreground: #94a3b8;
+	--accent: rgba(255, 255, 255, 0.08);
+	--accent-foreground: #f8fafc;
+	--border: rgba(255, 255, 255, 0.1);
+	--input: rgba(255, 255, 255, 0.08);
+	--ring: #eab308;
+	--destructive: #ef4444;
+	--destructive-foreground: #fef2f2;
+	--radius: 1rem;
+}
+
+body {
+	background-color: var(--background);
+	color: var(--foreground);
+	font-family: 'IRANSansWeb', Tahoma, system-ui, sans-serif;
+	margin: 0;
+	padding: 0;
+}
+
+/* استفاده‌شده در چند تمپلیت (مثل content-single.php) برای اطمینان از فونت،
+   حتی اگر عنصر بیرون از جریان طبیعی وراثت فونت body قرار گرفته باشد. */
+.rmn-font {
+	font-family: 'IRANSansWeb', Tahoma, system-ui, sans-serif;
+}
+
+/* جلوگیری از استایل‌های پیش‌فرض مرورگر برای سرچ */
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button {
+	display: none;
+}
+
+.glass {
+	background-color: rgba(15, 7, 38, 0.6);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+}
+
+.glow-gold {
+	box-shadow: 0 0 24px -6px rgba(234, 179, 8, 0.45);
+}
+.hover\:glow-gold:hover {
+	box-shadow: 0 0 25px -2px rgba(234, 179, 8, 0.5);
+	border-color: rgba(234, 179, 8, 0.4);
+}
+
+.glow-cyan {
+	box-shadow: 0 0 24px -6px rgba(6, 182, 212, 0.45);
+}
+.hover\:glow-cyan:hover {
+	box-shadow: 0 0 20px -4px rgba(6, 182, 212, 0.5);
+	border-color: rgba(6, 182, 212, 0.3);
+}
+
+.glow-emerald {
+	box-shadow: 0 0 24px -6px rgba(16, 185, 129, 0.5);
+}
+
+/* پیش‌تر این چند کلاس در ۴ فایل جدا (index.php، footer.php،
+   content-desktop.php، content-mobile.php) کپی‌شده و هرکدام کمی متفاوت
+   بودند — الان فقط همین‌جا تعریف می‌شوند. */
+
+.glass-box {
+	background-color: rgba(15, 7, 38, 0.6);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+}
+
+@keyframes rmn-glow {
+	0%, 100% { box-shadow: 0 0 18px 0 rgba(234, 179, 8, 0.35); }
+	50% { box-shadow: 0 0 32px 4px rgba(234, 179, 8, 0.55); }
+}
+.rmn-cta {
+	animation: rmn-glow 2.6s ease-in-out infinite;
+	transition: transform 0.2s, filter 0.2s;
+}
+.rmn-cta:hover {
+	transform: translateY(-2px);
+	filter: brightness(1.08);
+}
+
+@keyframes rmn-float {
+	0%, 100% { transform: translateY(0); }
+	50% { transform: translateY(-6px); }
+}
+.rmn-badge-float {
+	animation: rmn-float 3.2s ease-in-out infinite;
+}
+
+.rmn-hover-lift {
+	transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+}
+.rmn-hover-lift:hover {
+	transform: translateY(-4px);
+	border-color: rgba(234, 179, 8, 0.4) !important;
+}
+
+.footer-tab-btn {
+	color: #94a3b8;
+}
+.footer-tab-btn.is-active {
+	background: #eab308;
+	color: #0f0726;
+}
+
+@keyframes marquee-rtl {
+	from { transform: translateX(0); }
+	to { transform: translateX(50%); }
+}
+.animate-marquee {
+	animation: marquee-rtl 30s linear infinite;
+	display: flex;
+	width: max-content;
+}
+.animate-marquee:hover {
+	animation-play-state: paused;
+}
+.marquee-mask {
+	mask-image: linear-gradient(to left, transparent, black 8%, black 92%, transparent);
+	-webkit-mask-image: linear-gradient(to left, transparent, black 8%, black 92%, transparent);
+}
+
+.no-scrollbar {
+	scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+	display: none;
+}
+
+/* FIX (Task 1.3 — سوییچ روشن/تاریک): نسخه‌ی منبع همان قانون‌های اضافه‌شده
+   به tailwind-build.css؛ اگر روزی build دوباره اجرا شود، این بخش هم باید
+   با آن هماهنگ باشد (این فایل توسط فرآیند build بازتولید می‌شود، پس این
+   بلوک را عیناً هم به‌عنوان مرجع نگه می‌داریم). */
+html.light #romanino-theme-toggle,
+html.light #cart-open-btn {
+	color: #b45309;
+	background-color: rgba(234, 179, 8, 0.12);
+}
+html.light #romanino-theme-toggle:hover,
+html.light #cart-open-btn:hover {
+	color: #92400e;
+	background-color: rgba(234, 179, 8, 0.22);
+}
+html.light #cart-open-btn .cart-count-badge {
+	background-color: #f59e0b;
+	color: #1c1917;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   FIX (لوگوی بزرگ روی هدر): علاوه بر تنظیم height/width در
+   add_theme_support('custom-logo') (که سایز پیش‌فرض خروجی وردپرس را کنترل
+   می‌کند)، این قانون یک سقف مطلق و تدافعی هم اضافه می‌کند تا صرف‌نظر از
+   ابعاد واقعی فایل آپلودشده توسط مدیر سایت، لوگو هرگز نتواند ارتفاع ردیف
+   هدر (که ~۴rem/64px است) را بشکند یا از هدر بیرون بزند.
+   ───────────────────────────────────────────────────────────────────────── */
+.romanino-site-logo {
+	display: flex;
+	align-items: center;
+	max-height: 2.5rem; /* هم‌راستا با h-9/h-10 المان‌های دیگر همین ردیف هدر */
+}
+.romanino-site-logo img,
+.romanino-site-logo .custom-logo {
+	max-height: 2.5rem;
+	width: auto;
+	height: auto;
+	object-fit: contain;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   FIX (سبد خرید بازِ پیش‌فرض): کشوی سبد (#cart-drawer) با کلاس
+   «-translate-x-full» باید پیش‌فرض بیرون از صفحه (سمت چپ) پنهان باشد.
+   این قانون یک fallback تدافعی است: حتی اگر به هر دلیلی (مثلاً build
+   ناقص Tailwind که پیش از این باعث اصل باگ شده بود) آن یوتیلیتی از
+   CSS نهایی جا بیفتد، این قانون با specificity بالاتر از یوتیلیتی‌های
+   عادی Tailwind، مطمئن می‌شود کشو همیشه پیش‌فرض بسته (خارج از دید) است.
+   خودِ mini-cart.js با remove/add کردن همین کلاس روی <aside>، باز/بسته
+   شدن واقعی را کنترل می‌کند و این قانون مزاحم آن رفتار نمی‌شود.
+   ───────────────────────────────────────────────────────────────────────── */
+#cart-drawer.-translate-x-full {
+	transform: translateX(-100%);
+}
+#cart-overlay.hidden {
+	display: none;
+}
