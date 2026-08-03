@@ -189,6 +189,218 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 
 /* ═════════════════════════════════════════════════════════════════════════
+   نقد و بررسی محصول — بازطراحی UI فرم و لیست
+   ─────────────────────────────────────────────────────────────────────────
+   قالب‌های مربوطه: woocommerce/single-product-reviews.php و
+   woocommerce/single-product/review.php
+   ویجت انتخاب امتیاز همان ویجت استاندارد ووکامرس است (p.stars که با
+   wc-single-product.js ساخته می‌شود)؛ اینجا فقط بزرگ‌تر و طلایی می‌شود.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.romanino-reviews { color: var(--on-surface-3); }
+
+/* ── خلاصه‌ی امتیاز بالای لیست ── */
+.romanino-review-summary {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	padding: 1rem 1.25rem;
+	margin-bottom: 1.25rem;
+	border: 1px solid var(--hairline);
+	border-radius: 1rem;
+	background: var(--tint-2);
+}
+.romanino-review-summary__score {
+	display: flex;
+	align-items: baseline;
+	gap: 0.25rem;
+	padding-left: 1rem;
+	border-left: 1px solid var(--hairline);
+}
+.romanino-review-summary__score strong {
+	font-size: 2rem;
+	font-weight: 900;
+	color: #eab308;
+	line-height: 1;
+}
+.romanino-review-summary__score span { font-size: 0.75rem; color: var(--on-surface-muted); }
+.romanino-review-summary__meta { display: flex; flex-direction: column; gap: 0.35rem; }
+.romanino-review-summary__count { font-size: 0.75rem; color: var(--on-surface-muted); }
+
+/* ── لیست نقدها ── */
+.romanino-review-list { list-style: none; margin: 0; padding: 0; }
+.romanino-review { margin-bottom: 0.85rem; }
+.romanino-review .children { list-style: none; margin: 0.85rem 1.5rem 0 0; padding: 0; }
+
+.romanino-review__container {
+	display: flex;
+	gap: 0.85rem;
+	padding: 1rem;
+	border: 1px solid var(--hairline);
+	border-radius: 1rem;
+	background: var(--tint-1);
+	transition: border-color 0.2s;
+}
+.romanino-review__container:hover { border-color: rgba(234, 179, 8, 0.3); }
+
+.romanino-review__avatar img {
+	width: 44px;
+	height: 44px;
+	border-radius: 999px;
+	border: 1px solid var(--hairline);
+}
+.romanino-review__body { flex: 1; min-width: 0; }
+.romanino-review__head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem;
+	margin-bottom: 0.5rem;
+}
+.romanino-review__author { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.romanino-review__author strong { color: var(--on-surface); font-size: 0.875rem; }
+.romanino-review__date { font-size: 0.7rem; color: var(--on-surface-faint); }
+.romanino-review__text { font-size: 0.875rem; line-height: 2; color: var(--on-surface-3); }
+.romanino-review__text p:last-child { margin-bottom: 0; }
+.romanino-review__pending { font-size: 0.8rem; color: var(--on-surface-muted); }
+
+.romanino-review-empty {
+	padding: 1.25rem;
+	border-radius: 0.75rem;
+	background: var(--tint-2);
+	text-align: center;
+	font-size: 0.875rem;
+	color: var(--on-surface-muted);
+}
+.romanino-review-pagination ol,
+.romanino-review-pagination ul { display: flex; gap: 0.4rem; justify-content: center; list-style: none; padding: 0; }
+.romanino-review-pagination a,
+.romanino-review-pagination span {
+	display: flex; align-items: center; justify-content: center;
+	min-width: 2rem; height: 2rem; padding: 0 0.6rem;
+	border: 1px solid var(--hairline); border-radius: 0.6rem;
+	font-size: 0.8rem; color: var(--on-surface-3); text-decoration: none;
+}
+.romanino-review-pagination .current { background: #eab308; color: #1a1206; border-color: #eab308; font-weight: 700; }
+
+/* ── فرم ثبت نقد ── */
+.romanino-review-form {
+	margin-top: 1.5rem;
+	padding: 1.25rem;
+	border: 1px solid var(--hairline);
+	border-radius: 1rem;
+	background: var(--tint-2);
+}
+.romanino-review-form__title {
+	display: block;
+	font-size: 1rem;
+	font-weight: 800;
+	color: var(--on-surface);
+	margin-bottom: 1rem;
+}
+.romanino-review-form .comment-reply-title small { font-size: 0.75rem; font-weight: 400; margin-right: 0.5rem; }
+
+.romanino-field { margin-bottom: 0.9rem; }
+.romanino-field label {
+	display: block;
+	margin-bottom: 0.4rem;
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: var(--on-surface-2);
+}
+.romanino-field .required { color: #f87171; }
+.romanino-field__hint { margin: -0.5rem 0 0.9rem; font-size: 0.7rem; color: var(--on-surface-faint); }
+
+.romanino-review-form input[type="text"],
+.romanino-review-form input[type="email"],
+.romanino-review-form textarea {
+	width: 100%;
+	padding: 0.7rem 0.9rem;
+	border: 1px solid var(--hairline);
+	border-radius: 0.75rem;
+	background: var(--surface-input);
+	color: var(--on-surface);
+	font-family: inherit;
+	font-size: 0.875rem;
+	line-height: 1.9;
+	outline: none;
+	transition: border-color 0.15s, box-shadow 0.15s;
+}
+.romanino-review-form textarea { resize: vertical; min-height: 7rem; }
+.romanino-review-form input[type="text"]:focus,
+.romanino-review-form input[type="email"]:focus,
+.romanino-review-form textarea:focus {
+	border-color: rgba(234, 179, 8, 0.6);
+	box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.15);
+}
+.romanino-review-form ::placeholder { color: var(--on-surface-faint); }
+
+/* دو ستون شدن نام و ایمیل روی صفحه‌های بزرگ‌تر */
+@media (min-width: 640px) {
+	.romanino-review-form .comment-form-author,
+	.romanino-review-form .comment-form-email {
+		display: inline-block;
+		width: calc(50% - 0.45rem);
+		vertical-align: top;
+	}
+	.romanino-review-form .comment-form-author { margin-left: 0.8rem; }
+}
+
+/* ── ویجت انتخاب امتیاز (p.stars ساخته‌شده توسط ووکامرس) ── */
+.romanino-rating-field { margin-bottom: 0.9rem; }
+.romanino-rating-field > label {
+	display: block;
+	margin-bottom: 0.4rem;
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: var(--on-surface-2);
+}
+.romanino-rating-field .required { color: #f87171; }
+
+.romanino-review-form p.stars {
+	display: inline-flex;
+	gap: 0.15rem;
+	margin: 0 0 0.25rem;
+	font-size: 1.5rem;
+	line-height: 1;
+}
+.romanino-review-form p.stars a {
+	color: var(--on-surface-fainter);
+	text-decoration: none;
+	transition: color 0.12s, transform 0.12s;
+}
+.romanino-review-form p.stars a:hover { transform: scale(1.12); }
+.romanino-review-form p.stars:hover a,
+.romanino-review-form p.stars.selected a.active,
+.romanino-review-form p.stars.selected a:not(.active) { color: #eab308; }
+.romanino-review-form p.stars.selected a.active ~ a { color: var(--on-surface-fainter); }
+
+/* ── دکمه ثبت ── */
+.romanino-review-form .romanino-review-submit,
+.romanino-review-form input[type="submit"] {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0.8rem 1.75rem;
+	border: 0;
+	border-radius: 0.85rem;
+	background: #eab308;
+	color: #1a1206;
+	font-family: inherit;
+	font-size: 0.875rem;
+	font-weight: 800;
+	cursor: pointer;
+	transition: filter 0.15s, transform 0.15s, box-shadow 0.15s;
+	box-shadow: 0 6px 18px -8px rgba(234, 179, 8, 0.8);
+}
+.romanino-review-form .romanino-review-submit:hover,
+.romanino-review-form input[type="submit"]:hover {
+	filter: brightness(1.08);
+	transform: translateY(-1px);
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
    حالت روشن (Light Mode) — معماری مبتنی بر CSS Variables
    ─────────────────────────────────────────────────────────────────────────
    مسئله‌ی نسخه‌ی قبلی: سوییچ روشن/تاریک فقط رنگ دو دکمه‌ی هدر را عوض می‌کرد.

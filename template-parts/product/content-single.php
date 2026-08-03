@@ -10,8 +10,12 @@
  * - یک ساختار DOM واحد؛ چیدمان با گرید ۱۲ ستونه‌ی Tailwind در lg+ به دو
  *   ستونه تبدیل می‌شود (`lg:grid-cols-12`) و در موبایل یک‌ستونه می‌ماند.
  * - ترتیب المان‌ها با `order` و `lg:order-none` جابه‌جا می‌شود، نه با تکرار
- *   HTML؛ در موبایل ابتدا عنوان (H1) و سپس تصویر/باکس‌خرید می‌آید؛ در
- *   دسکتاپ عنوان و محتوا در ستون چپ و تصویر در ستون راست (چسبان) می‌ماند.
+ *   HTML. ترتیب موبایل (طبق درخواست مالک سایت):
+ *     ۱ تصویر · ۲ عنوان · ۳ قیمت · ۴ دکمه خرید · ۵ رضایت و فروش
+ *     ۶ توضیح کوتاه · ۷ تب‌ها · ۸ باکس اعتماد · ۹ محصولات مرتبط
+ *   قیمت و دکمه خرید داخل یک باکس مشترک‌اند، پس با یک order کنار هم
+ *   می‌آیند. در دسکتاپ چیدمان دو ستونه‌ی قبلی بدون هیچ تغییری برقرار است
+ *   (هر عنصر lg:order-none دارد).
  * - بخش «مشخصات / توضیحات / نظرات» یک کامپوننت تب واحد است که هم در
  *   موبایل و هم دسکتاپ کار می‌کند (به‌جای دو نسخه‌ی جدا تب/آکاردئون).
  *   این عمداً به این شکل طراحی شده چون comments_template() نباید دو بار
@@ -117,8 +121,8 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 
 			<div class="contents lg:block lg:col-span-8">
 
-			<!-- ═══ عنوان محصول — موبایل: order-1 (اول) ═══ -->
-			<header class="order-1 lg:mb-6">
+			<!-- ═══ عنوان محصول — موبایل: ۲ (بعد از تصویر) ═══ -->
+			<header class="order-2 lg:mb-6">
 				<h1 class="mb-2 text-xl font-extrabold leading-relaxed text-white lg:mb-3 lg:text-3xl">
 					<?php
 					// Phase 1 FIX (سئو): فقط H1 به‌صورت داینامیک به این قالب درمی‌آید؛
@@ -141,8 +145,8 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 				</div>
 			</header>
 
-			<!-- ═══ ستون محتوا (۸ ستون در دسکتاپ) — موبایل: order-3 (بعد از تصویر/خرید) ═══ -->
-			<div class="order-3 flex flex-col gap-5 lg:gap-6">
+			<!-- ═══ ستون محتوا (۸ ستون در دسکتاپ) — موبایل: ۶ و ۷ (توضیح کوتاه، سپس تب‌ها) ═══ -->
+			<div class="order-5 flex flex-col gap-5 lg:gap-6">
 
 				<!-- درخواست حذف اثر (برای نویسنده/ناشر/مالک اثر) — چون سیستم تیکت از قالب حذف شده، فعلاً به ایمیل مدیر سایت وصل است -->
 				<div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-red-500/25 bg-red-500/10 p-3.5 lg:p-4">
@@ -242,7 +246,7 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 						</button>
 						<button type="button" onclick="romaninoSwitchTab('reviews')" id="ptab-btn-reviews" role="tab" aria-selected="false"
 							class="flex-1 rounded-xl px-2 py-2.5 text-xs font-semibold text-slate-400 transition-all hover:text-white lg:px-4 lg:py-3 lg:text-base">
-							نظرات (<?php echo esc_html( $review_count ); ?>)
+							نقد و بررسی (<?php echo esc_html( $review_count ); ?>)
 						</button>
 					</div>
 				</nav>
@@ -293,7 +297,7 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 					</div>
 
 					<div id="ppanel-reviews" class="product-panel hidden space-y-6">
-						<h2 class="mb-4 text-base font-bold text-white lg:text-lg">نقد و بررسی‌ها و نظرات کاربران</h2>
+						<h2 class="mb-4 text-base font-bold text-white lg:text-lg">نقد و بررسی رمان توسط کاربران</h2>
 						<?php if ( $review_count === 0 ) : ?>
 							<div class="rounded-xl bg-white/5 p-5 text-center text-sm text-slate-400">هنوز نظری ثبت نشده است. اولین نفری باشید که نظر می‌دهید! ✨</div>
 						<?php endif; ?>
@@ -306,11 +310,21 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 
 			</div>
 
-			<!-- ═══ ستون تصویر/خرید (۴ ستون در دسکتاپ) — موبایل: order-2 (بعد از عنوان) ═══ -->
-			<aside class="order-2 flex flex-col gap-4 lg:sticky lg:top-4 lg:order-none lg:col-span-4 lg:gap-5">
+			<!-- ═══ ستون تصویر/خرید (۴ ستون در دسکتاپ) ═══ -->
+			<?php
+			/* FIX (ترتیب موبایل): این aside قبلاً روی موبایل یک بلوک یکپارچه بود
+			   (تصویر + آمار + باکس خرید + باکس اعتماد با هم)، پس نمی‌شد عنوان یا
+			   توضیحات را بین آن‌ها جا داد.
+			   با display:contents (کلاس «contents») روی موبایل، فرزندان این aside
+			   مستقیماً به آیتم‌های گرید والد تبدیل می‌شوند و می‌توان با order
+			   ترتیب دلخواه را ساخت. روی lg همان aside چسبانِ تک‌ستونه‌ی قبلی
+			   برمی‌گردد و چون هر فرزند lg:order-none دارد، ترتیب دسکتاپ دقیقاً
+			   مثل قبل باقی می‌ماند. */
+			?>
+			<aside class="contents lg:flex lg:flex-col lg:gap-5 lg:sticky lg:top-4 lg:col-span-4">
 
 				<!-- آمار — فقط دسکتاپ (نسخه‌ی جمع‌وجورتر موبایل پایین‌تر می‌آید) -->
-				<div class="hidden grid-cols-2 gap-4 lg:grid">
+				<div class="hidden grid-cols-2 gap-4 lg:order-none lg:grid">
 					<div class="glass-box rounded-2xl p-4 text-center">
 						<div class="text-2xl font-extrabold text-emerald-400"><?php echo esc_html( $satisfaction ); ?></div>
 						<div class="mt-1 text-xs text-slate-400">رضایت کاربران</div>
@@ -322,7 +336,8 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 				</div>
 
 				<!-- تصویر کاور -->
-				<div class="glass-box rmn-hover-lift relative overflow-hidden rounded-2xl">
+				<!-- ۱ در موبایل: تصویر محصول -->
+				<div class="order-1 glass-box rmn-hover-lift relative overflow-hidden rounded-2xl lg:order-none">
 					<?php if ( $has_discount ) : ?>
 						<span class="rmn-badge-float absolute right-3 top-3 z-10 rounded-full bg-red-500 px-3 py-1.5 text-xs font-bold text-white shadow-lg">٪<?php echo esc_html( $discount_pct ); ?> تخفیف 🔥</span>
 					<?php endif; ?>
@@ -335,7 +350,8 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 				</div>
 
 				<!-- آمار — فقط موبایل (کنار هم، زیر تصویر) -->
-				<div class="grid grid-cols-2 gap-3 lg:hidden">
+				<!-- ۵ در موبایل: رضایت کاربران و تعداد فروش -->
+				<div class="order-4 grid grid-cols-2 gap-3 lg:order-none lg:hidden">
 					<div class="glass-box rounded-xl p-3 text-center">
 						<div class="text-lg font-extrabold text-emerald-400"><?php echo esc_html( $satisfaction ); ?></div>
 						<div class="mt-0.5 text-[11px] text-slate-400">رضایت کاربران</div>
@@ -350,7 +366,8 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 				<!-- FIX (Task 3.4 — بازطراحی چیدمان، بدون حذف هیچ داده/دکمه‌ای):
 				     فاصله‌گذاری یکدست‌تر (gap-5)، جداکننده‌ی ظریف بین «قیمت» و «دکمه خرید»
 				     به‌جای چسبیدن مستقیم، و padding بزرگ‌تر برای حس تنفس بیشتر. -->
-				<div class="glass-box flex flex-col gap-5 rounded-2xl p-5 lg:p-6">
+				<!-- ۳ و ۴ در موبایل: قیمت و دکمه خرید -->
+				<div class="order-3 glass-box flex flex-col gap-5 rounded-2xl p-5 lg:order-none lg:p-6">
 					<div class="flex items-start justify-between gap-3">
 						<div>
 							<?php if ( $has_discount ) : ?>
@@ -408,7 +425,8 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 				<!-- باکس اعتماد: دسترسی مادام‌العمر، ضمانت بازگشت وجه، نماد اعتماد
 				     FIX: متن‌ها و لوگوها دیگر هاردکد نیستند — از پیشخوان → تنظیمات
 				     قالب رمانینو → تب «صفحه محصول (باکس اعتماد)» خوانده می‌شوند. -->
-				<div class="glass-box flex flex-col gap-3 rounded-2xl p-4 lg:p-5">
+				<!-- ۸ در موبایل: باکس اعتماد (دسترسی مادام‌العمر، ضمانت بازگشت وجه) -->
+				<div class="order-6 glass-box flex flex-col gap-3 rounded-2xl p-4 lg:order-none lg:p-5">
 					<?php
 					$romanino_trust_icons = [ '♾️', '🛡️', '⭐', '📚', '✅' ];
 					$romanino_trust_colors = [ 'emerald', 'cyan', 'amber', 'emerald', 'cyan' ];
@@ -447,7 +465,8 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 		</article>
 
 		<!-- محصولات مرتبط: دقیقاً ۵ محصول طبق درخواست مشتری -->
-		<section class="order-3 mt-10 lg:mt-12">
+		<!-- ۹ در موبایل: محصولات مرتبط (بعد از همه‌ی بلوک‌های بالا) -->
+		<section class="mt-10 lg:mt-12">
 			<div class="mb-4 flex items-center justify-between lg:mb-5">
 				<h2 class="text-lg font-extrabold text-white lg:text-2xl">رمان‌هایی که دیگران خریده‌اند</h2>
 				<span class="text-xs font-bold text-emerald-400 lg:text-sm">🔒 خرید امن</span>
