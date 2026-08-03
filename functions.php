@@ -1071,6 +1071,24 @@ add_action( 'after_switch_theme', function () {
     romanino_maybe_assign_login_template();
 } );
 
+/* FIX: قالب نباید تنظیمات محتوایی سایت را برای همیشه تغییر بدهد و برود.
+   romanino_maybe_assign_login_template() روی برگه‌ی «حساب کاربری» متای
+   _wp_page_template را روی page-login.php می‌گذارد. اگر مدیر سایت روزی قالب
+   را عوض کند، آن برگه به یک تمپلیت ناموجود اشاره می‌کرد و وردپرس به قالب
+   پیش‌فرض برمی‌گشت بدون اینکه کسی بفهمد چرا. این هوک آن تغییر را موقع خروج
+   از قالب پس می‌گیرد. */
+add_action( 'switch_theme', function () {
+    if ( ! function_exists( 'wc_get_page_id' ) ) {
+        return;
+    }
+    $romanino_myaccount_id = wc_get_page_id( 'myaccount' );
+    if ( $romanino_myaccount_id > 0
+        && 'page-login.php' === get_post_meta( $romanino_myaccount_id, '_wp_page_template', true ) ) {
+        delete_post_meta( $romanino_myaccount_id, '_wp_page_template' );
+    }
+    delete_option( 'romanino_login_template_assigned' );
+} );
+
 /* ==========================================================================
    ۱۴. اختصاص خودکار Template صفحه‌ی ورود به صفحه‌ی «حساب کاربری» ووکامرس
    ─────────────────────────────────────────────────────────────────────────
@@ -1089,7 +1107,12 @@ add_action( 'after_switch_theme', function () {
    قبلیِ ادمین را override نمی‌کند) تا نیازی به کار دستی نباشد. اگر
    ادمین قبلاً این تنظیم را انجام داده، این تابع هیچ تغییری نمی‌دهد.
    ========================================================================== */
-add_action( 'init', 'romanino_maybe_assign_login_template', 20 );
+/* FIX: این تابع قبلاً روی هوک init ثبت شده بود، یعنی در «هر» ریکوئست سایت
+   (فرانت، پیشخوان، هر admin-ajax، هر اجرای cron) یک get_option اضافه می‌زد
+   فقط برای اینکه بفهمد کاری ندارد. حالا فقط در دو نقطه‌ی منطقی اجرا می‌شود:
+   هنگام فعال‌سازی قالب، و یک‌بار موقع ورود به پیشخوان (برای حالتی که ووکامرس
+   بعد از قالب نصب شده باشد و در لحظه‌ی سوییچ هنوز در دسترس نبوده). */
+add_action( 'admin_init', 'romanino_maybe_assign_login_template' );
 function romanino_maybe_assign_login_template(): void {
     // فقط یک‌بار اجرا شود؛ برای اجرای مجدد کافی است آپشن زیر را حذف کنید:
     // delete_option( 'romanino_login_template_assigned' );

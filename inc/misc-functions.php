@@ -286,10 +286,11 @@ function romanino_get_book_author_link( int $product_id, string $author_name ): 
     return romanino_get_author_archive_link( $author_name );
 }
 
-/** فلاش کردن rewrite rules پس از افزودن endpoint تیکت‌ها (فقط یک‌بار پس از سوییچ تم) */
-add_action( 'after_switch_theme', function () {
-    flush_rewrite_rules();
-} );
+/* FIX (کد تکراری): هوک after_switch_theme → flush_rewrite_rules() دو بار ثبت
+   شده بود — یک‌بار اینجا و یک‌بار در functions.php. نسخه‌ی functions.php
+   نگه داشته شد چون علاوه بر flush، تخصیص تمپلیت صفحه‌ی ورود را هم انجام
+   می‌دهد. کامنت قبلی هم به «endpoint تیکت‌ها» اشاره می‌کرد که مدت‌هاست از
+   قالب حذف شده است. */
 
 /**
  * ساخت ایمیل جایگزین یکتا برای کاربرانی که ایمیل واقعی وارد نمی‌کنند.
@@ -770,10 +771,21 @@ function romanino_get_top_level_product_categories( int $number = 20 ): array {
 add_action( 'created_product_cat', 'romanino_flush_top_cats_cache' );
 add_action( 'edited_product_cat',  'romanino_flush_top_cats_cache' );
 add_action( 'delete_product_cat',  'romanino_flush_top_cats_cache' );
+/* FIX: نسخه‌ی قبلی دو کوئری DELETE مستقیم با LIKE روی جدول wp_options می‌زد.
+   دو مشکل داشت:
+   ۱) اگر یک Persistent Object Cache (Redis/Memcached) فعال باشد — که برای
+      کاتالوگ ۱۲٬۰۰۰ محصولی تقریباً الزامی است — ترنزینت‌ها اصلاً در
+      wp_options ذخیره نمی‌شوند. آن کوئری هیچ کاری نمی‌کرد و کش هرگز پاک
+      نمی‌شد؛ یعنی دسته‌بندی جدید تا یک ساعت در منو ظاهر نمی‌شد.
+   ۲) LIKE با الگوی پیشوندی روی ستون بدون ایندکس = Full Table Scan روی
+      جدولی که معمولاً بزرگ‌ترین جدول options سایت است.
+   حالا کلیدها مشخص و محدودند، پس با API خود وردپرس حذف می‌شوند — هم با
+   Object Cache کار می‌کند و هم بدون آن. */
 function romanino_flush_top_cats_cache(): void {
-    global $wpdb;
-    $wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", '\_transient\_romanino\_top\_cats\_%' ) );
-    $wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", '\_transient\_timeout\_romanino\_top\_cats\_%' ) );
+    // همان مقادیری که واقعاً در قالب فراخوانی می‌شوند (header/مگامنو و صفحه اصلی)
+    foreach ( array( 12, 20 ) as $romanino_n ) {
+        delete_transient( 'romanino_top_cats_' . $romanino_n );
+    }
 }
 
 /**

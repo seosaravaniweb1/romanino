@@ -396,8 +396,11 @@ add_action( 'admin_init', function () {
 function romanino_render_options_page() {
     if ( ! current_user_can( 'manage_options' ) ) return;
 
-    $valid_tabs = array( 'header', 'sidebar', 'faq', 'myaccount', 'sms' );
-    $tab      = isset( $_GET['tab'] ) && in_array( $_GET['tab'], $valid_tabs, true ) ? $_GET['tab'] : 'footer';
+    // FIX: 'footer' در لیست مجاز نبود و فقط چون مقدار پیش‌فرض است تصادفاً کار
+    // می‌کرد؛ اگر روزی پیش‌فرض عوض می‌شد، تب فوتر غیرقابل انتخاب می‌شد.
+    $valid_tabs   = array( 'footer', 'header', 'sidebar', 'faq', 'myaccount', 'sms' );
+    $requested    = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : '';
+    $tab          = in_array( $requested, $valid_tabs, true ) ? $requested : 'footer';
     $footer   = romanino_get_footer_options();
     $header   = romanino_get_header_options();
     $sidebar  = romanino_get_sidebar_options();
