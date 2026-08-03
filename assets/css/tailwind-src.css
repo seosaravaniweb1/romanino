@@ -188,10 +188,217 @@ input[type="search"]::-webkit-search-cancel-button {
 	display: none;
 }
 
-/* FIX (Task 1.3 — سوییچ روشن/تاریک): نسخه‌ی منبع همان قانون‌های اضافه‌شده
-   به tailwind-build.css؛ اگر روزی build دوباره اجرا شود، این بخش هم باید
-   با آن هماهنگ باشد (این فایل توسط فرآیند build بازتولید می‌شود، پس این
-   بلوک را عیناً هم به‌عنوان مرجع نگه می‌داریم). */
+/* ═════════════════════════════════════════════════════════════════════════
+   حالت روشن (Light Mode) — معماری مبتنی بر CSS Variables
+   ─────────────────────────────────────────────────────────────────────────
+   مسئله‌ی نسخه‌ی قبلی: سوییچ روشن/تاریک فقط رنگ دو دکمه‌ی هدر را عوض می‌کرد.
+   علتش این بود که بخش بزرگی از تمپلیت‌ها (هدر، فوتر، صفحه اصلی، صفحه محصول)
+   به‌جای توکن‌های قالب (bg-background / text-foreground / border-border) از
+   رنگ ثابت استفاده می‌کنند: bg-[#0b0514]، text-white، border-white/10 و…
+   این کلاس‌ها ذاتاً «تیره» هستند و هیچ متغیری پشتشان نیست.
+
+   راهکار بدون دست‌زدن به حتی یک تمپلیت (یعنی صفر ریسک برای طراحی تیره‌ی
+   فعلی که مورد تأیید است):
+
+     ۱) یک «مقیاس سطح» (surface scale) به‌صورت متغیر تعریف می‌شود که در حالت
+        تیره دقیقاً همان مقادیر فعلی را دارد.
+     ۲) زیر html.light همان متغیرها با پالت روشن بازتعریف می‌شوند.
+     ۳) یک لایه‌ی نگاشت، کلاس‌های رنگ‌ثابتِ موجود را — فقط وقتی html.light
+        فعال است — به این متغیرها وصل می‌کند.
+
+   چون هیچ قانونی خارج از html.light نوشته نشده، خروجی حالت تیره بایت‌به‌بایت
+   مثل قبل می‌ماند.
+
+   ⚠️ راه‌حل ریشه‌ای‌تر: مهاجرت آن تمپلیت‌ها از رنگ ثابت به توکن‌ها. آن‌وقت
+   این لایه‌ی نگاشت کاملاً حذف می‌شود و حالت روشن فقط چند متغیر خواهد بود.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+:root {
+	/* مقیاس سطوح — مقادیر دقیقاً همان رنگ‌های ثابتِ فعلی تمپلیت‌ها */
+	--surface-deep: #08030f;   /* نوار پایانی فوتر */
+	--surface-base: #0b0514;   /* پس‌زمینه‌ی صفحه */
+	--surface-nav: #0a0418;    /* ردیف ناوبری هدر */
+	--surface-card: #0f0726;   /* کارت‌ها و پاپ‌اوورها */
+	--surface-alt: #150a2b;    /* گرادیان نوار اشتراک فوتر */
+	--surface-input: #1a0e35;  /* پس‌زمینه‌ی ورودی‌ها */
+	--surface-input-focus: #231347;
+
+	/* مقیاس متن روی سطوح */
+	--on-surface: #ffffff;
+	--on-surface-2: #e2e8f0;   /* slate-200 */
+	--on-surface-3: #cbd5e1;   /* slate-300 */
+	--on-surface-muted: #94a3b8;   /* slate-400 */
+	--on-surface-faint: #64748b;   /* slate-500 */
+	--on-surface-fainter: #475569; /* slate-600 */
+
+	/* خطوط و لایه‌های شفاف */
+	--hairline: rgba(255, 255, 255, 0.1);
+	--hairline-soft: rgba(255, 255, 255, 0.05);
+	--tint-1: rgba(255, 255, 255, 0.03);
+	--tint-2: rgba(255, 255, 255, 0.05);
+	--tint-3: rgba(255, 255, 255, 0.1);
+
+	/* رنگ‌های برند وقتی به‌عنوان «متن» استفاده می‌شوند.
+	   روی پس‌زمینه‌ی تیره همان رنگ اصلی خواناست؛ در حالت روشن باید تیره‌تر
+	   شود وگرنه کنتراست به حد استاندارد WCAG نمی‌رسد. */
+	--brand-gold-text: #eab308;
+	--brand-cyan-text: #06b6d4;
+	--brand-emerald-text: #10b981;
+
+	--glass-bg: rgba(15, 7, 38, 0.6);
+	--glass-border: rgba(255, 255, 255, 0.1);
+}
+
+html.light {
+	color-scheme: light;
+
+	/* توکن‌های اصلی قالب */
+	--background: #f5f6fb;
+	--foreground: #0f172a;
+	--card: rgba(255, 255, 255, 0.85);
+	--popover: #ffffff;
+	--primary: #eab308;
+	--primary-foreground: #1a1206;
+	--secondary: rgba(15, 23, 42, 0.05);
+	--secondary-foreground: #0f172a;
+	--muted: rgba(15, 23, 42, 0.04);
+	--muted-foreground: #64748b;
+	--accent: rgba(15, 23, 42, 0.06);
+	--accent-foreground: #0f172a;
+	--border: rgba(15, 23, 42, 0.1);
+	--input: rgba(15, 23, 42, 0.06);
+	--ring: #ca8a04;
+	--destructive: #dc2626;
+	--destructive-foreground: #fef2f2;
+
+	/* مقیاس سطوح — نسخه‌ی روشن */
+	--surface-deep: #e9ecf4;
+	--surface-base: #f5f6fb;
+	--surface-nav: #ffffff;
+	--surface-card: #ffffff;
+	--surface-alt: #eef1f8;
+	--surface-input: #eef1f7;
+	--surface-input-focus: #e3e8f2;
+
+	/* متن روی سطوح روشن */
+	--on-surface: #0f172a;
+	--on-surface-2: #1e293b;
+	--on-surface-3: #334155;
+	--on-surface-muted: #64748b;
+	--on-surface-faint: #7c8899;
+	--on-surface-fainter: #94a3b8;
+
+	--hairline: rgba(15, 23, 42, 0.1);
+	--hairline-soft: rgba(15, 23, 42, 0.06);
+	--tint-1: rgba(15, 23, 42, 0.02);
+	--tint-2: rgba(15, 23, 42, 0.04);
+	--tint-3: rgba(15, 23, 42, 0.07);
+
+	--brand-gold-text: #a16207;    /* amber-700 — کنتراست کافی روی سفید */
+	--brand-cyan-text: #0e7490;    /* cyan-700 */
+	--brand-emerald-text: #047857; /* emerald-700 */
+
+	--glass-bg: rgba(255, 255, 255, 0.75);
+	--glass-border: rgba(15, 23, 42, 0.08);
+}
+
+/* ── کلاس‌های سفارشی قالب: به متغیر وصل می‌شوند تا هر دو حالت را بگیرند ── */
+.glass,
+.glass-box {
+	background-color: var(--glass-bg);
+	border-color: var(--glass-border);
+}
+
+html.light .footer-tab-btn { color: var(--on-surface-muted); }
+html.light .footer-tab-btn.is-active { background: #eab308; color: #1a1206; }
+
+/* سایه‌های درخشان در حالت روشن باید ملایم‌تر باشند وگرنه مثل لکه دیده می‌شوند */
+html.light .glow-gold { box-shadow: 0 4px 16px -6px rgba(234, 179, 8, 0.55); }
+html.light .glow-cyan { box-shadow: 0 4px 16px -6px rgba(6, 182, 212, 0.45); }
+html.light .glow-emerald { box-shadow: 0 4px 16px -6px rgba(16, 185, 129, 0.45); }
+html.light .rmn-cta { animation: none; box-shadow: 0 6px 18px -8px rgba(234, 179, 8, 0.7); }
+
+/* ── لایه‌ی نگاشت: کلاس‌های رنگ‌ثابتِ تمپلیت‌ها → متغیرهای بالا ────────────
+   فقط زیر html.light اعمال می‌شود، پس حالت تیره اصلاً این قوانین را نمی‌بیند. */
+
+/* پس‌زمینه‌ها */
+html.light .bg-\[\#08030f\]      { background-color: var(--surface-deep); }
+html.light .bg-\[\#0b0514\]      { background-color: var(--surface-base); }
+html.light .bg-\[\#0a0418\]      { background-color: var(--surface-nav); }
+html.light .bg-\[\#0a0418\]\/70  { background-color: rgb(255 255 255 / 0.7); }
+html.light .bg-\[\#0a0418\]\/90  { background-color: rgb(255 255 255 / 0.9); }
+html.light .bg-\[\#0f0726\]      { background-color: var(--surface-card); }
+html.light .bg-\[\#0f0726\]\/80  { background-color: rgb(255 255 255 / 0.85); }
+html.light .bg-\[\#1a0e35\]      { background-color: var(--surface-input); }
+html.light .bg-\[\#231347\]      { background-color: var(--surface-input-focus); }
+html.light .focus\:bg-\[\#231347\]:focus { background-color: var(--surface-input-focus); }
+
+/* لایه‌های شفافِ سفید — روی پس‌زمینه‌ی روشن باید تیره شوند وگرنه نامرئی‌اند */
+html.light .bg-white\/5        { background-color: var(--tint-2); }
+html.light .bg-white\/10       { background-color: var(--tint-3); }
+html.light .bg-white\/\[0\.03\] { background-color: var(--tint-1); }
+html.light .bg-white\/\[0\.04\] { background-color: var(--tint-2); }
+html.light .bg-white\/\[0\.08\] { background-color: var(--tint-3); }
+html.light .hover\:bg-white\/5:hover  { background-color: var(--tint-2); }
+html.light .hover\:bg-white\/10:hover { background-color: var(--tint-3); }
+html.light .hover\:bg-white\/\[0\.08\]:hover { background-color: var(--tint-3); }
+
+/* خطوط */
+html.light .border-white\/5  { border-color: var(--hairline-soft); }
+html.light .border-white\/10 { border-color: var(--hairline); }
+html.light .divide-white\/10 > :not([hidden]) ~ :not([hidden]) { border-color: var(--hairline); }
+html.light .bg-white\/10.h-px,
+html.light .bg-white\/10\.h-px { background-color: var(--hairline); }
+html.light .ring-white\/10 { --tw-ring-color: var(--hairline); }
+
+/* متن — استثنا: عنصری که خودش پس‌زمینه‌ی رنگی دارد باید سفید بماند */
+html.light .text-white     { color: var(--on-surface); }
+html.light .text-slate-200 { color: var(--on-surface-2); }
+html.light .text-slate-300 { color: var(--on-surface-3); }
+html.light .text-slate-400 { color: var(--on-surface-muted); }
+html.light .text-slate-500 { color: var(--on-surface-faint); }
+html.light .text-slate-600 { color: var(--on-surface-fainter); }
+html.light .hover\:text-white:hover { color: var(--on-surface); }
+
+/* دکمه‌ها/بج‌های رنگی: متن سفیدشان باید سفید بماند */
+html.light [class*="bg-red-"].text-white,
+html.light [class*="bg-emerald-"].text-white,
+html.light [class*="bg-slate-7"].text-white,
+html.light [class*="bg-\[\#eab308\]"].text-white,
+html.light [class*="bg-\[\#06b6d4\]"].text-white,
+html.light [class*="bg-primary"].text-white {
+	color: #ffffff;
+}
+
+/* رنگ‌های برند وقتی «متن» هستند */
+html.light .text-\[\#eab308\] { color: var(--brand-gold-text); }
+html.light .text-\[\#06b6d4\] { color: var(--brand-cyan-text); }
+html.light .text-\[\#10b981\] { color: var(--brand-emerald-text); }
+html.light .hover\:text-\[\#eab308\]:hover { color: var(--brand-gold-text); }
+html.light .hover\:text-\[\#06b6d4\]:hover { color: var(--brand-cyan-text); }
+html.light .group:hover .group-hover\:text-\[\#eab308\] { color: var(--brand-gold-text); }
+/* روی پس‌زمینه‌ی طلایی، متن تیره‌ی اصلی همچنان درست است — دست نمی‌زنیم */
+
+/* گرادیان نوار اشتراک فوتر */
+html.light .from-\[\#150a2b\] {
+	--tw-gradient-from: var(--surface-alt) var(--tw-gradient-from-position);
+	--tw-gradient-to: rgb(238 241 248 / 0) var(--tw-gradient-to-position);
+	--tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-stops-mid, ), var(--tw-gradient-to);
+}
+html.light .via-\[\#1a0e35\] {
+	--tw-gradient-to: rgb(238 241 247 / 0) var(--tw-gradient-to-position);
+	--tw-gradient-stops: var(--tw-gradient-from), var(--surface-input) var(--tw-gradient-via-position), var(--tw-gradient-to);
+}
+html.light .to-\[\#150a2b\] {
+	--tw-gradient-to: var(--surface-alt) var(--tw-gradient-to-position);
+}
+html.light .from-\[\#0f0726\] {
+	--tw-gradient-from: var(--surface-card) var(--tw-gradient-from-position);
+	--tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position);
+	--tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+/* هدر: سوییچ تم و آیکون سبد — همان قانون قبلی، حالا بخشی از سیستم */
 html.light #romanino-theme-toggle,
 html.light #cart-open-btn {
 	color: #b45309;
@@ -200,12 +407,20 @@ html.light #cart-open-btn {
 html.light #romanino-theme-toggle:hover,
 html.light #cart-open-btn:hover {
 	color: #92400e;
-	background-color: rgba(234, 179, 8, 0.22);
+	background-color: rgba(234, 179, 8, 0.2);
 }
 html.light #cart-open-btn .cart-count-badge {
 	background-color: #f59e0b;
 	color: #1c1917;
 }
+
+/* بلاب‌های نوری پس‌زمینه در حالت روشن آزاردهنده‌اند — کم‌رنگ می‌شوند */
+html.light .blur-3xl,
+html.light .blur-\[110px\],
+html.light .blur-\[120px\] { opacity: 0.35; }
+
+/* پنل‌های شیشه‌ای روی تصویر (اورلی گرادیان کارت محصول) عمداً تیره می‌مانند
+   تا متن روی کاور رمان همچنان خوانا باشد. */
 
 /* ─────────────────────────────────────────────────────────────────────────
    FIX (لوگوی بزرگ روی هدر): علاوه بر تنظیم height/width در

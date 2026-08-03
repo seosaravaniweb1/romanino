@@ -101,6 +101,9 @@ function romanino_get_sidebar_options() {
 /** سوالات متداول صفحه اصلی — قابل ویرایش از پیشخوان (قبلاً هاردکد در inc/seo-functions.php بود) */
 function romanino_faq_defaults() {
     return array(
+        // متن توضیحی که زیر لیست سوالات متداول در صفحه اصلی نمایش داده می‌شود.
+        // اگر خالی باشد، هیچ چیزی رندر نمی‌شود.
+        'description' => '',
         'items' => array(
             array( 'q' => 'دانلود رمان از رمانینو چگونه است؟', 'a' => 'کافی است رمان مورد نظرتان را از بین دسته‌بندی‌ها یا با جست‌وجو پیدا کنید، خرید را نهایی کنید و بلافاصله پس از پرداخت، لینک دانلود فایل PDF یا نسخه صوتی در پنل کاربری و ایمیل شما قرار می‌گیرد.' ),
             array( 'q' => 'چرا رمانینو را بهترین سایت خرید رمان می‌دانیم؟', 'a' => 'رمانینو به‌عنوان مرجع دانلود رمان، پیش از انتشار هر عنوان، کیفیت فایل و صحت متن را بررسی می‌کند و نسخه‌ی کامل و بدون حذفیات را در اختیار خریدار قرار می‌دهد.' ),
@@ -506,7 +509,10 @@ add_action( 'admin_init', function () {
             if ( '' === $q && '' === $a ) continue;
             $items[] = array( 'q' => $q, 'a' => $a );
         }
-        update_option( 'romanino_faq_options', array( 'items' => $items ) );
+        update_option( 'romanino_faq_options', array(
+            'items'       => $items,
+            'description' => wp_kses_post( wp_unslash( $_POST['faq_description'] ?? '' ) ),
+        ) );
         romanino_options_saved_redirect( 'faq', 'سوالات متداول با موفقیت ذخیره شد.' );
     }
 
@@ -862,6 +868,17 @@ function romanino_render_options_page() {
                     <?php endforeach; ?>
                 </div>
                 <button type="button" class="button button-secondary" id="romanino-add-faq">+ افزودن سوال جدید</button>
+            </div>
+
+            <div class="romanino-box">
+                <h2>توضیحات زیر سوالات متداول <span class="description">(بخش: صفحه اصلی)</span></h2>
+                <p class="description">
+                    این متن دقیقاً زیر لیست سوالات متداول در صفحه اصلی نمایش داده می‌شود — جای مناسبی برای
+                    یک جمع‌بندی کوتاه یا دعوت به تماس با پشتیبانی. تگ‌های ساده‌ی HTML
+                    (<code>&lt;b&gt;</code>، <code>&lt;a&gt;</code>، <code>&lt;br&gt;</code>) مجاز است.
+                    اگر خالی بگذارید، هیچ چیزی نمایش داده نمی‌شود.
+                </p>
+                <textarea name="faq_description" class="large-text" rows="5"><?php echo esc_textarea( $faq_opts['description'] ?? '' ); ?></textarea>
             </div>
             <p><button type="submit" name="romanino_save_faq" value="1" class="button button-primary button-hero">ذخیره سوالات متداول</button></p>
         </form>

@@ -86,7 +86,13 @@ $is_free_product  = ! $is_unavailable && romanino_is_free_product( $product );
 $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $product ) : '';
 ?>
 
-<main id="primary" dir="rtl" style="background-color:#0b0514;" class="min-h-screen w-full text-slate-200 rmn-font pb-24 lg:pb-8">
+<?php
+// FIX (دارک/لایت‌مود): رنگ پس‌زمینه قبلاً یک style اینلاین بود. استایل اینلاین
+// بالاترین اولویت را دارد و با هیچ CSS ای (به‌جز !important) قابل override
+// نیست، یعنی این صفحه در حالت روشن هم تیره می‌ماند. حالا از کلاس bg-[#0b0514]
+// استفاده می‌شود که لایه‌ی html.light می‌تواند آن را عوض کند.
+?>
+<main id="primary" dir="rtl" class="min-h-screen w-full bg-[#0b0514] text-slate-200 rmn-font pb-24 lg:pb-8">
 	<div class="mx-auto max-w-7xl px-4 py-5 lg:px-8 lg:py-8">
 
 		<!-- مسیر بازگشت — یکسان در همه‌ی سایزها -->

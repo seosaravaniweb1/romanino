@@ -215,14 +215,29 @@
                 <div class="max-h-[400px] overflow-y-auto pl-1">
                 <ul class="flex flex-col gap-2.5">
                     <?php
-                    // محصولاتی که قیمتشان صفر است (رایگان) — کش‌شده.
+                    /* رمان‌های رایگان: فقط محصولاتی که قیمتشان دقیقاً صفر است.
+                       FIX: کوئری قبلی فقط «_price = 0» با نوع NUMERIC بود.
+                       مشکل: MySQL هنگام CAST، رشته‌ی خالی را هم صفر حساب
+                       می‌کند — یعنی محصولاتی که اصلاً قیمت‌گذاری نشده‌اند
+                       (همان‌هایی که در سایت «به‌زودی» نمایش داده می‌شوند و
+                       دکمه‌شان غیرفعال است) هم در ستون «رمان‌های رایگان»
+                       ظاهر می‌شدند.
+                       شرط دوم، وجود مقدار واقعی را الزامی می‌کند. */
                     foreach ( romanino_get_cached_product_ids( 'free', array(
-                        'meta_query' => array( array(
-                            'key'     => '_price',
-                            'value'   => 0,
-                            'compare' => '=',
-                            'type'    => 'NUMERIC',
-                        ) ),
+                        'meta_query' => array(
+                            'relation' => 'AND',
+                            array(
+                                'key'     => '_price',
+                                'value'   => 0,
+                                'compare' => '=',
+                                'type'    => 'NUMERIC',
+                            ),
+                            array(
+                                'key'     => '_price',
+                                'value'   => '',
+                                'compare' => '!=',
+                            ),
+                        ),
                     ), 8 ) as $romanino_fr_id ) :
                         get_template_part( 'template-parts/product/list', 'item', array(
                             'product_id' => $romanino_fr_id,
@@ -354,6 +369,20 @@
                 </div>
             <?php endforeach; ?>
         </div>
+
+        <?php
+        // توضیحات زیر سوالات متداول — از پیشخوان → تنظیمات قالب رمانینو →
+        // تب «صفحه اصلی (سوالات متداول)» قابل ویرایش است. اگر خالی باشد،
+        // هیچ چیزی (حتی کادر خالی) رندر نمی‌شود.
+        $romanino_faq_desc = function_exists( 'romanino_get_faq_options' )
+            ? trim( (string) ( romanino_get_faq_options()['description'] ?? '' ) )
+            : '';
+        ?>
+        <?php if ( '' !== $romanino_faq_desc ) : ?>
+            <div class="glass mt-6 rounded-2xl p-5 text-sm leading-relaxed text-slate-400 md:p-6">
+                <?php echo wp_kses_post( wpautop( $romanino_faq_desc ) ); ?>
+            </div>
+        <?php endif; ?>
 
     </section>
 
