@@ -450,6 +450,136 @@
     });
   }
 
+  /* ── ۶ب-۲. دکمه‌ی «ذخیره» در نوار بالایی هدر ────────────────────────────
+     رفتار:
+       - مهمان                       → مودال پیام + دکمه‌ی ورود (بدون ریلود)
+       - لاگین‌شده روی صفحه‌ی یک رمان → ذخیره/حذف همان رمان با AJAX
+       - لاگین‌شده در بقیه‌ی صفحه‌ها   → لینک مستقیم به فهرست ذخیره‌شده‌ها
+         (این حالت اصلاً <button> نیست، پس اینجا کاری با آن نداریم)
+     منطق سرور در inc/saved-novels.php. */
+  const saveModal = document.getElementById('romanino-save-login-modal');
+
+  function openSaveLoginModal() {
+    if (!saveModal) return;
+    saveModal.classList.remove('hidden');
+    // فوکوس روی دکمه‌ی ورود تا کاربر کیبورد داخل مودال باشد
+    saveModal.querySelector('a')?.focus();
+  }
+  function closeSaveLoginModal() {
+    saveModal?.classList.add('hidden');
+  }
+
+  if (saveModal) {
+    saveModal.querySelectorAll('[data-romanino-save-modal-close]')
+      .forEach(el => el.addEventListener('click', closeSaveLoginModal));
+    // کلیک روی پس‌زمینه‌ی تیره (نه خود کادر) مودال را می‌بندد
+    saveModal.addEventListener('click', (e) => {
+      if (e.target === saveModal) closeSaveLoginModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !saveModal.classList.contains('hidden')) closeSaveLoginModal();
+    });
+  }
+
+  /** به‌روزرسانی همه‌ی شمارنده‌های «ذخیره‌شده» در صفحه */
+  function updateSavedBadges(count) {
+    document.querySelectorAll('.romanino-saved-badge').forEach(badge => {
+      badge.textContent = String(count);
+      badge.classList.toggle('hidden', !count);
+    });
+  }
+
+  const saveBtn = document.getElementById('romanino-save-btn');
+  if (saveBtn && saveBtn.tagName === 'BUTTON') {
+    saveBtn.addEventListener('click', async () => {
+      const loggedIn  = saveBtn.dataset.romaninoLoggedIn === '1';
+      const productId = parseInt(saveBtn.dataset.romaninoSaveProduct || '0', 10);
+
+      if (!loggedIn) { openSaveLoginModal(); return; }
+
+      // کاربر لاگین است ولی روی صفحه‌ی رمان نیست → برو به فهرست ذخیره‌شده‌ها
+      if (!productId) {
+        const url = saveBtn.dataset.romaninoSavedUrl;
+        if (url) location.href = url;
+        return;
+      }
+
+      const outline = saveBtn.querySelector('[data-romanino-save-outline]');
+      const filled  = saveBtn.querySelector('[data-romanino-save-filled]');
+
+      saveBtn.disabled = true;
+      try {
+        const res = await fetch(authAjax.ajaxUrl, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            action: 'romanino_toggle_saved_novel',
+            nonce: authAjax.savedNonce || '',
+            product_id: String(productId),
+          }),
+        });
+        const json = await res.json();
+
+        if (json.success) {
+          const saved = !!json.data.saved;
+          saveBtn.setAttribute('aria-pressed', saved ? 'true' : 'false');
+          saveBtn.classList.toggle('text-gold', saved);
+          saveBtn.classList.toggle('text-ink-3', !saved);
+          outline?.classList.toggle('hidden', saved);
+          filled?.classList.toggle('hidden', !saved);
+          const label = saved ? 'حذف از ذخیره‌شده‌ها' : 'ذخیره‌ی این رمان';
+          saveBtn.setAttribute('aria-label', label);
+          saveBtn.setAttribute('title', label);
+          updateSavedBadges(json.data.count);
+        } else if (json.data && json.data.require_login) {
+          // نشست وسط کار منقضی شده — همان مسیر مهمان
+          openSaveLoginModal();
+        }
+      } catch (e) {
+        /* شکست شبکه: وضعیت دکمه دست‌نخورده می‌ماند تا با وضعیت واقعی سرور
+           ناهماهنگ نشود؛ کاربر می‌تواند دوباره بزند. */
+      } finally {
+        saveBtn.disabled = false;
+      }
+    });
+  }
+
+  // حذف از فهرست، داخل صفحه‌ی «رمان‌های ذخیره‌شده» در پیشخوان کاربری
+  document.querySelectorAll('[data-romanino-unsave]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const productId = parseInt(btn.dataset.romaninoUnsave || '0', 10);
+      if (!productId) return;
+
+      btn.disabled = true;
+      btn.textContent = 'در حال حذف...';
+      try {
+        const res = await fetch(authAjax.ajaxUrl, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            action: 'romanino_toggle_saved_novel',
+            nonce: authAjax.savedNonce || '',
+            product_id: String(productId),
+          }),
+        });
+        const json = await res.json();
+
+        if (json.success && !json.data.saved) {
+          btn.closest('.glass')?.remove();
+          updateSavedBadges(json.data.count);
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'حذف از ذخیره‌ها';
+        }
+      } catch (e) {
+        btn.disabled = false;
+        btn.textContent = 'حذف از ذخیره‌ها';
+      }
+    });
+  });
+
   /* ── ۶ج. صفحه اصلی: تب‌های ژانر و آکاردئون سوالات متداول ────────────────
      FIX: قبلاً دو <script> inline جدا در index.php بودند. */
   window.switchGenreTab = function (activeIndex) {

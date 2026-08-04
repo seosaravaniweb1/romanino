@@ -41,11 +41,133 @@
 <a class="romanino-skip-link" href="#romanino-main">رفتن به محتوای اصلی</a>
 
 <header class="sticky top-0 z-50 w-full">
-    <!-- ── ROW 1: Top actions & search (Dark Glassmorphism) ── -->
-    <!-- FIX (Task 1.2): هم این ردیف و هم ردیف ۲ (ناوبری) به‌خاطر backdrop-blur-xl
-         خودشان یک stacking context جدید می‌سازند؛ چون ردیف ۲ در DOM بعد از این
-         ردیف می‌آید، بدون z-index صریح روی این ردیف، پنل کشویی زنگوله (که با
-         position:absolute از همین ردیف بیرون می‌زند) زیر ردیف ۲ پنهان می‌شد. -->
+
+    <?php
+    /* ══════════════════════════════════════════════════════════════════════
+       ROW 0 — نوار بالایی (Top Bar)
+       ──────────────────────────────────────────────────────────────────────
+       سه آیکون در بالاترین بخش هدر، به سبک نوار بالای اینستاگرام:
+       تغییر حالت شب/روز، زنگوله‌ی اطلاع‌رسانی، و ذخیره (بوکمارک).
+
+       این سه آیکون پیش‌تر (به‌جز «ذخیره» که اصلاً وجود نداشت) داخل ردیف ۱ و
+       کنار سبد خرید بودند؛ حالا به این ردیف منتقل شده‌اند تا ردیف ۱ فقط
+       لوگو + جست‌وجو + حساب کاربری + سبد خرید را نگه دارد و روی موبایل شلوغ
+       نشود.
+
+       z-index: این ردیف باید از ردیف‌های زیرینش بالاتر باشد، چون پنل کشویی
+       زنگوله با position:absolute از آن بیرون می‌زند و ردیف‌های بعدی
+       (backdrop-blur دارند) هرکدام یک stacking context جدید می‌سازند.
+       ═════════════════════════════════════════════════════════════════════ */
+    $romanino_topbar_opts = romanino_get_header_options();
+
+    // شمارنده‌ی رمان‌های ذخیره‌شده (فقط برای کاربر لاگین‌شده معنا دارد)
+    $romanino_saved_count = ( is_user_logged_in() && function_exists( 'romanino_count_saved_novels' ) )
+        ? romanino_count_saved_novels()
+        : 0;
+
+    /* اگر کاربر روی صفحه‌ی یک رمان است، دکمه‌ی ذخیره روی همان رمان عمل
+       می‌کند؛ در بقیه‌ی صفحه‌ها به فهرست ذخیره‌شده‌ها می‌رود. */
+    // get_queried_object_id() به‌جای get_the_ID(): در هدر هنوز وارد حلقه نشده‌ایم
+    // و این تابع مستقل از وضعیت حلقه، شناسه‌ی درست را می‌دهد.
+    $romanino_saved_target = ( function_exists( 'is_product' ) && is_product() && function_exists( 'romanino_saved_novels_url' ) )
+        ? (int) get_queried_object_id()
+        : 0;
+    $romanino_saved_active = ( $romanino_saved_target && is_user_logged_in() && function_exists( 'romanino_is_novel_saved' ) )
+        ? romanino_is_novel_saved( (int) $romanino_saved_target )
+        : false;
+
+    // اگر ماژول ذخیره‌سازی در دسترس نبود (مثلاً فایل حذف شده)، لینک به صفحه‌ی
+    // اصلی برمی‌گردد تا هدر با Fatal Error نیفتد.
+    $romanino_saved_url = function_exists( 'romanino_saved_novels_url' )
+        ? romanino_saved_novels_url()
+        : home_url( '/' );
+    ?>
+    <div class="relative z-50 border-b border-ink/10 bg-surface-nav/90 backdrop-blur-xl">
+        <div class="mx-auto flex h-10 max-w-7xl items-center justify-end gap-1 px-4 lg:px-8">
+
+            <!-- ۱/۳ — تغییر حالت شب/روز -->
+            <!-- کلاس «light» روی <html> اضافه/حذف می‌شود و در localStorage ذخیره
+                 می‌گردد تا انتخاب کاربر بین بازدیدها بماند. اسکریپت جلوگیری از
+                 «فلش تم اشتباه» در <head> همین فایل است. -->
+            <button type="button" id="romanino-theme-toggle" aria-label="تغییر تم روشن/تاریک" aria-pressed="false"
+                class="romanino-theme-toggle-btn relative rounded-lg p-2 text-ink-3 transition-colors duration-150 hover:bg-ink/10 hover:text-ink">
+                <svg id="romanino-theme-icon-moon" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                <svg id="romanino-theme-icon-sun" class="hidden h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            </button>
+
+            <!-- ۲/۳ — زنگوله‌ی اطلاع‌رسانی (متن از تنظیمات قالب → تب «هدر») -->
+            <div class="relative">
+                <button type="button" id="romanino-notif-btn" aria-haspopup="true" aria-expanded="false" aria-label="اطلاع‌رسانی‌ها"
+                    class="relative rounded-lg p-2 text-ink-3 transition-colors duration-150 hover:bg-ink/10 hover:text-ink">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                    <?php if ( ! empty( $romanino_topbar_opts['notification_enabled'] ) && ! empty( $romanino_topbar_opts['notification_text'] ) ) : ?>
+                    <span class="absolute left-1.5 top-1.5 flex h-2 w-2">
+                        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
+                        <span class="relative inline-flex h-2 w-2 rounded-full bg-primary"></span>
+                    </span>
+                    <?php endif; ?>
+                </button>
+                <?php if ( ! empty( $romanino_topbar_opts['notification_enabled'] ) && ! empty( $romanino_topbar_opts['notification_text'] ) ) : ?>
+                <!-- روی موبایل زیر خود دکمه وسط‌چین می‌شود و عرضش هیچ‌وقت از عرض
+                     ویوپورت بیشتر نمی‌شود؛ از sm به بالا به لبه‌ی چپ می‌چسبد. -->
+                <div id="romanino-notif-panel" class="hidden absolute left-1/2 top-full z-50 mt-2 w-[min(18rem,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl border border-primary/20 bg-surface-card p-4 text-sm leading-relaxed text-ink-2 shadow-2xl shadow-black/80 sm:left-0 sm:w-72 sm:translate-x-0">
+                    <?php echo wp_kses_post( $romanino_topbar_opts['notification_text'] ); ?>
+                </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- ۳/۳ — ذخیره (بوکمارک) -->
+            <?php
+            /* رفتار دکمه:
+               - مهمان                       → مودال پیام + دکمه‌ی ورود (بدون رفتن به صفحه‌ی دیگر)
+               - لاگین‌شده + صفحه‌ی یک رمان   → همان رمان ذخیره/حذف می‌شود (AJAX، بدون ریلود)
+               - لاگین‌شده + بقیه‌ی صفحه‌ها   → فهرست رمان‌های ذخیره‌شده
+
+               در حالت سوم عمداً از <a> استفاده می‌شود نه <button>، تا کلیک وسط
+               و «باز کردن در تب جدید» طبیعی کار کند. */
+            $romanino_saved_label = $romanino_saved_target
+                ? ( $romanino_saved_active ? 'حذف از ذخیره‌شده‌ها' : 'ذخیره‌ی این رمان' )
+                : 'رمان‌های ذخیره‌شده';
+            ?>
+            <?php if ( is_user_logged_in() && ! $romanino_saved_target ) : ?>
+                <a href="<?php echo esc_url( $romanino_saved_url ); ?>"
+                    id="romanino-save-btn"
+                    aria-label="<?php echo esc_attr( $romanino_saved_label ); ?>"
+                    title="<?php echo esc_attr( $romanino_saved_label ); ?>"
+                    class="relative rounded-lg p-2 text-ink-3 transition-colors duration-150 hover:bg-ink/10 hover:text-ink">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                    <span class="romanino-saved-badge absolute -left-0.5 -top-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-[#0f0726]<?php echo $romanino_saved_count === 0 ? ' hidden' : ''; ?>">
+                        <?php echo number_format_i18n( $romanino_saved_count ); ?>
+                    </span>
+                </a>
+            <?php else : ?>
+                <button type="button"
+                    id="romanino-save-btn"
+                    data-romanino-save-product="<?php echo esc_attr( (int) $romanino_saved_target ); ?>"
+                    data-romanino-logged-in="<?php echo is_user_logged_in() ? '1' : '0'; ?>"
+                    data-romanino-saved-url="<?php echo esc_url( $romanino_saved_url ); ?>"
+                    aria-pressed="<?php echo $romanino_saved_active ? 'true' : 'false'; ?>"
+                    aria-label="<?php echo esc_attr( $romanino_saved_label ); ?>"
+                    title="<?php echo esc_attr( $romanino_saved_label ); ?>"
+                    class="relative rounded-lg p-2 transition-colors duration-150 hover:bg-ink/10 hover:text-ink <?php echo $romanino_saved_active ? 'text-gold' : 'text-ink-3'; ?>">
+                    <!-- آیکون توخالی (ذخیره‌نشده) -->
+                    <svg data-romanino-save-outline class="h-5 w-5<?php echo $romanino_saved_active ? ' hidden' : ''; ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                    <!-- آیکون توپر (ذخیره‌شده) -->
+                    <svg data-romanino-save-filled class="h-5 w-5<?php echo $romanino_saved_active ? '' : ' hidden'; ?>" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                    <span class="romanino-saved-badge absolute -left-0.5 -top-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-[#0f0726]<?php echo $romanino_saved_count === 0 ? ' hidden' : ''; ?>">
+                        <?php echo number_format_i18n( $romanino_saved_count ); ?>
+                    </span>
+                </button>
+            <?php endif; ?>
+
+        </div>
+    </div>
+
+    <!-- ── ROW 1: لوگو + جست‌وجو + حساب کاربری + سبد خرید ── -->
+    <!-- هر سه ردیف هدر به‌خاطر backdrop-blur-xl یک stacking context جدید
+         می‌سازند؛ چون در DOM پشت‌سرهم می‌آیند، ترتیب z-index باید صریح و
+         نزولی باشد (ردیف ۰ = ۵۰، ردیف ۱ = ۴۰) وگرنه پنل کشویی زنگوله که با
+         position:absolute از ردیف ۰ بیرون می‌زند، زیر این ردیف پنهان می‌شود. -->
     <div class="relative z-40 border-b border-ink/10 bg-surface-card/80 backdrop-blur-xl">
         <div class="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-0 px-4 py-3 sm:h-16 sm:flex-nowrap sm:py-0 lg:px-8">
             
@@ -90,43 +212,13 @@
                  کردن position+z-index اینجا این مشکل را برطرف می‌کند. -->
             <div class="relative z-30 mr-auto flex shrink-0 items-center gap-2 sm:mr-0 sm:gap-4">
                 
-                <!-- Notifications: متن آن از پیشخوان → تنظیمات قالب رمانینو → تب «هدر» قابل ویرایش است -->
-                <?php $romanino_notif_opts = romanino_get_header_options(); ?>
-                <div class="relative z-30">
-                    <button type="button" id="romanino-notif-btn" aria-haspopup="true" aria-expanded="false" class="relative rounded-lg p-2 text-ink-3 transition-colors duration-150 hover:bg-ink/10 hover:text-ink">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                        <?php if ( ! empty( $romanino_notif_opts['notification_enabled'] ) && ! empty( $romanino_notif_opts['notification_text'] ) ) : ?>
-                        <span class="absolute left-1.5 top-1.5 flex h-2 w-2">
-                            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
-                            <span class="relative inline-flex h-2 w-2 rounded-full bg-primary"></span>
-                        </span>
-                        <?php endif; ?>
-                    </button>
-                    <?php if ( ! empty( $romanino_notif_opts['notification_enabled'] ) && ! empty( $romanino_notif_opts['notification_text'] ) ) : ?>
-                    <!-- FIX (Task 1.2 — سرریز موبایل): قبلاً با left-0 و عرض ثابت w-72 (۲۸۸px)
-                         روی موبایل از سمت چپ صفحه بیرون می‌زد و بریده می‌شد. حالا در موبایل
-                         (پیش‌فرض) دقیقاً زیر خود دکمه وسط‌چین می‌شود و عرضش هیچ‌وقت از
-                         عرض ویوپورت بیشتر نمی‌شود (calc(100vw-2rem))؛ از sm به بالا (دسکتاپ)
-                         دقیقاً همان چیدمان قبلی (چسبیده به left-0 با عرض ثابت) حفظ شده. -->
-                    <div id="romanino-notif-panel" class="hidden absolute left-1/2 top-full z-50 mt-2 w-[min(18rem,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl border border-primary/20 bg-surface-card p-4 text-sm leading-relaxed text-ink-2 shadow-2xl shadow-black/80 sm:left-0 sm:w-72 sm:translate-x-0">
-                        <?php echo wp_kses_post( $romanino_notif_opts['notification_text'] ); ?>
-                    </div>
-                    <?php endif; ?>
-                </div>
-
-                <!-- FIX (Task 1.3): آیکون تلفن قبلی (href="#", کاملاً غیرفعال) حذف شد؛
-                     به‌جای آن یک سوییچ روشن/تاریک واقعی و کارکردی جایگزین شده. کلاس
-                     «light» روی <html> اضافه/حذف می‌شود و در localStorage ذخیره می‌گردد
-                     تا انتخاب کاربر بین بازدیدها بماند. طبق درخواست، فقط المان‌های
-                     «حالت روشن» (خود سوییچ + آیکون سبد خرید) پالت زرد/نارنجی ملایم
-                     می‌گیرند؛ بقیه‌ی طراحی تیره‌ی سایت دست‌نخورده می‌ماند.
-                     <html class="light"> از رندر تعریف نشده؛ یعنی پیش‌فرض همان
-                     تم تیره‌ی فعلی است مگر کاربر خودش حالت روشن را انتخاب کند. -->
-                <button type="button" id="romanino-theme-toggle" aria-label="تغییر تم روشن/تاریک" aria-pressed="false"
-                    class="romanino-theme-toggle-btn relative rounded-lg p-2 text-ink-3 transition-colors duration-150 hover:bg-ink/10 hover:text-ink">
-                    <svg id="romanino-theme-icon-moon" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                    <svg id="romanino-theme-icon-sun" class="hidden h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                </button>
+                <?php
+                /* توجه: سوییچ روشن/تاریک و زنگوله‌ی اطلاع‌رسانی از این ردیف به
+                   «نوار بالایی» (ROW 0، بالای همین فایل) منتقل شده‌اند؛ اینجا
+                   فقط حساب کاربری و سبد خرید می‌ماند. شناسه‌های
+                   romanino-theme-toggle و romanino-notif-btn تغییر نکرده‌اند،
+                   پس main.js دقیقاً مثل قبل کار می‌کند. */
+                ?>
                 <?php
                 // FIX: بدون گارد function_exists، غیرفعال‌شدن (یا آپدیت) ووکامرس
                 // کل هدر و در نتیجه کل سایت را با Fatal Error می‌انداخت.
@@ -259,6 +351,15 @@
                         <svg class="h-4 w-4 shrink-0 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
                         سفارش‌های من
                     </a>
+                    <a href="<?php echo esc_url( $romanino_saved_url ); ?>" class="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-bold text-ink-2 hover:bg-ink/10 hover:text-ink">
+                        <svg class="h-4 w-4 shrink-0 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                        رمان‌های ذخیره‌شده
+                        <?php if ( $romanino_saved_count > 0 ) : ?>
+                            <span class="romanino-saved-badge mr-auto flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-bold text-[#0f0726]">
+                                <?php echo number_format_i18n( $romanino_saved_count ); ?>
+                            </span>
+                        <?php endif; ?>
+                    </a>
                 <?php endif; ?>
                 <a href="<?php echo esc_url( wp_logout_url( home_url( '/' ) ) ); ?>" class="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-bold text-ink-muted hover:bg-ink/10 hover:text-ink">
                     <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
@@ -350,6 +451,49 @@
         </div>
     </nav>
 </header>
+
+<?php
+/* ══════════════════════════════════════════════════════════════════════════
+   مودال «برای ذخیره باید وارد شوید» — فقط برای کاربر مهمان
+   ──────────────────────────────────────────────────────────────────────────
+   عمداً برای کاربر لاگین‌شده اصلاً رندر نمی‌شود تا مارکاپ بی‌مصرف به صفحه
+   اضافه نشود. آدرس ورود، redirect_to همین صفحه را دارد تا کاربر بعد از
+   ورود دقیقاً به همان رمانی که می‌خواست ذخیره کند برگردد.
+   ══════════════════════════════════════════════════════════════════════════ */
+if ( ! is_user_logged_in() ) :
+	$romanino_save_login_url = add_query_arg(
+		'redirect_to',
+		rawurlencode( ( is_ssl() ? 'https://' : 'http://' ) . wp_unslash( $_SERVER['HTTP_HOST'] ?? '' ) . wp_unslash( $_SERVER['REQUEST_URI'] ?? '/' ) ),
+		function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'myaccount' ) : wp_login_url()
+	);
+	?>
+	<div id="romanino-save-login-modal" class="hidden fixed inset-0 z-[90] flex items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-labelledby="romanino-save-login-title">
+		<div class="w-full max-w-sm rounded-2xl border border-ink/10 bg-surface-card p-6 text-center shadow-2xl">
+			<span class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-gold ring-1 ring-primary/30">
+				<svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+			</span>
+
+			<h2 id="romanino-save-login-title" class="mb-3 text-base font-extrabold text-ink">ذخیره‌ی رمان</h2>
+
+			<p class="mb-6 text-sm leading-loose text-ink-muted">
+				اگر از رمانی خوشتون میاد و می‌خواین بعداً خریدش کنین و ذخیره داشته باشین، می‌تونین اینجا ذخیره کنین اما باید ورود به سایت انجام بدید
+			</p>
+
+			<a href="<?php echo esc_url( $romanino_save_login_url ); ?>"
+				class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-bold text-[#0f0726] transition-all duration-200 hover:brightness-110">
+				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+				ورود به سایت
+			</a>
+
+			<button type="button" data-romanino-save-modal-close
+				class="mt-2 w-full rounded-xl border border-ink/10 py-3 text-sm font-semibold text-ink-2 transition-colors hover:bg-ink/5">
+				بعداً
+			</button>
+		</div>
+	</div>
+	<?php
+endif;
+?>
 
 <?php // هدف لینک «رفتن به محتوای اصلی» — tabindex=-1 تا فوکوس برنامه‌ای بگیرد ?>
 <span id="romanino-main" tabindex="-1"></span>

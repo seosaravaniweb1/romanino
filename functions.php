@@ -72,6 +72,7 @@ if ( version_compare( PHP_VERSION, ROMANINO_MIN_PHP, '<' ) ) {
         'inc/cart-functions.php',
         'inc/checkout-functions.php',
         'inc/account-functions.php',
+        'inc/saved-novels.php',
         'inc/seo-functions.php',
         'inc/theme-options.php',
     ];

@@ -61,10 +61,11 @@ function romanino_enqueue_assets(): void {
        اگر روزی خواستید مشکل کهنه‌شدن nonce در کش را حل کنید، مسیر درست
        admin-ajax است (که کوکی را عادی احراز می‌کند)، نه REST. */
     wp_localize_script( 'romanino-main', 'romanino', [
-        'ajaxUrl'   => esc_url( admin_url( 'admin-ajax.php' ) ),
-        'authNonce' => wp_create_nonce( 'romanino_auth_nonce' ),
-        'cartNonce' => wp_create_nonce( 'romanino_cart_nonce' ),
-        'homeUrl'   => esc_url( home_url( '/' ) ),
+        'ajaxUrl'    => esc_url( admin_url( 'admin-ajax.php' ) ),
+        'authNonce'  => wp_create_nonce( 'romanino_auth_nonce' ),
+        'cartNonce'  => wp_create_nonce( 'romanino_cart_nonce' ),
+        'savedNonce' => wp_create_nonce( 'romanino_saved_nonce' ),
+        'homeUrl'    => esc_url( home_url( '/' ) ),
     ] );
 }
 
