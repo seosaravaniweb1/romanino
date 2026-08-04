@@ -70,14 +70,40 @@ function romanino_enqueue_assets(): void {
 }
 
 /* ==========================================================================
-   ۳-الف. Preload فونت اصلی — جلوگیری از پرش/چشمک متن هنگام لود فونت
+   ۳-الف. Preload فونت ایران‌سنس
+   ─────────────────────────────────────────────────────────────────────────
+   چرا لازم است: فایل فونت تا وقتی مرورگر CSS را پارس نکرده و به قاعده‌ی
+   font-face نرسیده باشد اصلاً کشف نمی‌شود. یعنی دانلودش یک «آبشار» عقب
+   می‌افتد: HTML → CSS → فونت. با preload، دانلود همان ابتدای HTML شروع
+   می‌شود و مدت زمانی که متن با فونت پیش‌فرض سیستم نمایش داده می‌شود
+   (به‌خاطر font-display: swap) کوتاه‌تر می‌گردد — یعنی هم LCP بهتر و هم
+   جابه‌جایی کمتر هنگام تعویض فونت.
+
+   چرا فقط سه وزن از چهار وزن:
+     Regular(400) → متن بدنه
+     Bold(700)    → لوگو، ناوبری، عنوان کارت‌ها
+     Black(800/9) → تیتر h1 صفحه اصلی و صفحه‌ی رمان (معمولاً همان عنصر LCP)
+   وزن Medium(500) عمداً preload نمی‌شود چون تقریباً هیچ‌وقت بالای صفحه
+   (above the fold) نیست و preload کردنش فقط پهنای‌باند را از عناصر مهم‌تر
+   می‌گیرد. هر فایل ≈ ۲۸ کیلوبایت.
+
+   قابل تنظیم با فیلتر romanino_preload_fonts (مثلاً اگر لوگوی تصویری
+   گذاشتید و دیگر Bold بالای صفحه ندارید).
    ========================================================================== */
 add_action( 'wp_head', 'romanino_preload_font', 0 );
 function romanino_preload_font(): void {
-    printf(
-        '<link rel="preload" href="%s" as="font" type="font/woff2" crossorigin>' . "\n",
-        esc_url( get_template_directory_uri() . '/assets/fonts/IRANSansWeb-Regular.woff2' )
-    );
+    $fonts = apply_filters( 'romanino_preload_fonts', array(
+        'IRANSansWeb-Regular.woff2',
+        'IRANSansWeb-Bold.woff2',
+        'IRANSansWeb-Black.woff2',
+    ) );
+
+    foreach ( (array) $fonts as $font ) {
+        printf(
+            '<link rel="preload" href="%s" as="font" type="font/woff2" crossorigin>' . "\n",
+            esc_url( get_template_directory_uri() . '/assets/fonts/' . basename( $font ) )
+        );
+    }
 }
 
 /* ==========================================================================
@@ -92,6 +118,32 @@ function romanino_dequeue_unnecessary_assets(): void {
         return;
     }
     if ( is_woocommerce() || is_cart() || is_checkout() || is_account_page() ) {
+        return;
+    }
+
+    /* FIX: توابع شرطی بالا فقط «صفحه‌های رسمی ووکامرس» را می‌شناسند. اگر مدیر
+       سایت در یک برگه‌ی معمولی (مثلاً «پیشنهاد ویژه») از شورت‌کد
+       [products] / [featured_products] یا یک بلاک ووکامرس استفاده کند،
+       is_woocommerce() برای آن برگه false است و استایل/اسکریپت ووکامرس حذف
+       می‌شد — یعنی محصولات بدون هیچ استایلی و دکمه‌ی «افزودن به سبد» بی‌کار.
+       اینجا محتوای همان برگه بررسی می‌شود تا این حالت هم پوشش داده شود. */
+    $romanino_post = get_post();
+    if ( $romanino_post instanceof WP_Post ) {
+        $romanino_content = $romanino_post->post_content;
+
+        if ( has_block( 'woocommerce', $romanino_post ) ) {
+            return;
+        }
+        foreach ( array( 'products', 'product', 'product_page', 'product_category', 'featured_products', 'recent_products', 'sale_products', 'best_selling_products', 'top_rated_products', 'add_to_cart', 'woocommerce_cart', 'woocommerce_checkout', 'woocommerce_my_account' ) as $romanino_sc ) {
+            if ( has_shortcode( $romanino_content, $romanino_sc ) ) {
+                return;
+            }
+        }
+    }
+
+    /* اجازه‌ی override برای افزونه‌ها: افزونه‌ای که خودش به اسکریپت‌های
+       ووکامرس وابسته است می‌تواند با این فیلتر جلوی حذف را بگیرد. */
+    if ( ! apply_filters( 'romanino_dequeue_woocommerce_assets', true ) ) {
         return;
     }
 

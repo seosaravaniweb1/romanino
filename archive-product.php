@@ -156,6 +156,9 @@ $queried_object = get_queried_object();
             <?php endif; ?>
 
             <?php if ( have_posts() ) : ?>
+            <?php romanino_wc_before_shop_loop(); ?>
+            <?php /* سئو/دسترس‌پذیری: بدون این عنوان، ساختار هدینگ صفحه از h1 مستقیم به h3ِ کارت‌های رمان می‌پرید (یک سطح جاافتاده). این عنوان فقط برای صفحه‌خوان و موتور جست‌وجوست و هیچ اثر بصری ندارد. */ ?>
+            <h2 class="sr-only">فهرست رمان‌ها</h2>
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
                 <?php
                 $romanino_loop_index = 0;
@@ -165,6 +168,8 @@ $queried_object = get_queried_object();
                 endwhile;
                 ?>
             </div>
+
+            <?php romanino_wc_after_shop_loop(); ?>
 
             <nav class="mt-8 flex justify-center lg:mt-10">
                 <?php echo paginate_links([ 'prev_text' => '&raquo; قبلی', 'next_text' => 'بعدی &laquo;', 'type' => 'list' ]); ?>

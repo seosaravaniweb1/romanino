@@ -37,7 +37,7 @@ $romanino_li_price  = $romanino_li_product->get_price();
 		<div class="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg">
 			<img src="<?php echo esc_url( $romanino_li_image ); ?>"
 				alt="<?php echo esc_attr( $romanino_li_title ); ?>"
-				class="h-full w-full object-cover" loading="lazy" width="64" height="64" />
+				class="h-full w-full object-cover" loading="lazy" decoding="async" width="64" height="64" />
 		</div>
 		<div class="min-w-0 flex-1">
 			<h4 class="line-clamp-1 text-sm font-bold text-ink"><?php echo esc_html( $romanino_li_title ); ?></h4>

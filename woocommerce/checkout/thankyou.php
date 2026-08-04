@@ -108,7 +108,7 @@ defined( 'ABSPATH' ) || exit;
 						?>
 						<div class="glass flex flex-col justify-between gap-3 rounded-2xl p-4 transition-transform hover:-translate-y-1">
 							<div class="flex gap-3">
-								<img src="<?php echo esc_url( $image_url ); ?>" class="h-16 w-12 rounded bg-slate-900 object-cover shadow-sm" alt="">
+								<img src="<?php echo esc_url( $image_url ); ?>" class="h-16 w-12 rounded bg-slate-900 object-cover shadow-sm" alt="" loading="lazy" decoding="async" width="48" height="64">
 								<div class="min-w-0">
 									<h3 class="truncate text-sm font-bold text-foreground"><?php echo esc_html( $download['product_name'] ); ?></h3>
 									<p class="mt-1 text-[11px] text-muted-foreground">فایل: <?php echo esc_html( $download['download_name'] ); ?></p>

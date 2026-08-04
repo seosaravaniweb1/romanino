@@ -162,6 +162,7 @@ if ( is_wp_error( $tax_cats ) ) $tax_cats = [];
 
             <?php if ( $show_subcats && ! empty( $subcats ) ) : ?>
             <!-- زیردسته‌ها: ۲ ستون موبایل → ۳ ستون تبلت → ۴ ستون دسکتاپ -->
+            <h2 class="sr-only">زیر‌دسته‌ها</h2>
             <div class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:mb-8 lg:grid-cols-4">
                 <?php foreach ( $subcats as $subcat ) :
                     $thumb_id  = get_term_meta( $subcat->term_id, 'thumbnail_id', true );
@@ -171,7 +172,7 @@ if ( is_wp_error( $tax_cats ) ) $tax_cats = [];
                     class="group flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-4 text-center transition-shadow hover:shadow-md">
                     <div class="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-secondary lg:h-16 lg:w-16">
                         <?php if ( $thumb_url ) : ?>
-                        <img src="<?php echo esc_url( $thumb_url ); ?>" alt="<?php echo esc_attr( $subcat->name ); ?>" loading="lazy" class="h-full w-full object-cover" />
+                        <img src="<?php echo esc_url( $thumb_url ); ?>" alt="<?php echo esc_attr( $subcat->name ); ?>" loading="lazy" decoding="async" width="64" height="64" class="h-full w-full object-cover" />
                         <?php else : ?>
                         <span class="text-xl lg:text-2xl">📖</span>
                         <?php endif; ?>
@@ -185,6 +186,9 @@ if ( is_wp_error( $tax_cats ) ) $tax_cats = [];
 
             <?php if ( $show_products ) : ?>
                 <?php if ( have_posts() ) : ?>
+                <?php romanino_wc_before_shop_loop(); ?>
+                <?php /* همان دلیل archive-product.php: پر کردن سطح جاافتاده‌ی h2 بین h1 دسته و h3 کارت‌ها. */ ?>
+                <h2 class="sr-only">رمان‌های این دسته</h2>
                 <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
                     <?php
                     $romanino_loop_index = 0;
@@ -194,6 +198,8 @@ if ( is_wp_error( $tax_cats ) ) $tax_cats = [];
                     endwhile;
                     ?>
                 </div>
+
+                <?php romanino_wc_after_shop_loop(); ?>
 
                 <nav class="mt-8 flex justify-center lg:mt-10">
                     <?php echo paginate_links( [ 'prev_text' => '&raquo; قبلی', 'next_text' => 'بعدی &laquo;', 'type' => 'list' ] ); ?>

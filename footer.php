@@ -38,6 +38,12 @@ $romanino_footer_opts = romanino_get_footer_options();
 $romanino_plan_colors = romanino_plan_color_map();
 ?>
 
+<?php
+/* نقطه‌ی اتصال افزونه‌ها درست قبل از فوتر — جای مرسوم بنر تبلیغاتی پایانی،
+   خبرنامه یا CTA. برای ویجت چت آنلاین از همان hook استاندارد wp_footer
+   (انتهای همین فایل) استفاده کنید. */
+do_action( 'romanino_before_footer' );
+?>
 <footer class="relative mt-24 overflow-hidden border-t border-ink/10 bg-surface">
 
     <!-- خط درخشان بالای فوتر -->
@@ -141,7 +147,7 @@ $romanino_plan_colors = romanino_plan_color_map();
                         <?php if ( $romanino_social_icon ) : ?>
                             <img src="<?php echo esc_url( $romanino_social_icon ); ?>"
                                 alt="<?php echo esc_attr( $romanino_social_label ); ?>"
-                                class="h-5 w-5 object-contain" loading="lazy" width="20" height="20" />
+                                class="h-5 w-5 object-contain" loading="lazy" decoding="async" width="20" height="20" />
                         <?php else : ?>
                             <?php // آیکون پیش‌فرض «لینک» برای ردیف‌هایی که تصویر انتخاب نشده ?>
                             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
@@ -330,7 +336,7 @@ $romanino_plan_colors = romanino_plan_color_map();
                         if ( empty( $bank['name'] ) && empty( $bank['logo'] ) ) continue; ?>
                         <span class="flex items-center gap-1.5 rounded-lg border border-ink/10 bg-ink/[0.04] px-2.5 py-1.5 text-[11px] font-medium text-ink-3">
                             <?php if ( ! empty( $bank['logo'] ) ) : ?>
-                                <img src="<?php echo esc_url( $bank['logo'] ); ?>" alt="بانک <?php echo esc_attr( $bank['name'] ); ?>" class="h-3.5 w-3.5 object-contain" loading="lazy">
+                                <img src="<?php echo esc_url( $bank['logo'] ); ?>" alt="بانک <?php echo esc_attr( $bank['name'] ); ?>" class="h-3.5 w-3.5 object-contain" loading="lazy" decoding="async" width="14" height="14">
                             <?php else : ?>
                                 <svg class="h-3.5 w-3.5 text-ink-faint" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M4 10h16M12 3l8 5H4l8-5ZM6 10v8M10 10v8M14 10v8M18 10v8"/></svg>
                             <?php endif; ?>

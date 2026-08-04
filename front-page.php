@@ -271,7 +271,7 @@
         <!-- Tab Buttons -->
         <div role="tablist" class="mb-8 flex flex-wrap items-center justify-center gap-2">
             <?php foreach ( $tab_categories as $index => $cat ) : ?>
-                <button type="button" role="tab" onclick="switchGenreTab(<?php echo $index; ?>)" id="tab-btn-<?php echo $index; ?>" class="genre-tab-btn rounded-full px-5 py-2 text-sm font-bold transition-all duration-100 <?php echo $index === 0 ? 'bg-primary text-[#0f0726] glow-gold' : 'glass text-ink-muted hover:text-ink'; ?>">
+                <button type="button" role="tab" data-genre-tab="<?php echo (int) $index; ?>" id="tab-btn-<?php echo $index; ?>" class="genre-tab-btn rounded-full px-5 py-2 text-sm font-bold transition-all duration-100 <?php echo $index === 0 ? 'bg-primary text-[#0f0726] glow-gold' : 'glass text-ink-muted hover:text-ink'; ?>">
                     <?php echo esc_html( $cat->name ); ?>
                 </button>
             <?php endforeach; ?>
@@ -359,7 +359,7 @@
             foreach($faqs as $index => $faq):
             ?>
                 <div class="glass overflow-hidden rounded-2xl">
-                    <button type="button" onclick="toggleFaq('faq-ans-<?php echo $index; ?>', 'faq-icon-<?php echo $index; ?>')" class="flex w-full items-center justify-between gap-4 p-5 text-right transition-colors duration-100 hover:bg-ink/5">
+                    <button type="button" data-faq-answer="faq-ans-<?php echo $index; ?>" data-faq-icon="faq-icon-<?php echo $index; ?>" class="flex w-full items-center justify-between gap-4 p-5 text-right transition-colors duration-100 hover:bg-ink/5">
                         <span class="text-sm font-bold text-ink md:text-base"><?php echo esc_html($faq['q']); ?></span>
                         <svg id="faq-icon-<?php echo $index; ?>" class="h-4 w-4 shrink-0 text-gold transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>

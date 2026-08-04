@@ -237,15 +237,15 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 				<!-- تب‌ها/آکاردئون یکپارچه: همان کامپوننت در تمام سایزها -->
 				<nav class="glass-box sticky top-2 z-20 rounded-2xl p-1.5">
 					<div class="flex gap-1.5 lg:gap-2" id="product-tabs" role="tablist">
-						<button type="button" onclick="romaninoSwitchTab('specs')" id="ptab-btn-specs" role="tab" aria-selected="true"
+						<button type="button" data-ptab="specs" id="ptab-btn-specs" role="tab" aria-selected="true"
 							class="flex-1 rounded-xl bg-primary px-2 py-2.5 text-xs font-semibold text-[#0b0514] transition-all lg:px-4 lg:py-3 lg:text-base">
 							مشخصات
 						</button>
-						<button type="button" onclick="romaninoSwitchTab('desc')" id="ptab-btn-desc" role="tab" aria-selected="false"
+						<button type="button" data-ptab="desc" id="ptab-btn-desc" role="tab" aria-selected="false"
 							class="flex-1 rounded-xl px-2 py-2.5 text-xs font-semibold text-ink-muted transition-all hover:text-ink lg:px-4 lg:py-3 lg:text-base">
 							توضیحات و داستان
 						</button>
-						<button type="button" onclick="romaninoSwitchTab('reviews')" id="ptab-btn-reviews" role="tab" aria-selected="false"
+						<button type="button" data-ptab="reviews" id="ptab-btn-reviews" role="tab" aria-selected="false"
 							class="flex-1 rounded-xl px-2 py-2.5 text-xs font-semibold text-ink-muted transition-all hover:text-ink lg:px-4 lg:py-3 lg:text-base">
 							نقد و بررسی (<?php echo esc_html( $review_count ); ?>)
 						</button>
@@ -464,6 +464,17 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 				</div>
 			</aside>
 		</article>
+
+		<?php
+		/* نقطه‌ی اتصال افزونه‌ها زیر خلاصه‌ی رمان — مرسوم‌ترین جای بنر تبلیغاتی،
+		   نشان اعتماد و پیشنهاد محصول. تب‌ها/آپ‌سل/محصولات مرتبطِ پیش‌فرض
+		   ووکامرس از این هوک برداشته شده‌اند (inc/plugin-hooks.php) تا با
+		   بخش‌های خودِ قالب دوباره‌کاری نشود. */
+		romanino_wc_after_single_product_summary();
+
+		/* هوک اختصاصی قالب — دقیقاً قبل از بخش «رمان‌های مرتبط». */
+		do_action( 'romanino_before_related' );
+		?>
 
 		<!-- محصولات مرتبط: دقیقاً ۵ محصول طبق درخواست مشتری -->
 		<!-- ۹ در موبایل: محصولات مرتبط (بعد از همه‌ی بلوک‌های بالا) -->

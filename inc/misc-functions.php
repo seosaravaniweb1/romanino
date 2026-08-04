@@ -518,7 +518,7 @@ function romanino_render_category_tag_author_tabs( string $id_prefix, string $la
     ?>
     <div role="tablist" class="mb-3 flex flex-wrap items-center gap-1.5 <?php echo $layout === 'list' ? 'px-3' : ''; ?>">
         <?php foreach ( $panels as $key => $panel ) : ?>
-            <button type="button" role="tab" onclick="romaninoTaxTab('<?php echo esc_js( $id_prefix ); ?>','<?php echo esc_js( $key ); ?>')"
+            <button type="button" role="tab" data-tax-tab-prefix="<?php echo esc_attr( $id_prefix ); ?>" data-tax-tab-key="<?php echo esc_attr( $key ); ?>"
                 id="<?php echo esc_attr( $id_prefix ); ?>-tabbtn-<?php echo esc_attr( $key ); ?>"
                 class="romanino-tax-tabbtn-<?php echo esc_attr( $id_prefix ); ?> rounded-full px-3 py-1.5 text-xs font-bold transition-all duration-150 <?php echo $key === 'cat' ? 'bg-primary text-[#0f0726]' : 'bg-ink/5 text-ink-muted hover:text-ink'; ?>">
                 <?php echo esc_html( $panel['label'] ); ?>

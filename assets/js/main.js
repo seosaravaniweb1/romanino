@@ -909,6 +909,43 @@
     if (activePanel) activePanel.classList.remove('hidden');
   };
 
+  /* ── ۶ه. شنونده‌های واگذارشده (Event Delegation) ────────────────────────
+     FIX (سازگاری با Delay JS در WP Rocket):
+
+     تب‌های ژانر، آکاردئون سوالات متداول، تب‌های صفحه‌ی رمان و تب‌های
+     دسته/برچسب/نویسنده قبلاً با onclick اینلاین به توابع سراسری همین فایل
+     وصل بودند (onclick="switchGenreTab(2)" و…).
+
+     وقتی راکت «Delay JavaScript Execution» را روشن می‌کند، این فایل تا اولین
+     تعامل کاربر اجرا نمی‌شود. اما مرورگر محتوای صفتِ onclick را «همان لحظه‌ی
+     کلیک» ارزیابی می‌کند — یعنی قبل از اینکه تابع اصلاً تعریف شده باشد. نتیجه
+     یک ReferenceError در کنسول و کلیکی که هیچ کاری نمی‌کند. راکت رویداد را
+     برای شنونده‌های واقعی دوباره ارسال می‌کند، ولی صفت‌های onclick را دوباره
+     ارزیابی نمی‌کند؛ پس آن اولین کلیک برای همیشه از دست می‌رفت.
+
+     راه‌حل: مارک‌آپ حالا به‌جای onclick از data-attribute استفاده می‌کند و
+     شنونده روی document واگذار شده است. رویدادِ دوباره‌ارسال‌شده‌ی راکت این
+     شنونده را درست فعال می‌کند.
+
+     توابع سراسری (window.switchGenreTab و…) عمداً حذف نشده‌اند تا اگر جایی
+     HTML قدیمی از کش سرو شد یا افزونه‌ای آن‌ها را صدا زد، همچنان کار کنند. */
+  document.addEventListener('click', (e) => {
+    const target = e.target instanceof Element ? e.target : null;
+    if (!target) return;
+
+    const genre = target.closest('[data-genre-tab]');
+    if (genre) { window.switchGenreTab(parseInt(genre.dataset.genreTab, 10)); return; }
+
+    const faq = target.closest('[data-faq-answer]');
+    if (faq) { window.toggleFaq(faq.dataset.faqAnswer, faq.dataset.faqIcon); return; }
+
+    const ptab = target.closest('[data-ptab]');
+    if (ptab) { window.romaninoSwitchTab(ptab.dataset.ptab); return; }
+
+    const taxTab = target.closest('[data-tax-tab-prefix]');
+    if (taxTab) { window.romaninoTaxTab(taxTab.dataset.taxTabPrefix, taxTab.dataset.taxTabKey); }
+  });
+
   /* ── ۷. متن جمع‌شونده + دکمه‌ی «مشاهده بیشتر» ───────────────────────────
      روی هر عنصری با data-rmn-collapse کار می‌کند. ارتفاع سقف از
      data-rmn-collapse-max (پیکسل) خوانده می‌شود.

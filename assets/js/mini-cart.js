@@ -1,4 +1,31 @@
-document.addEventListener('DOMContentLoaded', function () {
+/**
+ * ROMANINO — کشوی سبد خرید
+ * ─────────────────────────────────────────────────────────────────────────────
+ * FIX (بحرانی — سازگاری با Delay JS در WP Rocket):
+ *
+ * این فایل قبلاً کل کدش داخل document.addEventListener('DOMContentLoaded', …)
+ * بود. وقتی WP Rocket گزینه‌ی «Delay JavaScript Execution» را روشن می‌کند،
+ * اجرای اسکریپت تا اولین تعامل کاربر (کلیک/اسکرول/حرکت ماوس) عقب می‌افتد —
+ * یعنی خیلی بعد از اینکه رویداد DOMContentLoaded «قبلاً شلیک شده».
+ *
+ * نتیجه: این listener هیچ‌وقت اجرا نمی‌شد و کل سبد خرید کشویی، دکمه‌های
+ * «افزودن به سبد»، مودال خرید و شمارنده‌ی سبد کاملاً مرده می‌ماندند — دقیقاً
+ * همان «شکستن قالب بعد از فعال‌کردن راکت».
+ *
+ * راه‌حل استاندارد: به‌جای گوش‌دادن کورکورانه به رویداد، اول وضعیت واقعی
+ * document.readyState بررسی می‌شود. اگر DOM از قبل آماده است (حالت Delay JS)
+ * کد بلافاصله اجرا می‌شود؛ در غیر این صورت مثل قبل منتظر رویداد می‌ماند.
+ * این الگو در هر دو حالت (با راکت و بدون راکت) درست کار می‌کند.
+ */
+function romaninoOnReady(fn) {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fn, { once: true });
+    } else {
+        fn();
+    }
+}
+
+romaninoOnReady(function () {
     const overlay   = document.getElementById('cart-overlay');
     const drawer    = document.getElementById('cart-drawer');
     const itemsWrap = document.getElementById('cart-items-wrap');

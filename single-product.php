@@ -21,6 +21,13 @@
 
 get_header();
 
+/* هوک‌های محتوایی ووکامرس — توضیح کامل «چرا» در inc/plugin-hooks.php.
+   خلاصه: قالب ساختار اختصاصی دارد و این هوک‌ها هیچ‌وقت شلیک نمی‌شدند، پس
+   افزونه‌هایی که به آن‌ها وصل می‌شوند (بنر تبلیغاتی، نشان اعتماد، ویجت چت
+   مخصوص صفحه‌ی محصول و…) بی‌صدا هیچ خروجی نداشتند. کال‌بک‌های پیش‌فرض خود
+   ووکامرس که با مارک‌آپ قالب تداخل داشتند، در همان فایل برداشته شده‌اند. */
+romanino_wc_before_main_content();
+
 while ( have_posts() ) :
 	the_post();
 
@@ -32,8 +39,14 @@ while ( have_posts() ) :
 		continue;
 	}
 
+	romanino_wc_before_single_product();
+
 	get_template_part( 'template-parts/product/content', 'single' );
 
+	romanino_wc_after_single_product();
+
 endwhile;
+
+romanino_wc_after_main_content();
 
 get_footer();
