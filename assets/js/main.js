@@ -580,6 +580,258 @@
     });
   });
 
+  /* ── ۶ب-۳. پنل جست‌وجوی هدر ────────────────────────────────────────────── */
+  const searchBtn   = document.getElementById('romanino-search-btn');
+  const searchPanel = document.getElementById('romanino-search-panel');
+
+  if (searchBtn && searchPanel) {
+    const panelInput = searchPanel.querySelector('input[type="search"]');
+
+    function toggleSearchPanel(open) {
+      searchPanel.classList.toggle('hidden', !open);
+      searchBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open) panelInput?.focus();
+    }
+
+    searchBtn.addEventListener('click', () => {
+      toggleSearchPanel(searchPanel.classList.contains('hidden'));
+    });
+
+    document.addEventListener('keydown', (e) => {
+      // Escape فقط وقتی پنل را می‌بندد که لیست نتایج باز نباشد؛ مدیریت آن
+      // حالت با خودِ جست‌وجوی زنده است (اول لیست بسته می‌شود، بعد پنل).
+      if (e.key === 'Escape' && !searchPanel.classList.contains('hidden')) {
+        const list = document.getElementById('romanino-live-results-0');
+        if (!list || list.classList.contains('hidden')) toggleSearchPanel(false);
+      }
+    });
+  }
+
+  /* ── ۶ب-۴. جست‌وجوی زنده (Ajax Live Search) ─────────────────────────────
+     به «هر» فیلد جست‌وجوی سایت وصل می‌شود — پنل هدر، منوی موبایل، ویجت‌ها،
+     صفحه‌ی نتایج جست‌وجو و هر فرم جست‌وجوی افزونه‌ای — بدون اینکه لازم باشد
+     به تک‌تک آن‌ها کلاس یا شناسه‌ی خاصی اضافه شود.
+
+     تصمیم‌های مهم:
+     - دیبانس ۳۰۰ms: بدون آن، تایپ یک عبارت ۱۰ حرفی ۱۰ درخواست می‌فرستد.
+     - AbortController: پاسخ درخواست‌های قدیمی‌تر که دیر می‌رسند دور ریخته
+       می‌شود، وگرنه نتیجه‌ی «رم» می‌توانست روی نتیجه‌ی «رمان» بنشیند.
+     - کش درون‌حافظه‌ای: پاک‌کردن یک حرف و تایپ دوباره‌ی آن، درخواست جدید
+       نمی‌فرستد.
+     - درج با textContent (نه innerHTML): نام رمان هرچه باشد به‌عنوان متن
+       رندر می‌شود و مسیری برای تزریق HTML باز نمی‌ماند.
+     - فرم‌ها دست‌نخورده باقی می‌مانند: Enter همچنان کاربر را به صفحه‌ی نتایج
+       استاندارد می‌برد، پس بدون جاوااسکریپت هم جست‌وجو کار می‌کند. */
+  (function initLiveSearch() {
+    const inputs = document.querySelectorAll(
+      'input[type="search"], input[name="s"], input.romanino-live-search'
+    );
+    if (!inputs.length || !authAjax.ajaxUrl) return;
+
+    const cache = new Map();
+
+    inputs.forEach((input, index) => {
+      // ورودی‌های پیشخوان/سلکت‌ووی ادمین را دست نمی‌زنیم
+      if (input.closest('.select2-container, #wpadminbar')) return;
+
+      const listId = 'romanino-live-results-' + index;
+      const wrap = input.parentElement;
+      if (!wrap) return;
+
+      // ظرف نتایج باید نسبت به یک عنصر position:relative جای بگیرد.
+      if (getComputedStyle(wrap).position === 'static') wrap.style.position = 'relative';
+
+      const list = document.createElement('div');
+      list.id = listId;
+      list.setAttribute('role', 'listbox');
+      list.className =
+        'romanino-live-results hidden absolute right-0 left-0 top-full z-[70] mt-2 max-h-[70vh] overflow-y-auto rounded-2xl border border-ink/10 bg-surface-card p-2 shadow-2xl shadow-black/60';
+      wrap.appendChild(list);
+
+      input.setAttribute('role', 'combobox');
+      input.setAttribute('aria-autocomplete', 'list');
+      input.setAttribute('aria-expanded', 'false');
+      input.setAttribute('aria-controls', listId);
+      input.setAttribute('autocomplete', 'off');
+
+      let timer = null;
+      let controller = null;
+      let activeIndex = -1;
+
+      /* بالا بردن z-index خودِ ظرف هنگام باز بودن لیست.
+         دلیل: چند فرم جست‌وجوی سایت کلاس .glass دارند و backdrop-filter یک
+         stacking context جدید می‌سازد. در آن حالت z-index بالای خودِ لیست
+         بی‌اثر است — لیست فقط داخل همان context مرتب می‌شود و بخش‌های بعدی
+         صفحه (که در DOM بعد از فرم می‌آیند) رویش می‌افتند. راه‌حل درست، بالا
+         بردن z-index همان ظرف است، نه لیست. */
+      const prevZ = wrap.style.zIndex;
+
+      const closeList = () => {
+        list.classList.add('hidden');
+        input.setAttribute('aria-expanded', 'false');
+        wrap.style.zIndex = prevZ;
+        activeIndex = -1;
+      };
+
+      const openList = () => {
+        list.classList.remove('hidden');
+        input.setAttribute('aria-expanded', 'true');
+        wrap.style.zIndex = '60';
+      };
+
+      const rows = () => list.querySelectorAll('[data-live-row]');
+
+      function highlight(next) {
+        const items = rows();
+        if (!items.length) return;
+        if (activeIndex >= 0) items[activeIndex]?.classList.remove('bg-ink/10');
+        activeIndex = (next + items.length) % items.length;
+        const el = items[activeIndex];
+        el.classList.add('bg-ink/10');
+        el.scrollIntoView({ block: 'nearest' });
+      }
+
+      function renderMessage(text) {
+        list.textContent = '';
+        const p = document.createElement('p');
+        p.className = 'px-3 py-6 text-center text-sm text-ink-muted';
+        p.textContent = text;
+        list.appendChild(p);
+        openList();
+      }
+
+      function render(payload, keyword) {
+        list.textContent = '';
+        activeIndex = -1;
+
+        if (!payload.items || !payload.items.length) {
+          renderMessage('رمانی با «' + keyword + '» پیدا نشد.');
+          return;
+        }
+
+        payload.items.forEach(item => {
+          const row = document.createElement('a');
+          row.href = item.url;
+          row.setAttribute('data-live-row', '');
+          row.setAttribute('role', 'option');
+          row.className =
+            'flex items-center gap-3 rounded-xl p-2 transition-colors duration-100 hover:bg-ink/10';
+
+          if (item.image) {
+            const img = document.createElement('img');
+            img.src = item.image;
+            img.alt = '';
+            img.loading = 'lazy';
+            img.className = 'h-14 w-10 shrink-0 rounded-lg object-cover';
+            row.appendChild(img);
+          }
+
+          const box = document.createElement('div');
+          box.className = 'min-w-0 flex-1';
+
+          const title = document.createElement('span');
+          title.className = 'block truncate text-sm font-bold text-ink';
+          title.textContent = item.title; // متن خام — بدون innerHTML
+          box.appendChild(title);
+
+          const price = document.createElement('span');
+          price.className = 'mt-0.5 block text-xs font-semibold text-gold';
+          price.textContent = item.free ? 'رایگان' : (item.price || '');
+          box.appendChild(price);
+
+          row.appendChild(box);
+          list.appendChild(row);
+        });
+
+        if (payload.viewAll) {
+          const all = document.createElement('a');
+          all.href = payload.viewAll;
+          all.setAttribute('data-live-row', '');
+          all.setAttribute('role', 'option');
+          all.className =
+            'mt-1 block rounded-xl border-t border-ink/10 px-3 py-3 text-center text-sm font-bold text-gold transition-colors duration-100 hover:bg-ink/10';
+          all.textContent = 'مشاهده‌ی همه‌ی نتایج';
+          list.appendChild(all);
+        }
+
+        openList();
+      }
+
+      async function search(keyword) {
+        if (cache.has(keyword)) { render(cache.get(keyword), keyword); return; }
+
+        // درخواست قبلی که هنوز در راه است لغو می‌شود تا پاسخ کهنه روی
+        // پاسخ تازه ننشیند.
+        controller?.abort();
+        controller = new AbortController();
+
+        renderMessage('در حال جست‌وجو...');
+
+        try {
+          const res = await fetch(authAjax.ajaxUrl, {
+            method: 'POST',
+            credentials: 'same-origin',
+            signal: controller.signal,
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              action: 'romanino_ajax_search',
+              nonce: authAjax.authNonce || '',
+              keyword: keyword,
+            }),
+          });
+          const json = await res.json();
+
+          if (json.success) {
+            cache.set(keyword, json.data);
+            render(json.data, keyword);
+          } else {
+            renderMessage((json.data && json.data.message) || 'جست‌وجو انجام نشد.');
+          }
+        } catch (e) {
+          // AbortError یعنی خودمان لغو کردیم؛ پیام خطا معنا ندارد.
+          if (e.name !== 'AbortError') renderMessage('خطا در ارتباط با سرور.');
+        }
+      }
+
+      input.addEventListener('input', () => {
+        const keyword = input.value.trim();
+        clearTimeout(timer);
+
+        if (keyword.length < 2) { controller?.abort(); closeList(); return; }
+        timer = setTimeout(() => search(keyword), 300);
+      });
+
+      input.addEventListener('keydown', (e) => {
+        if (list.classList.contains('hidden')) return;
+
+        if (e.key === 'ArrowDown')      { e.preventDefault(); highlight(activeIndex + 1); }
+        else if (e.key === 'ArrowUp')   { e.preventDefault(); highlight(activeIndex - 1); }
+        else if (e.key === 'Escape') {
+          e.preventDefault();
+          /* stopPropagation لازم است: بدون آن، همین رویداد تا document بالا
+             می‌رفت و شنونده‌ی «بستن پنل جست‌وجو» هم اجرا می‌شد — یعنی یک بار
+             Escape هم لیست نتایج و هم کل پنل را می‌بست. رفتار درست: اولین
+             Escape فقط لیست را می‌بندد، دومی پنل را. */
+          e.stopPropagation();
+          closeList();
+        }
+        else if (e.key === 'Enter' && activeIndex >= 0) {
+          e.preventDefault(); // جلوی ارسال فرم را می‌گیرد و نتیجه‌ی انتخابی را باز می‌کند
+          rows()[activeIndex].click();
+        }
+      });
+
+      // بازکردن دوباره‌ی لیست وقتی کاربر به فیلدی که قبلاً تایپ کرده برمی‌گردد
+      input.addEventListener('focus', () => {
+        if (input.value.trim().length >= 2 && list.childElementCount) openList();
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!wrap.contains(e.target)) closeList();
+      });
+    });
+  })();
+
   /* ── ۶ج. صفحه اصلی: تب‌های ژانر و آکاردئون سوالات متداول ────────────────
      FIX: قبلاً دو <script> inline جدا در index.php بودند. */
   window.switchGenreTab = function (activeIndex) {
