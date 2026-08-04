@@ -30,7 +30,10 @@ romaninoOnReady(function () {
     const drawer    = document.getElementById('cart-drawer');
     const itemsWrap = document.getElementById('cart-items-wrap');
     const totalEl   = document.getElementById('cart-total-display');
-    const openBtn   = document.getElementById('cart-open-btn');
+    /* دو دکمه‌ی سبد خرید داریم چون هدر دو چیدمان جدا دارد (موبایل و دسکتاپ)
+       و هر لحظه فقط یکی از آن‌ها در DOM دیده می‌شود. با querySelectorAll هر دو
+       بسته می‌شوند و لازم نیست بدانیم کدام‌یک فعال است. */
+    const openBtns  = document.querySelectorAll('#cart-open-btn, #cart-open-btn-desktop');
     const closeBtn  = document.getElementById('cart-close-btn');
 
     const buyModal        = document.getElementById('buy-now-modal');
@@ -55,9 +58,11 @@ romaninoOnReady(function () {
         overlay.classList.add('hidden');
     }
 
-    if (openBtn) openBtn.addEventListener('click', function (e) {
-        e.preventDefault();
-        openDrawer();
+    openBtns.forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            openDrawer();
+        });
     });
     if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
     if (overlay) overlay.addEventListener('click', closeDrawer);

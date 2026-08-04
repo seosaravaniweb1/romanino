@@ -69,7 +69,7 @@ if ( is_user_logged_in() ) {
 					class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-center text-sm tracking-wider outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 			</div>
 
-			<button type="button" id="btn-check-phone" class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-background transition-all hover:brightness-110 active:scale-[0.98]">
+			<button type="button" id="btn-check-phone" class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground transition-all hover:brightness-110 active:scale-[0.98]">
 				ادامه
 			</button>
 
@@ -97,7 +97,7 @@ if ( is_user_logged_in() ) {
 				<input type="password" id="password-input" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 			</div>
 
-			<button type="button" id="btn-login-password" class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-background transition-all hover:brightness-110 active:scale-[0.98]">
+			<button type="button" id="btn-login-password" class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground transition-all hover:brightness-110 active:scale-[0.98]">
 				ورود
 			</button>
 
@@ -119,7 +119,7 @@ if ( is_user_logged_in() ) {
 				<?php endfor; ?>
 			</div>
 
-			<button type="button" id="btn-verify-otp" class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-background transition-all hover:brightness-110 active:scale-[0.98]">
+			<button type="button" id="btn-verify-otp" class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground transition-all hover:brightness-110 active:scale-[0.98]">
 				تأیید و ورود
 			</button>
 
@@ -147,7 +147,7 @@ if ( is_user_logged_in() ) {
 				</div>
 			</div>
 
-			<button type="button" id="btn-save-name" class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-background transition-all hover:brightness-110 active:scale-[0.98]">
+			<button type="button" id="btn-save-name" class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground transition-all hover:brightness-110 active:scale-[0.98]">
 				تکمیل ثبت‌نام
 			</button>
 		</div>
@@ -168,7 +168,7 @@ if ( is_user_logged_in() ) {
 				</div>
 			</div>
 
-			<button type="button" id="btn-manual-login" class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-background transition-all hover:brightness-110 active:scale-[0.98]">
+			<button type="button" id="btn-manual-login" class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground transition-all hover:brightness-110 active:scale-[0.98]">
 				ورود
 			</button>
 		</div>
@@ -207,7 +207,7 @@ if ( is_user_logged_in() ) {
 				<input type="password" id="register-password-input" autocomplete="new-password" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 			</div>
 
-			<button type="button" id="btn-register-manual" class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-background transition-all hover:brightness-110 active:scale-[0.98]">
+			<button type="button" id="btn-register-manual" class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground transition-all hover:brightness-110 active:scale-[0.98]">
 				تأیید
 			</button>
 		</div>

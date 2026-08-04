@@ -163,26 +163,68 @@
         </div>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════════════════
-         ROW 1 — چیدمان اصلی هدر (سه ناحیه‌ی متقارن)
-         ──────────────────────────────────────────────────────────────────────
-           راست  : آیکون منوی سایت
-           مرکز  : لوگوی رمانینو
-           چپ    : آیکون‌های جست‌وجو، سبد خرید و ورود (فقط آیکون، بدون متن)
+    <?php
+    /* ══════════════════════════════════════════════════════════════════════
+       ROW 1 — چیدمان اصلی هدر
+       ──────────────────────────────────────────────────────────────────────
+       دو چیدمان کاملاً جدا، چون رفتار درست در دو اندازه فرق می‌کند:
 
-         چرا grid و نه flex: با flex، عرض ناحیه‌ی راست و چپ به تعداد و اندازه‌ی
-         آیکون‌هایشان وابسته می‌شود و لوگو دقیقاً وسط هدر نمی‌افتد (مثلاً وقتی
-         شمارنده‌ی سبد ظاهر می‌شود، لوگو چند پیکسل جابه‌جا می‌شد). با
-         grid-cols-3 هر سه ناحیه دقیقاً یک‌سوم عرض می‌گیرند و ستون میانی همیشه
-         روی مرکز هندسی هدر می‌نشیند، مستقل از محتوای دو طرف.
+       ▸ موبایل/تبلت (کمتر از lg): چیدمان سه‌ناحیه‌ای
+           راست = آیکون منو | مرکز = لوگو | چپ = جست‌وجو، سبد، ورود (فقط آیکون)
 
-         ناحیه‌ی چپ dir="ltr" دارد تا آیکون‌ها طبق درخواست از چپ به راست چیده
-         شوند: جست‌وجو، سبد خرید، ورود.
-         ═════════════════════════════════════════════════════════════════════ -->
+       ▸ دسکتاپ (lg به بالا): همان چیدمان قبلی قالب
+           راست = لوگو | مرکز = نوار جست‌وجوی باز | چپ = حساب کاربری + سبد
+
+       FIX (گزارش‌شده): چیدمان سه‌ناحیه‌ای فقط برای نسخه‌ی رسپانسیو خواسته شده
+       بود ولی روی دسکتاپ هم اعمال شده بود — یعنی کاربر دسکتاپ نوار جست‌وجوی
+       همیشه‌باز و دکمه‌ی متنی حساب کاربری را از دست داده بود. حالا هرکدام فقط
+       در اندازه‌ی خودش رندر می‌شود.
+
+       چرا در موبایل grid و نه flex: با flex، عرض ناحیه‌ی راست و چپ به تعداد
+       آیکون‌هایشان وابسته می‌شود و لوگو دقیقاً وسط نمی‌افتد (مثلاً با ظاهر شدن
+       شمارنده‌ی سبد، لوگو چند پیکسل جابه‌جا می‌شد). با grid-cols-3 هر ناحیه
+       یک‌سوم عرض می‌گیرد و ستون میانی همیشه روی مرکز هندسی هدر می‌نشیند.
+
+       داده‌های مشترک بین دو چیدمان یک‌بار اینجا محاسبه می‌شوند تا کوئری/منطق
+       تکرار نشود.
+       ═════════════════════════════════════════════════════════════════════ */
+
+    // FIX: بدون گارد function_exists، غیرفعال‌شدن (یا آپدیت) ووکامرس کل هدر و
+    // در نتیجه کل سایت را با Fatal Error می‌انداخت.
+    $romanino_account_url = function_exists( 'wc_get_page_permalink' )
+        ? wc_get_page_permalink( 'myaccount' )
+        : wp_login_url();
+
+    // WC() فقط وقتی وجود دارد که ووکامرس فعال باشد؛ و حتی وقتی فعال است،
+    // WC()->cart در برخی ریکوئست‌ها (REST/cron) هنوز ساخته نشده.
+    $cart_count = ( function_exists( 'WC' ) && WC()->cart )
+        ? WC()->cart->get_cart_contents_count()
+        : 0;
+
+    $romanino_header_opts = romanino_get_header_options();
+    $romanino_is_logged   = is_user_logged_in();
+
+    if ( $romanino_is_logged ) {
+        $romanino_current_user = wp_get_current_user();
+        $romanino_display_name = trim( $romanino_current_user->first_name ) !== ''
+            ? $romanino_current_user->first_name
+            : $romanino_current_user->display_name;
+    }
+
+    $romanino_account_label = $romanino_is_logged ? 'پیشخوان کاربری' : 'ورود | ثبت‌نام';
+
+    // آیکون‌های تکراری بین دو چیدمان
+    $romanino_icon_user   = '<svg class="%s" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>';
+    $romanino_icon_login  = '<svg class="%s" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>';
+    $romanino_icon_cart   = '<svg class="%s" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>';
+    $romanino_icon_search = '<svg class="%s" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>';
+    ?>
     <div class="relative z-40 border-b border-ink/10 bg-surface-card/80 backdrop-blur-xl">
-        <div class="mx-auto grid h-16 max-w-7xl grid-cols-3 items-center px-4 lg:px-8">
 
-            <!-- ── راست: آیکون منوی سایت ── -->
+        <!-- ═══════════ چیدمان موبایل/تبلت (کمتر از lg) ═══════════ -->
+        <div class="mx-auto grid h-16 max-w-7xl grid-cols-3 items-center px-4 lg:hidden">
+
+            <!-- راست: آیکون منوی سایت -->
             <div class="flex items-center justify-self-start">
                 <button id="mobile-menu-btn" type="button" aria-controls="mobile-menu" aria-expanded="false" aria-label="منوی سایت"
                     class="rounded-lg p-2 text-ink-3 transition-colors duration-150 hover:bg-ink/10 hover:text-ink">
@@ -191,89 +233,98 @@
                 </button>
             </div>
 
-            <!-- ── مرکز: لوگوی رمانینو ── -->
-            <?php
-            /* اگر مدیر سایت از پیشخوان → نمایش → سربرگ سایت لوگو آپلود کرده
-               باشد، the_custom_logo() آن را نشان می‌دهد؛ در غیر این صورت روی
-               طرح «آیکون + نام سایت» بازمی‌گردد تا هیچ‌وقت جای خالی نماند. */
-            ?>
+            <!-- مرکز: لوگو -->
             <div class="flex min-w-0 items-center justify-self-center">
                 <?php if ( has_custom_logo() ) : ?>
-                    <div class="romanino-site-logo flex shrink-0 items-center">
-                        <?php the_custom_logo(); ?>
-                    </div>
+                    <div class="romanino-site-logo flex shrink-0 items-center"><?php the_custom_logo(); ?></div>
                 <?php else : ?>
                     <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="flex shrink-0 items-center gap-2" aria-label="صفحه اصلی">
                         <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-gold shadow-[0_0_18px_-2px_rgba(234,179,8,0.4)] ring-1 ring-primary/40">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                         </span>
-                        <span class="hidden text-lg font-bold tracking-tight text-ink sm:block">
-                            <?php echo esc_html( get_bloginfo( 'name' ) ); ?>
-                        </span>
+                        <span class="hidden text-lg font-bold tracking-tight text-ink sm:block"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></span>
                     </a>
                 <?php endif; ?>
             </div>
 
-            <!-- ── چپ: جست‌وجو / سبد خرید / ورود (فقط آیکون) ── -->
-            <?php
-            // FIX: بدون گارد function_exists، غیرفعال‌شدن (یا آپدیت) ووکامرس
-            // کل هدر و در نتیجه کل سایت را با Fatal Error می‌انداخت.
-            $romanino_account_url = function_exists( 'wc_get_page_permalink' )
-                ? wc_get_page_permalink( 'myaccount' )
-                : wp_login_url();
-
-            // WC() فقط وقتی وجود دارد که ووکامرس فعال باشد؛ و حتی وقتی فعال
-            // است، WC()->cart در برخی ریکوئست‌ها (REST/cron) هنوز ساخته نشده.
-            $cart_count = ( function_exists( 'WC' ) && WC()->cart )
-                ? WC()->cart->get_cart_contents_count()
-                : 0;
-
-            $romanino_login_label = is_user_logged_in() ? 'پیشخوان کاربری' : 'ورود | ثبت‌نام';
-            ?>
+            <!-- چپ: جست‌وجو / سبد / ورود — dir=ltr تا از چپ به راست چیده شوند -->
             <div class="flex items-center gap-1 justify-self-end" dir="ltr">
-
-                <!-- ۱ — جست‌وجو: پنل جست‌وجوی زنده را باز/بسته می‌کند -->
                 <button type="button" id="romanino-search-btn"
                     aria-controls="romanino-search-panel" aria-expanded="false" aria-label="جست‌وجو"
                     class="rounded-lg p-2 text-ink-3 transition-colors duration-150 hover:bg-ink/10 hover:text-ink">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <?php printf( $romanino_icon_search, 'h-6 w-6' ); // phpcs:ignore WordPress.Security.EscapeOutput -- SVG ثابت و داخلی ?>
                 </button>
 
-                <!-- ۲ — سبد خرید: کشوی سبد را باز می‌کند (mini-cart.js به همین id گوش می‌دهد) -->
                 <button type="button" id="cart-open-btn" aria-label="سبد خرید"
                     class="relative rounded-lg p-2 text-ink-3 transition-colors duration-150 hover:bg-ink/10 hover:text-ink">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                    <span class="cart-count-badge absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-[#0f0726] shadow-[0_0_10px_-1px_rgba(234,179,8,0.6)]<?php echo $cart_count === 0 ? ' hidden' : ''; ?>">
+                    <?php printf( $romanino_icon_cart, 'h-6 w-6' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+                    <span class="cart-count-badge absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground shadow-[0_0_10px_-1px_rgba(234,179,8,0.6)]<?php echo $cart_count === 0 ? ' hidden' : ''; ?>">
                         <?php echo number_format_i18n( $cart_count ); ?>
                     </span>
                 </button>
 
-                <!-- ۳ — ورود / پیشخوان کاربری: طبق درخواست فقط آیکون، بدون متن -->
                 <a href="<?php echo esc_url( $romanino_account_url ); ?>"
-                    aria-label="<?php echo esc_attr( $romanino_login_label ); ?>"
-                    title="<?php echo esc_attr( $romanino_login_label ); ?>"
+                    aria-label="<?php echo esc_attr( $romanino_account_label ); ?>"
+                    title="<?php echo esc_attr( $romanino_account_label ); ?>"
                     class="rounded-lg p-2 text-ink-3 transition-colors duration-150 hover:bg-ink/10 hover:text-ink">
-                    <?php if ( is_user_logged_in() ) : ?>
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                    <?php else : ?>
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-                    <?php endif; ?>
+                    <?php printf( $romanino_is_logged ? $romanino_icon_user : $romanino_icon_login, 'h-6 w-6' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
                 </a>
-
             </div>
         </div>
 
-        <!-- ── پنل جست‌وجوی زنده ──────────────────────────────────────────────
-             ورودی این پنل هیچ کلاس/شناسه‌ی اختصاصی برای جست‌وجوی زنده ندارد؛
-             اسکریپت به «هر» فیلد جست‌وجوی سایت وصل می‌شود (جزئیات در main.js).
-             فرم واقعی است، پس اگر جاوااسکریپت اجرا نشود، Enter کاربر را به
+        <!-- ═══════════ چیدمان دسکتاپ (lg به بالا) — همان چیدمان قبلی قالب ═══════════ -->
+        <div class="mx-auto hidden h-16 max-w-7xl items-center gap-x-4 px-4 lg:flex lg:px-8">
+
+            <!-- راست: لوگو -->
+            <?php if ( has_custom_logo() ) : ?>
+                <div class="romanino-site-logo flex shrink-0 items-center"><?php the_custom_logo(); ?></div>
+            <?php else : ?>
+                <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="flex shrink-0 items-center gap-2" aria-label="صفحه اصلی">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-gold shadow-[0_0_18px_-2px_rgba(234,179,8,0.4)] ring-1 ring-primary/40">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                    </span>
+                    <span class="text-lg font-bold tracking-tight text-ink"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></span>
+                </a>
+            <?php endif; ?>
+
+            <!-- مرکز: نوار جست‌وجوی باز (با جست‌وجوی زنده) -->
+            <div class="relative mx-auto w-full max-w-xl flex-1">
+                <form role="search" method="get" action="<?php echo esc_url( home_url( '/' ) ); ?>">
+                    <input type="hidden" name="post_type" value="product" />
+                    <?php printf( $romanino_icon_search, 'pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+                    <input type="search" name="s" autocomplete="off"
+                        placeholder="<?php echo esc_attr( $romanino_header_opts['search_placeholder'] ); ?>"
+                        class="h-10 w-full rounded-xl border border-ink/10 bg-surface-input pr-10 pl-4 text-sm text-ink placeholder:text-ink-muted outline-none transition-all duration-200 focus:border-primary/60 focus:bg-surface-input-focus focus:shadow-[0_0_20px_-4px_rgba(234,179,8,0.3)] focus:ring-1 focus:ring-primary/50" required />
+                </form>
+            </div>
+
+            <!-- چپ: حساب کاربری + سبد خرید -->
+            <div class="relative z-30 flex shrink-0 items-center gap-4">
+                <a href="<?php echo esc_url( $romanino_account_url ); ?>"
+                    <?php echo $romanino_is_logged ? 'title="' . esc_attr( 'پیشخوان کاربری — ' . $romanino_display_name ) . '"' : ''; ?>
+                    class="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground shadow-[0_0_20px_-4px_rgba(234,179,8,0.5)] transition-all duration-200 hover:brightness-110 hover:shadow-[0_0_28px_-4px_rgba(234,179,8,0.7)]">
+                    <?php printf( $romanino_is_logged ? $romanino_icon_user : $romanino_icon_login, 'h-4 w-4 shrink-0' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+                    <?php echo esc_html( $romanino_account_label ); ?>
+                </a>
+
+                <button type="button" id="cart-open-btn-desktop" aria-label="سبد خرید"
+                    class="relative rounded-lg p-2 text-ink-3 transition-colors duration-150 hover:bg-ink/10 hover:text-ink">
+                    <?php printf( $romanino_icon_cart, 'h-5 w-5' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+                    <span class="cart-count-badge absolute -left-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground shadow-[0_0_10px_-1px_rgba(234,179,8,0.6)]<?php echo $cart_count === 0 ? ' hidden' : ''; ?>">
+                        <?php echo number_format_i18n( $cart_count ); ?>
+                    </span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ── پنل جست‌وجوی کشویی (فقط موبایل؛ دسکتاپ نوار همیشه‌باز دارد) ──
+             فرم واقعی است، پس اگر جاوااسکریپت اجرا نشود Enter کاربر را به
              صفحه‌ی نتایج استاندارد وردپرس می‌برد. -->
-        <div id="romanino-search-panel" class="hidden border-t border-ink/10 bg-surface-card/95 backdrop-blur-xl">
-            <div class="mx-auto max-w-3xl px-4 py-4 lg:px-8">
+        <div id="romanino-search-panel" class="hidden border-t border-ink/10 bg-surface-card/95 backdrop-blur-xl lg:hidden">
+            <div class="mx-auto max-w-3xl px-4 py-4">
                 <form role="search" method="get" action="<?php echo esc_url( home_url( '/' ) ); ?>" class="relative">
                     <input type="hidden" name="post_type" value="product" />
-                    <svg class="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    <?php $romanino_header_opts = romanino_get_header_options(); ?>
+                    <?php printf( $romanino_icon_search, 'pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
                     <input type="search" name="s" autocomplete="off"
                         placeholder="<?php echo esc_attr( $romanino_header_opts['search_placeholder'] ); ?>"
                         class="h-12 w-full rounded-xl border border-ink/10 bg-surface-input pr-10 pl-4 text-sm text-ink placeholder:text-ink-muted outline-none transition-all duration-200 focus:border-primary/60 focus:bg-surface-input-focus focus:shadow-[0_0_20px_-4px_rgba(234,179,8,0.3)] focus:ring-1 focus:ring-primary/50" required />
@@ -282,16 +333,6 @@
         </div>
     </div>
 
-    <!--
-        FIX مهم (منوی رسپانسیو موبایل خالی):
-        دکمه‌ی همبرگر (#mobile-menu-btn) از قبل توسط main.js و اسکریپت پایین
-        فوتر شنیده می‌شد، اما عنصر #mobile-menu که باید toggle می‌شد اصلاً در
-        هدر وجود نداشت — پس با کلیک هیچ‌چیزی نمایش داده نمی‌شد. همچنین چون
-        دو listener جدا (هم main.js و هم اسکریپت inline فوتر) روی همون دکمه
-        فعال بودن، حتی بعد از اضافه‌کردن این عنصر هم کلیک اول چیزی رو باز و
-        بلافاصله toggle دوم می‌بست (خنثی می‌شدن). listener تکراری در پایین
-        footer.php حذف شد؛ فقط main.js مسئول این منو باقی مونده.
-    -->
     <?php
     /* FIX (پیامد چیدمان جدید): این پنل قبلاً کلاس lg:hidden داشت، چون دکمه‌ی
        همبرگر هم فقط تا breakpoint‌ی lg دیده می‌شد. حالا طبق چیدمان جدید،
@@ -299,7 +340,7 @@
        lg:hidden می‌ماند، کلیک روی آن در دسکتاپ هیچ اتفاق قابل‌مشاهده‌ای
        نداشت (پنل toggle می‌شد ولی display:none می‌ماند). */
     ?>
-    <div id="mobile-menu" class="hidden border-b border-ink/10 bg-surface-nav">
+    <div id="mobile-menu" class="hidden border-b border-ink/10 bg-surface-nav lg:hidden">
         <div class="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-4">
             <?php
             if ( has_nav_menu( 'primary' ) ) :

@@ -28,7 +28,7 @@ do_action( 'woocommerce_before_account_navigation' );
 		<div class="pointer-events-none absolute -top-16 -left-16 h-56 w-56 rounded-full bg-primary/10 blur-3xl"></div>
 
 		<div class="relative flex items-center gap-4">
-			<div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary text-background text-2xl font-black shadow-[0_0_20px_-4px_rgba(234,179,8,0.6)] ring-1 ring-primary/40">
+			<div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground text-2xl font-black shadow-[0_0_20px_-4px_rgba(234,179,8,0.6)] ring-1 ring-primary/40">
 				<?php echo esc_html( mb_substr( $first_name ?: $current_user->display_name, 0, 1 ) ); ?>
 			</div>
 			<div>
@@ -60,15 +60,39 @@ do_action( 'woocommerce_before_account_navigation' );
 		</div>
 	</div>
 
-	<!-- بنر تخفیف -->
-	<div class="glass relative overflow-hidden rounded-2xl p-4 mb-6 flex items-center gap-3">
+	<?php
+	/* بنر پیام / کد تخفیف
+	   ─────────────────────────────────────────────────────────────────────
+	   FIX (گزارش‌شده): این بنر با متن «جشنواره تخفیف رمانینو» و کد «ROMAN20»
+	   داخل همین فایل هاردکد بود. یعنی مدیر سایت هر چیزی در
+	   پیشخوان → تنظیمات قالب رمانینو → تب «پیشخوان مشتری» می‌نوشت، اینجا
+	   هیچ اثری نداشت و همان متن ثابتِ نمونه به همه‌ی کاربران نشان داده
+	   می‌شد — حتی وقتی هیچ جشنواره‌ای در کار نبود.
+
+	   حالا دقیقاً از همان تنظیمات خوانده می‌شود و اگر تیک «نمایش داده شود»
+	   خاموش باشد یا هر دو فیلد (متن پیام و کد تخفیف) خالی باشند، هیچ چیزی
+	   رندر نمی‌شود. */
+	$romanino_myacc_opts = function_exists( 'romanino_get_myaccount_options' )
+		? romanino_get_myaccount_options()
+		: array();
+
+	$romanino_promo_on   = ! empty( $romanino_myacc_opts['dashboard_enabled'] );
+	$romanino_promo_text = trim( (string) ( $romanino_myacc_opts['dashboard_text'] ?? '' ) );
+	$romanino_promo_code = trim( (string) ( $romanino_myacc_opts['dashboard_coupon'] ?? '' ) );
+	?>
+	<?php if ( $romanino_promo_on && ( '' !== $romanino_promo_text || '' !== $romanino_promo_code ) ) : ?>
+	<div class="glass relative overflow-hidden rounded-2xl p-4 mb-6 flex flex-wrap items-center gap-3">
 		<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-xl ring-1 ring-primary/30">🎁</span>
-		<div class="text-xs leading-relaxed text-muted-foreground">
-			<strong class="text-foreground">جشنواره تخفیف رمانینو:</strong> با کد
-			<code class="rounded bg-primary/15 px-2 py-0.5 font-mono font-black text-gold">ROMAN20</code>
-			از ۲۰٪ تخفیف بهره‌مند شوید!
-		</div>
+		<?php if ( '' !== $romanino_promo_text ) : ?>
+			<div class="min-w-0 flex-1 text-xs leading-relaxed text-muted-foreground">
+				<?php echo wp_kses_post( $romanino_promo_text ); ?>
+			</div>
+		<?php endif; ?>
+		<?php if ( '' !== $romanino_promo_code ) : ?>
+			<code class="shrink-0 rounded-lg border border-dashed border-primary/50 bg-primary/10 px-3 py-1.5 font-mono text-sm font-black text-gold" dir="ltr"><?php echo esc_html( $romanino_promo_code ); ?></code>
+		<?php endif; ?>
 	</div>
+	<?php endif; ?>
 
 	<!-- فرم تکمیل پروفایل -->
 	<?php if ( $needs_profile_update ) : ?>
@@ -100,7 +124,7 @@ do_action( 'woocommerce_before_account_navigation' );
 			</select>
 
 			<button type="submit"
-				class="glow-gold w-full rounded-xl bg-primary py-2.5 text-xs font-bold text-background transition-all hover:brightness-110">
+				class="glow-gold w-full rounded-xl bg-primary py-2.5 text-xs font-bold text-primary-foreground transition-all hover:brightness-110">
 				ثبت و ذخیره
 			</button>
 		</form>

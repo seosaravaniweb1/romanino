@@ -150,8 +150,8 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 			<div class="order-5 flex flex-col gap-5 lg:gap-6">
 
 				<!-- درخواست حذف اثر (برای نویسنده/ناشر/مالک اثر) — چون سیستم تیکت از قالب حذف شده، فعلاً به ایمیل مدیر سایت وصل است -->
-				<div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-red-500/25 bg-red-500/10 p-3.5 lg:p-4">
-					<p class="text-xs leading-relaxed text-red-200 lg:text-sm">
+				<div class="rmn-danger-note flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-3.5 lg:p-4">
+					<p class="text-xs leading-relaxed lg:text-sm">
 						اگر نویسنده یا مالک قانونی «<?php echo esc_html( $product_title ); ?>» هستید و درخواست حذف این اثر را دارید،
 					</p>
 					<a href="<?php echo esc_url( 'mailto:' . get_option( 'admin_email' ) . '?subject=' . rawurlencode( 'درخواست حذف اثر: ' . $product_title ) ); ?>"
@@ -395,7 +395,7 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 					<?php if ( $is_unavailable ) : ?>
 						<!-- Phase 1: فیلد قیمت کاملاً خالی است → دکمه غیرفعال -->
 						<button type="button" disabled
-							class="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-slate-700 py-3.5 text-sm font-bold text-ink-muted lg:text-base">
+							class="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl border border-ink/10 bg-ink/10 py-3.5 text-sm font-bold text-ink-2 lg:text-base">
 							فعلاً قابل خرید نیست
 						</button>
 					<?php elseif ( $is_free_product ) : ?>
@@ -515,7 +515,7 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 		</div>
 		<?php if ( $is_unavailable ) : ?>
 			<button type="button" disabled
-				class="flex flex-1 cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-slate-700 py-2.5 text-center text-xs font-bold text-ink-muted shadow-md">
+				class="flex flex-1 cursor-not-allowed items-center justify-center gap-2 rounded-xl border border-ink/10 bg-ink/10 py-2.5 text-center text-xs font-bold text-ink-2 shadow-md">
 				فعلاً قابل خرید نیست
 			</button>
 		<?php elseif ( $is_free_product ) : ?>

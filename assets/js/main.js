@@ -638,15 +638,36 @@
       const wrap = input.parentElement;
       if (!wrap) return;
 
-      // ظرف نتایج باید نسبت به یک عنصر position:relative جای بگیرد.
-      if (getComputedStyle(wrap).position === 'static') wrap.style.position = 'relative';
+      /* FIX (گزارش‌شده — «لیست نتایج پشت بخش بعدی می‌افتد»):
+         لیست نتایج قبلاً داخل همان فرم جست‌وجو و با position:absolute رندر
+         می‌شد. مشکل این بود که فرمِ صفحه‌ی اصلی داخل
+         <section class="relative overflow-hidden …"> قرار دارد — آن
+         overflow-hidden برای هاله‌های محو پس‌زمینه گذاشته شده و هر عنصر
+         absoluteِ فرزند را «می‌بُرد». بالا بردن z-index هم چاره‌ساز نبود، چون
+         مشکل «بریده‌شدن» بود نه «ترتیب لایه‌ها».
 
+         راه‌حل قطعی: لیست مستقیماً به <body> منتقل می‌شود و با position:fixed
+         روی مختصات واقعی ورودی (getBoundingClientRect) می‌نشیند. این کار از
+         هر overflow و هر stacking context والدی فرار می‌کند و در همه‌ی
+         فرم‌های جست‌وجوی سایت یکسان کار می‌کند. مختصات هنگام اسکرول و تغییر
+         اندازه‌ی پنجره دوباره محاسبه می‌شود. */
       const list = document.createElement('div');
       list.id = listId;
       list.setAttribute('role', 'listbox');
       list.className =
-        'romanino-live-results hidden absolute right-0 left-0 top-full z-[70] mt-2 max-h-[70vh] overflow-y-auto rounded-2xl border border-ink/10 bg-surface-card p-2 shadow-2xl shadow-black/60';
-      wrap.appendChild(list);
+        'romanino-live-results hidden fixed z-[70] max-h-[70vh] overflow-y-auto rounded-2xl border border-ink/10 bg-surface-card p-2 shadow-2xl shadow-black/60';
+      document.body.appendChild(list);
+
+      /** لیست را دقیقاً زیر ورودی و هم‌عرض آن قرار می‌دهد. */
+      function positionList() {
+        const r = input.getBoundingClientRect();
+        list.style.top   = (r.bottom + 8) + 'px';
+        list.style.left  = r.left + 'px';
+        list.style.width = r.width + 'px';
+        // اگر فضای پایین کم بود، ارتفاع لیست به همان فضا محدود می‌شود تا
+        // انتهایش زیر لبه‌ی پایین صفحه گم نشود.
+        list.style.maxHeight = Math.max(160, window.innerHeight - r.bottom - 24) + 'px';
+      }
 
       input.setAttribute('role', 'combobox');
       input.setAttribute('aria-autocomplete', 'list');
@@ -658,25 +679,23 @@
       let controller = null;
       let activeIndex = -1;
 
-      /* بالا بردن z-index خودِ ظرف هنگام باز بودن لیست.
-         دلیل: چند فرم جست‌وجوی سایت کلاس .glass دارند و backdrop-filter یک
-         stacking context جدید می‌سازد. در آن حالت z-index بالای خودِ لیست
-         بی‌اثر است — لیست فقط داخل همان context مرتب می‌شود و بخش‌های بعدی
-         صفحه (که در DOM بعد از فرم می‌آیند) رویش می‌افتند. راه‌حل درست، بالا
-         بردن z-index همان ظرف است، نه لیست. */
-      const prevZ = wrap.style.zIndex;
+      const reposition = () => { if (!list.classList.contains('hidden')) positionList(); };
 
       const closeList = () => {
         list.classList.add('hidden');
         input.setAttribute('aria-expanded', 'false');
-        wrap.style.zIndex = prevZ;
+        window.removeEventListener('scroll', reposition, true);
+        window.removeEventListener('resize', reposition);
         activeIndex = -1;
       };
 
       const openList = () => {
+        positionList();
         list.classList.remove('hidden');
         input.setAttribute('aria-expanded', 'true');
-        wrap.style.zIndex = '60';
+        // capture=true تا اسکرولِ هر ظرف داخلی هم گرفته شود، نه فقط پنجره.
+        window.addEventListener('scroll', reposition, true);
+        window.addEventListener('resize', reposition);
       };
 
       const rows = () => list.querySelectorAll('[data-live-row]');
@@ -826,8 +845,11 @@
         if (input.value.trim().length >= 2 && list.childElementCount) openList();
       });
 
+      /* لیست دیگر داخل wrap نیست (به body منتقل شده)، پس کلیک روی خود لیست
+         هم باید «داخل» حساب شود وگرنه انتخاب یک نتیجه، لیست را قبل از ثبت
+         کلیک می‌بست. */
       document.addEventListener('click', (e) => {
-        if (!wrap.contains(e.target)) closeList();
+        if (!wrap.contains(e.target) && !list.contains(e.target)) closeList();
       });
     });
   })();

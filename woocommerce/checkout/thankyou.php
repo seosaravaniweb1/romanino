@@ -117,7 +117,7 @@ defined( 'ABSPATH' ) || exit;
 							</div>
 							
 							<!-- استفاده از download attribute برای جلوگیری از باز شدن ناخواسته فایل در تب مرورگر -->
-							<a href="<?php echo esc_url( $download['download_url'] ); ?>" download rel="noopener noreferrer" class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-xs font-bold text-background transition-all hover:brightness-110">
+							<a href="<?php echo esc_url( $download['download_url'] ); ?>" download rel="noopener noreferrer" class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-xs font-bold text-primary-foreground transition-all hover:brightness-110">
 								دانلود مستقیم
 							</a>
 						</div>

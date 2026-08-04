@@ -91,7 +91,13 @@ do_action( 'romanino_before_footer' );
         <div class="grid grid-cols-2 gap-x-6 gap-y-12 md:grid-cols-4 lg:grid-cols-12 lg:gap-8">
 
             <!-- برند و توضیحات -->
-            <div class="col-span-2 md:col-span-4 lg:col-span-4">
+            <?php
+            /* گرید فوتر دقیقاً ۱۲ ستون است. برای اینکه ستون محصولات یک واحد
+               فضای بیشتر بگیرد (تا عنوان تب‌ها در یک سطر جا شود)، همان یک واحد
+               از این ستون کم شد: ۳ + ۲ + ۲ + ۳ + ۲ = ۱۲.
+               بدون این کار مجموع ۱۳ می‌شد و ستون آخر به سطر بعد می‌افتاد. */
+            ?>
+            <div class="col-span-2 md:col-span-4 lg:col-span-3">
                 <div class="mb-4">
                     <?php
                     /* FIX (لوگوی بزرگ در فوتر): the_custom_logo() قبلاً بدون هیچ
@@ -171,33 +177,39 @@ do_action( 'romanino_before_footer' );
             </div>
 
             <!-- ستون محصولات: جدیدترین / پرفروش‌ترین -->
-            <div class="col-span-2 md:col-span-2 lg:col-span-2">
+            <?php
+            /* FIX (گزارش‌شده): این ستون در دسکتاپ فقط ۲ واحد از گرید را می‌گرفت
+               و عنوان تب‌ها («پرفروش‌ترین») در دو سطر می‌شکست. با یک واحد
+               فضای بیشتر، هر دو عنوان در یک سطر جا می‌شوند. whitespace-nowrap
+               هم اضافه شد تا حتی در باریک‌ترین حالت هم نشکند. */
+            ?>
+            <div class="col-span-2 md:col-span-2 lg:col-span-3">
                 <div class="mb-5 flex items-center gap-1 rounded-xl border border-ink/10 bg-ink/[0.03] p-1">
-                    <button type="button" data-footer-tab="latest" class="footer-tab-btn flex-1 rounded-lg py-1.5 text-xs font-bold transition-all duration-150">جدیدترین</button>
-                    <button type="button" data-footer-tab="bestseller" class="footer-tab-btn flex-1 rounded-lg py-1.5 text-xs font-bold transition-all duration-150">پرفروش‌ترین</button>
+                    <button type="button" data-footer-tab="latest" class="footer-tab-btn flex-1 whitespace-nowrap rounded-lg px-2 py-1.5 text-xs font-bold transition-all duration-150">جدیدترین</button>
+                    <button type="button" data-footer-tab="bestseller" class="footer-tab-btn flex-1 whitespace-nowrap rounded-lg px-2 py-1.5 text-xs font-bold transition-all duration-150">پرفروش‌ترین</button>
                 </div>
 
                 <div id="footer-panel-latest" class="footer-tab-panel flex flex-col gap-3.5">
                     <?php
                     // FIX (پرفورمنس): لیست کش‌شده به‌جای WP_Query در فوترِ «هر» صفحه‌ی سایت.
+                    // طبق درخواست: ۳ رمان در هر تب تا ارتفاع فوتر کمتر شود.
                     $romanino_latest_ids = romanino_get_cached_product_ids( 'newest', array(
                         'orderby' => 'date',
                         'order'   => 'DESC',
-                    ), 4 );
+                    ), 3 );
                     if ( $romanino_latest_ids ) :
                         foreach ( $romanino_latest_ids as $romanino_f_id ) :
                             $product = wc_get_product( $romanino_f_id );
                             if ( ! $product ) continue;
                             ?>
                             <a href="<?php echo esc_url( get_permalink( $romanino_f_id ) ); ?>" class="group flex items-center gap-3" title="<?php echo esc_attr( $product->get_name() ); ?>">
-                                <span class="block h-14 w-10 shrink-0 overflow-hidden rounded-md bg-ink/5 ring-1 ring-ink/10">
+                                <span class="block h-11 w-11 shrink-0 overflow-hidden rounded-md bg-ink/5 ring-1 ring-ink/10">
                                     <?php if ( has_post_thumbnail( $romanino_f_id ) ) : ?>
-                                        <?php echo get_the_post_thumbnail( $romanino_f_id, 'thumbnail', array( 'class' => 'h-full w-full object-cover transition-transform duration-300 group-hover:scale-110' ) ); ?>
+                                        <?php echo get_the_post_thumbnail( $romanino_f_id, 'thumbnail', array( 'class' => 'h-full w-full object-cover transition-transform duration-300 group-hover:scale-110', 'loading' => 'lazy' ) ); ?>
                                     <?php endif; ?>
                                 </span>
                                 <span class="min-w-0">
                                     <span class="line-clamp-2 block text-xs font-bold leading-relaxed text-ink-2 transition-colors duration-150 group-hover:text-gold"><?php echo esc_html( $product->get_name() ); ?></span>
-                                    <span class="mt-1 block text-[11px] font-bold text-gold"><?php echo wp_kses_post( $product->get_price_html() ?: 'رایگان' ); ?></span>
                                 </span>
                             </a>
                         <?php endforeach;
@@ -213,21 +225,20 @@ do_action( 'romanino_before_footer' );
                         'meta_key' => 'total_sales',
                         'orderby'  => 'meta_value_num',
                         'order'    => 'DESC',
-                    ), 4 );
+                    ), 3 );
                     if ( $romanino_best_ids ) :
                         foreach ( $romanino_best_ids as $romanino_f_id ) :
                             $product = wc_get_product( $romanino_f_id );
                             if ( ! $product ) continue;
                             ?>
                             <a href="<?php echo esc_url( get_permalink( $romanino_f_id ) ); ?>" class="group flex items-center gap-3" title="<?php echo esc_attr( $product->get_name() ); ?>">
-                                <span class="block h-14 w-10 shrink-0 overflow-hidden rounded-md bg-ink/5 ring-1 ring-ink/10">
+                                <span class="block h-11 w-11 shrink-0 overflow-hidden rounded-md bg-ink/5 ring-1 ring-ink/10">
                                     <?php if ( has_post_thumbnail( $romanino_f_id ) ) : ?>
-                                        <?php echo get_the_post_thumbnail( $romanino_f_id, 'thumbnail', array( 'class' => 'h-full w-full object-cover transition-transform duration-300 group-hover:scale-110' ) ); ?>
+                                        <?php echo get_the_post_thumbnail( $romanino_f_id, 'thumbnail', array( 'class' => 'h-full w-full object-cover transition-transform duration-300 group-hover:scale-110', 'loading' => 'lazy' ) ); ?>
                                     <?php endif; ?>
                                 </span>
                                 <span class="min-w-0">
                                     <span class="line-clamp-2 block text-xs font-bold leading-relaxed text-ink-2 transition-colors duration-150 group-hover:text-gold"><?php echo esc_html( $product->get_name() ); ?></span>
-                                    <span class="mt-1 block text-[11px] font-bold text-gold"><?php echo wp_kses_post( $product->get_price_html() ?: 'رایگان' ); ?></span>
                                 </span>
                             </a>
                         <?php endforeach;

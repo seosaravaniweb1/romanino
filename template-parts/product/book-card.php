@@ -91,7 +91,7 @@ $img_fetchpriority   = $romanino_loop_index < 4 ? 'high' : '';
 			<?php if ( $is_unavailable ) : ?>
 				<!-- Phase 1: فیلد قیمت کاملاً خالی است → دکمه غیرفعال -->
 				<button type="button" disabled
-					class="flex w-full cursor-not-allowed items-center justify-center gap-1.5 rounded-xl bg-slate-700 py-2.5 text-[11px] font-bold text-ink-muted lg:text-xs">
+					class="flex w-full cursor-not-allowed items-center justify-center gap-1.5 rounded-xl border border-ink/10 bg-ink/10 py-2.5 text-[11px] font-bold text-ink-2 lg:text-xs">
 					فعلاً قابل خرید نیست
 				</button>
 			<?php elseif ( $is_free_product ) : ?>
