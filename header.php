@@ -139,6 +139,29 @@
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
                         ورود | ثبت‌نام
                     </a>
+                <?php else : ?>
+                    <?php
+                    /* FIX (باگ گزارش‌شده): کاربر لاگین‌شده هیچ راهی برای رسیدن به
+                       پیشخوان کاربری‌اش از روی هدر نداشت — نه در دسکتاپ و نه در
+                       موبایل. دکمه‌ی «ورود | ثبت‌نام» بعد از ورود صرفاً ناپدید
+                       می‌شد و جایش خالی می‌ماند.
+
+                       حالا همان جایگاه، دکمه‌ی «پیشخوان کاربری» را نشان می‌دهد.
+                       روی نمایشگرهای کوچک فقط آیکون دیده می‌شود (تا نوار هدر
+                       شلوغ نشود) ولی خودِ دکمه در همه‌ی اندازه‌ها هست؛ علاوه بر
+                       آن، منوی موبایل هم یک بخش کامل «حساب کاربری» گرفته
+                       (پایین همین فایل). */
+                    $romanino_current_user  = wp_get_current_user();
+                    $romanino_display_name  = trim( $romanino_current_user->first_name ) !== ''
+                        ? $romanino_current_user->first_name
+                        : $romanino_current_user->display_name;
+                    ?>
+                    <a href="<?php echo esc_url( $romanino_account_url ); ?>"
+                        title="<?php echo esc_attr( 'پیشخوان کاربری — ' . $romanino_display_name ); ?>"
+                        class="flex items-center gap-2 rounded-xl bg-primary px-2.5 py-2 text-sm font-bold text-[#0f0726] shadow-[0_0_20px_-4px_rgba(234,179,8,0.5)] transition-all duration-200 hover:brightness-110 hover:shadow-[0_0_28px_-4px_rgba(234,179,8,0.7)] sm:px-4">
+                        <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        <span class="hidden sm:inline">پیشخوان کاربری</span>
+                    </a>
                 <?php endif; ?>
 
                 <!-- Cart (WooCommerce) -->
@@ -209,6 +232,44 @@
                 endforeach;
             endif;
             ?>
+
+            <?php
+            /* FIX (باگ گزارش‌شده): منوی موبایل هیچ ورودی‌ای به حساب کاربری
+               نداشت. حالا برای کاربر لاگین‌شده «پیشخوان کاربری / دانلودهای من /
+               سفارش‌های من / خروج» و برای مهمان دکمه‌ی ورود و ثبت‌نام نمایش
+               داده می‌شود.
+               آدرس اندپوینت‌ها از خود ووکامرس گرفته می‌شود (wc_get_account_endpoint_url)
+               تا اگر مدیر سایت اسم اندپوینت‌ها را در تنظیمات عوض کرد، لینک‌ها
+               نشکنند. */
+            $romanino_has_wc_account = function_exists( 'wc_get_account_endpoint_url' );
+            ?>
+            <span class="my-2 h-px w-full bg-ink/10"></span>
+            <span class="mb-1 px-3 text-xs font-bold text-ink-faint">حساب کاربری</span>
+            <?php if ( is_user_logged_in() ) : ?>
+                <a href="<?php echo esc_url( $romanino_account_url ); ?>" class="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-bold text-ink-2 hover:bg-ink/10 hover:text-ink">
+                    <svg class="h-4 w-4 shrink-0 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                    پیشخوان کاربری
+                </a>
+                <?php if ( $romanino_has_wc_account ) : ?>
+                    <a href="<?php echo esc_url( wc_get_account_endpoint_url( 'downloads' ) ); ?>" class="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-bold text-ink-2 hover:bg-ink/10 hover:text-ink">
+                        <svg class="h-4 w-4 shrink-0 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"></path></svg>
+                        دانلودهای من
+                    </a>
+                    <a href="<?php echo esc_url( wc_get_account_endpoint_url( 'orders' ) ); ?>" class="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-bold text-ink-2 hover:bg-ink/10 hover:text-ink">
+                        <svg class="h-4 w-4 shrink-0 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                        سفارش‌های من
+                    </a>
+                <?php endif; ?>
+                <a href="<?php echo esc_url( wp_logout_url( home_url( '/' ) ) ); ?>" class="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-bold text-ink-muted hover:bg-ink/10 hover:text-ink">
+                    <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    خروج از حساب
+                </a>
+            <?php else : ?>
+                <a href="<?php echo esc_url( $romanino_account_url ); ?>" class="flex items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2.5 text-sm font-bold text-[#0f0726] transition-all duration-200 hover:brightness-110">
+                    <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+                    ورود | ثبت‌نام
+                </a>
+            <?php endif; ?>
 
             <span class="my-2 h-px w-full bg-ink/10"></span>
             <span class="mb-1 px-3 text-xs font-bold text-ink-faint">دسته‌بندی رمان</span>

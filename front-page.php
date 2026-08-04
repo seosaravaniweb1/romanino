@@ -370,38 +370,55 @@
             <?php endforeach; ?>
         </div>
 
-        <?php
-        // توضیحات زیر سوالات متداول — از پیشخوان → تنظیمات قالب رمانینو →
-        // تب «صفحه اصلی (سوالات متداول)» قابل ویرایش است. اگر خالی باشد،
-        // هیچ چیزی (حتی کادر خالی) رندر نمی‌شود.
-        $romanino_faq_desc = function_exists( 'romanino_get_faq_options' )
-            ? trim( (string) ( romanino_get_faq_options()['description'] ?? '' ) )
-            : '';
-        ?>
-        <?php if ( '' !== $romanino_faq_desc ) : ?>
-            <div class="glass mt-6 rounded-2xl p-5 text-sm leading-relaxed text-ink-muted md:p-6">
-                <?php echo wp_kses_post( wpautop( $romanino_faq_desc ) ); ?>
-            </div>
-        <?php endif; ?>
-
     </section>
 
     <!-- ── SECTION 8: SEO DESCRIPTION ── -->
-    <section class="mx-auto max-w-6xl px-4 py-14">
-        <div class="glass rounded-3xl p-8 md:p-12 border-t border-cyan-glow/30 shadow-[0_-10px_30px_-15px_rgba(6,182,212,0.2)]">
-            <h2 class="mb-5 text-xl font-bold text-ink md:text-2xl">
-                رمانینو؛ مرجع دانلود رمان و بهترین سایت خرید رمان PDF
-            </h2>
-            <div class="flex flex-col gap-4 text-sm leading-relaxed text-ink-muted">
-                <p>
-                    رمانینو به‌عنوان مرجع دانلود رمان، مجموعه‌ای گسترده از بهترین و پرطرفدارترین رمان‌های ایرانی و خارجی را در ژانرهای متنوع عاشقانه، اجتماعی، هیجانی، ترسناک و علمی‌تخیلی، به‌صورت PDF و صوتی و بدون سانسور و حذفیات، گردآوری کرده است.
-                </p>
-                <p>
-                    تمامی فایل‌های ارائه‌شده پیش از انتشار از نظر کیفیت متن و صحت فایل بررسی می‌شوند؛ به همین دلیل رمانینو را می‌توان بهترین سایت خرید رمان برای علاقه‌مندان به مطالعه دانست. شما می‌توانید در هر ساعت از شبانه‌روز، رمان جدید مورد علاقه‌ی خود را انتخاب کرده و بلافاصله پس از پرداخت، آن را دانلود کنید.
-                </p>
+    <?php
+    /* FIX (باگ گزارش‌شده): متن این بخش تا امروز داخل همین فایل هاردکد بود و
+       فیلد «توضیحات» در تنظیمات قالب، به‌جای ویرایش همین بخش، یک باکس مستقلِ
+       دوم زیر سوالات متداول می‌ساخت. حالا هر دو یکی شده‌اند:
+       پیشخوان → تنظیمات قالب رمانینو → تب «صفحه اصلی» همین بخش را می‌سازد.
+       مقدار پیش‌فرض دقیقاً همان متن قبلی است، پس تا وقتی مدیر سایت چیزی عوض
+       نکند ظاهر صفحه تغییری نمی‌کند. */
+    $romanino_seo_opts  = function_exists( 'romanino_get_faq_options' ) ? romanino_get_faq_options() : array();
+    $romanino_seo_title = trim( (string) ( $romanino_seo_opts['description_title'] ?? '' ) );
+    $romanino_seo_body  = trim( (string) ( $romanino_seo_opts['description'] ?? '' ) );
+    ?>
+    <?php if ( '' !== $romanino_seo_title || '' !== $romanino_seo_body ) : ?>
+        <section class="mx-auto max-w-6xl px-4 py-14">
+            <div class="glass rounded-3xl p-8 md:p-12 border-t border-cyan-glow/30 shadow-[0_-10px_30px_-15px_rgba(6,182,212,0.2)]">
+                <?php if ( '' !== $romanino_seo_title ) : ?>
+                    <h2 class="mb-5 text-xl font-bold text-ink md:text-2xl">
+                        <?php echo esc_html( $romanino_seo_title ); ?>
+                    </h2>
+                <?php endif; ?>
+
+                <?php if ( '' !== $romanino_seo_body ) : ?>
+                    <?php
+                    /* جمع‌شدن متن طولانی: تا وقتی جاوااسکریپت اجرا نشده، متن
+                       کامل و بدون هیچ محدودیتی رندر می‌شود (هم برای گوگل هم
+                       برای کاربر بدون JS). اسکریپت main.js بعد از لود، ارتفاع
+                       واقعی را اندازه می‌گیرد و فقط اگر از حد گذشته بود آن را
+                       جمع می‌کند و دکمه را نشان می‌دهد — یعنی برای متن کوتاه
+                       هیچ دکمه‌ی بی‌مصرفی ظاهر نمی‌شود. */
+                    ?>
+                    <div class="rmn-collapse" data-rmn-collapse data-rmn-collapse-max="260">
+                        <div class="rmn-prose rmn-prose-sm rmn-prose-muted">
+                            <?php echo wp_kses_post( wpautop( $romanino_seo_body ) ); ?>
+                        </div>
+                    </div>
+
+                    <button type="button"
+                        data-rmn-collapse-toggle
+                        aria-expanded="false"
+                        class="mt-4 hidden items-center gap-1.5 rounded-xl border border-gold/40 px-4 py-2 text-sm font-bold text-gold transition-colors duration-150 hover:bg-gold/10">
+                        <span data-rmn-collapse-label>مشاهده بیشتر</span>
+                        <svg class="h-4 w-4 transition-transform duration-200" data-rmn-collapse-icon fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                <?php endif; ?>
             </div>
-        </div>
-    </section>
+        </section>
+    <?php endif; ?>
 
 </main>
 

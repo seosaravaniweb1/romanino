@@ -101,9 +101,19 @@ function romanino_get_sidebar_options() {
 /** سوالات متداول صفحه اصلی — قابل ویرایش از پیشخوان (قبلاً هاردکد در inc/seo-functions.php بود) */
 function romanino_faq_defaults() {
     return array(
-        // متن توضیحی که زیر لیست سوالات متداول در صفحه اصلی نمایش داده می‌شود.
-        // اگر خالی باشد، هیچ چیزی رندر نمی‌شود.
-        'description' => '',
+        /* FIX (باگ گزارش‌شده): این فیلد قبلاً یک باکس مستقل «زیر سوالات متداول»
+           می‌ساخت، در حالی که صفحه‌ی اصلی از قبل یک بخش متنی سئو در انتهای صفحه
+           داشت که متنش داخل front-page.php هاردکد بود. یعنی مدیر سایت با پر
+           کردن این فیلد، یک بلوک متنی *دوم* می‌ساخت و متن اصلی همچنان
+           غیرقابل‌ویرایش می‌ماند.
+
+           حالا این دو یکی شده‌اند: همین دو فیلد، مستقیماً همان بخش انتهای صفحه‌ی
+           اصلی را می‌سازند و مقدار پیش‌فرضشان دقیقاً همان متنی است که تا امروز
+           هاردکد بود — پس تا وقتی مدیر سایت چیزی عوض نکند، صفحه‌ی اصلی هیچ
+           تغییری نمی‌کند. */
+        'description_title' => 'رمانینو؛ مرجع دانلود رمان و بهترین سایت خرید رمان PDF',
+        'description'       => '<p>رمانینو به‌عنوان مرجع دانلود رمان، مجموعه‌ای گسترده از بهترین و پرطرفدارترین رمان‌های ایرانی و خارجی را در ژانرهای متنوع عاشقانه، اجتماعی، هیجانی، ترسناک و علمی‌تخیلی، به‌صورت PDF و صوتی و بدون سانسور و حذفیات، گردآوری کرده است.</p>'
+            . "\n" . '<p>تمامی فایل‌های ارائه‌شده پیش از انتشار از نظر کیفیت متن و صحت فایل بررسی می‌شوند؛ به همین دلیل رمانینو را می‌توان بهترین سایت خرید رمان برای علاقه‌مندان به مطالعه دانست. شما می‌توانید در هر ساعت از شبانه‌روز، رمان جدید مورد علاقه‌ی خود را انتخاب کرده و بلافاصله پس از پرداخت، آن را دانلود کنید.</p>',
         'items' => array(
             array( 'q' => 'دانلود رمان از رمانینو چگونه است؟', 'a' => 'کافی است رمان مورد نظرتان را از بین دسته‌بندی‌ها یا با جست‌وجو پیدا کنید، خرید را نهایی کنید و بلافاصله پس از پرداخت، لینک دانلود فایل PDF یا نسخه صوتی در پنل کاربری و ایمیل شما قرار می‌گیرد.' ),
             array( 'q' => 'چرا رمانینو را بهترین سایت خرید رمان می‌دانیم؟', 'a' => 'رمانینو به‌عنوان مرجع دانلود رمان، پیش از انتشار هر عنوان، کیفیت فایل و صحت متن را بررسی می‌کند و نسخه‌ی کامل و بدون حذفیات را در اختیار خریدار قرار می‌دهد.' ),
@@ -116,7 +126,19 @@ function romanino_faq_defaults() {
 function romanino_get_faq_options() {
     static $opts = null;
     if ( null === $opts ) {
-        $opts = wp_parse_args( get_option( 'romanino_faq_options', array() ), romanino_faq_defaults() );
+        $defaults = romanino_faq_defaults();
+        $opts     = wp_parse_args( get_option( 'romanino_faq_options', array() ), $defaults );
+
+        /* wp_parse_args فقط کلیدهای «غایب» را با پیش‌فرض پر می‌کند، نه کلیدهایی
+           که ذخیره شده‌اند ولی رشته‌ی خالی‌اند. سایت‌هایی که قبلاً تب سوالات
+           متداول را ذخیره کرده‌اند، description آن‌ها به‌صورت '' در دیتابیس
+           نشسته؛ بدون این گارد، بخش متنی انتهای صفحه‌ی اصلی در آن سایت‌ها
+           بی‌صدا ناپدید می‌شد. */
+        foreach ( array( 'description_title', 'description' ) as $key ) {
+            if ( '' === trim( (string) $opts[ $key ] ) ) {
+                $opts[ $key ] = $defaults[ $key ];
+            }
+        }
     }
     return $opts;
 }
@@ -510,10 +532,13 @@ add_action( 'admin_init', function () {
             $items[] = array( 'q' => $q, 'a' => $a );
         }
         update_option( 'romanino_faq_options', array(
-            'items'       => $items,
-            'description' => wp_kses_post( wp_unslash( $_POST['faq_description'] ?? '' ) ),
+            'items'             => $items,
+            'description_title' => sanitize_text_field( wp_unslash( $_POST['faq_description_title'] ?? '' ) ),
+            // wp_kses_post چون خروجی ویرایشگر وردپرس است: پاراگراف، لیست، لینک،
+            // bold و… مجاز می‌مانند ولی <script>/<iframe>/on* حذف می‌شوند.
+            'description'       => wp_kses_post( wp_unslash( $_POST['faq_description'] ?? '' ) ),
         ) );
-        romanino_options_saved_redirect( 'faq', 'سوالات متداول با موفقیت ذخیره شد.' );
+        romanino_options_saved_redirect( 'faq', 'تنظیمات صفحه اصلی با موفقیت ذخیره شد.' );
     }
 
     // ذخیره تنظیمات پیشخوان مشتری
@@ -580,7 +605,7 @@ function romanino_render_options_page() {
             'footer'    => 'فوتر',
             'header'    => 'هدر (سرچ + زنگوله نوتیف)',
             'sidebar'   => 'صفحه محصول (باکس اعتماد)',
-            'faq'       => 'صفحه اصلی (سوالات متداول)',
+            'faq'       => 'صفحه اصلی (سوالات متداول + متن سئو)',
             'myaccount' => 'پیشخوان مشتری',
             'sms'       => 'پیامک (OTP)',
         );
@@ -871,16 +896,49 @@ function romanino_render_options_page() {
             </div>
 
             <div class="romanino-box">
-                <h2>توضیحات زیر سوالات متداول <span class="description">(بخش: صفحه اصلی)</span></h2>
+                <h2>متن معرفی انتهای صفحه اصلی <span class="description">(بخش سئو — پایین‌ترین بخش صفحه اصلی)</span></h2>
                 <p class="description">
-                    این متن دقیقاً زیر لیست سوالات متداول در صفحه اصلی نمایش داده می‌شود — جای مناسبی برای
-                    یک جمع‌بندی کوتاه یا دعوت به تماس با پشتیبانی. تگ‌های ساده‌ی HTML
-                    (<code>&lt;b&gt;</code>، <code>&lt;a&gt;</code>، <code>&lt;br&gt;</code>) مجاز است.
-                    اگر خالی بگذارید، هیچ چیزی نمایش داده نمی‌شود.
+                    این همان باکسی است که در <strong>انتهای صفحه اصلی</strong> (بعد از سوالات متداول) نمایش داده می‌شود.
+                    تا پیش از این متنِ آن داخل فایل قالب ثابت بود و قابل ویرایش نبود؛ حالا هر چیزی اینجا بنویسید،
+                    مستقیماً همان باکس را می‌سازد.
                 </p>
-                <textarea name="faq_description" class="large-text" rows="5"><?php echo esc_textarea( $faq_opts['description'] ?? '' ); ?></textarea>
+                <p class="description">
+                    اگر متن طولانی شد، در صفحه اصلی به‌صورت خودکار جمع می‌شود و انتهای آن محو شده و دکمه‌ی
+                    «مشاهده بیشتر» زیرش می‌آید، تا اسکرول صفحه اصلی بلند نشود.
+                    اگر هر دو فیلد را خالی بگذارید، متن پیش‌فرض قالب نمایش داده می‌شود.
+                </p>
+
+                <table class="form-table">
+                    <tr>
+                        <th scope="row"><label for="faq_description_title">عنوان باکس</label></th>
+                        <td>
+                            <input type="text" id="faq_description_title" name="faq_description_title" class="large-text"
+                                value="<?php echo esc_attr( $faq_opts['description_title'] ?? '' ); ?>">
+                            <p class="description">به‌صورت تگ <code>&lt;h2&gt;</code> بالای متن چاپ می‌شود.</p>
+                        </td>
+                    </tr>
+                </table>
+
+                <p><strong>متن باکس</strong></p>
+                <?php
+                /* ویرایشگر کامل وردپرس (TinyMCE) به‌جای textarea خام، تا مدیر سایت
+                   بتواند پاراگراف، لیست، لینک و متن پررنگ بسازد بدون اینکه HTML
+                   بنویسد. media_buttons خاموش است چون این باکس متنی سئوست و
+                   تصویر داخلش جایی ندارد. */
+                wp_editor(
+                    $faq_opts['description'] ?? '',
+                    'faq_description',
+                    array(
+                        'textarea_name' => 'faq_description',
+                        'textarea_rows' => 12,
+                        'media_buttons' => false,
+                        'teeny'         => true,
+                        'quicktags'     => true,
+                    )
+                );
+                ?>
             </div>
-            <p><button type="submit" name="romanino_save_faq" value="1" class="button button-primary button-hero">ذخیره سوالات متداول</button></p>
+            <p><button type="submit" name="romanino_save_faq" value="1" class="button button-primary button-hero">ذخیره تنظیمات صفحه اصلی</button></p>
         </form>
 
         </div>

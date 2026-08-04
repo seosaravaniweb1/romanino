@@ -34,6 +34,17 @@
             // کلیک با Ctrl/Cmd یا دکمه‌ی وسط = باز کردن در تب جدید؛ دست نمی‌زنیم
             if (e.ctrlKey || e.metaKey || e.shiftKey || e.which === 2) return;
             var key = $(this).data('romanino-tab');
+
+            /* استثنا: پنلی که ویرایشگر وردپرس (TinyMCE) دارد نباید با
+               نمایش/پنهان‌سازی سمت کلاینت باز شود. TinyMCE وقتی داخل یک عنصر
+               مخفی مقداردهی اولیه شود، iframe ویرایشگر با ارتفاع صفر رندر
+               می‌شود و کادر نوشتن عملاً نامرئی می‌ماند. برای این تب‌ها لینک را
+               دست‌نخورده می‌گذاریم تا مرورگر واقعاً صفحه را باز کند و ویرایشگر
+               در حالت نمایان ساخته شود. */
+            if ($tabPanels.filter('[data-romanino-panel="' + key + '"]').find('.wp-editor-area').length) {
+                return;
+            }
+
             if (activateTab(key, true)) e.preventDefault();
         });
     }

@@ -527,7 +527,88 @@
     if (activePanel) activePanel.classList.remove('hidden');
   };
 
-  /* ── ۷. Lazy-load تصاویر (fallback برای مرورگرهای قدیمی) ───────────────── */
+  /* ── ۷. متن جمع‌شونده + دکمه‌ی «مشاهده بیشتر» ───────────────────────────
+     روی هر عنصری با data-rmn-collapse کار می‌کند. ارتفاع سقف از
+     data-rmn-collapse-max (پیکسل) خوانده می‌شود.
+
+     مهم: مارکاپ سمت سرور همیشه متنِ کامل و باز است. جمع‌شدن فقط اینجا و فقط
+     وقتی اعمال می‌شود که ارتفاع واقعی از سقف بیشتر باشد؛ پس برای متن کوتاه
+     نه چیزی محو می‌شود و نه دکمه‌ای ظاهر می‌شود. */
+  document.querySelectorAll('[data-rmn-collapse]').forEach(box => {
+    const max = parseInt(box.dataset.rmnCollapseMax || '260', 10);
+
+    // دکمه‌ی مربوط به همین باکس: اولین دکمه‌ی بعد از آن در همان والد
+    const toggle = box.parentElement
+      ? box.parentElement.querySelector('[data-rmn-collapse-toggle]')
+      : null;
+
+    function collapse() {
+      box.dataset.rmnCollapsed = 'true';
+      box.style.maxHeight = max + 'px';
+    }
+
+    function expand() {
+      box.dataset.rmnCollapsed = 'false';
+      // اول به ارتفاع واقعی انیمیت می‌شود، بعد قید ارتفاع کاملاً برداشته
+      // می‌شود تا اگر بعداً محتوا تغییر کرد (مثلاً فونت دیر لود شد) بریده نشود.
+      box.style.maxHeight = box.scrollHeight + 'px';
+      window.setTimeout(() => {
+        if (box.dataset.rmnCollapsed === 'false') box.style.maxHeight = 'none';
+      }, 420);
+    }
+
+    function apply() {
+      // برای اندازه‌گیری درست، اول باید قید ارتفاع برداشته شود.
+      const wasCollapsed = box.dataset.rmnCollapsed === 'true';
+      box.style.maxHeight = 'none';
+      const needed = box.scrollHeight > max + 24; // ۲۴px تلورانس
+
+      if (!toggle) { box.style.maxHeight = 'none'; return; }
+
+      if (!needed) {
+        delete box.dataset.rmnCollapsed;
+        box.style.maxHeight = 'none';
+        toggle.classList.add('hidden');
+        toggle.classList.remove('inline-flex');
+        return;
+      }
+
+      toggle.classList.remove('hidden');
+      toggle.classList.add('inline-flex');
+      if (wasCollapsed || !toggle.dataset.rmnReady) collapse();
+      toggle.dataset.rmnReady = '1';
+    }
+
+    if (toggle) {
+      toggle.addEventListener('click', () => {
+        const collapsed = box.dataset.rmnCollapsed === 'true';
+        const label = toggle.querySelector('[data-rmn-collapse-label]');
+        const icon  = toggle.querySelector('[data-rmn-collapse-icon]');
+
+        if (collapsed) {
+          expand();
+          toggle.setAttribute('aria-expanded', 'true');
+          if (label) label.textContent = 'بستن';
+          if (icon) icon.classList.add('rotate-180');
+        } else {
+          collapse();
+          toggle.setAttribute('aria-expanded', 'false');
+          if (label) label.textContent = 'مشاهده بیشتر';
+          if (icon) icon.classList.remove('rotate-180');
+        }
+      });
+    }
+
+    apply();
+
+    // فونت‌های فارسی با تأخیر لود می‌شوند و ارتفاع متن را عوض می‌کنند؛
+    // بدون این، تصمیمِ «طولانی هست یا نه» ممکن است اشتباه گرفته شود.
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(apply).catch(() => {});
+    }
+  });
+
+  /* ── ۸. Lazy-load تصاویر (fallback برای مرورگرهای قدیمی) ───────────────── */
   if ('loading' in HTMLImageElement.prototype === false) {
     const imgs = document.querySelectorAll('img[loading="lazy"]');
     if ('IntersectionObserver' in window) {
