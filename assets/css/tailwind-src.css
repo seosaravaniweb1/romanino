@@ -189,6 +189,165 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 
 /* ═════════════════════════════════════════════════════════════════════════
+   تایپوگرافی محتوا (.rmn-prose)
+   ─────────────────────────────────────────────────────────────────────────
+   FIX (باگ قابل‌مشاهده): سه تمپلیت (single.php، archive-product.php،
+   taxonomy-product_cat.php) از کلاس‌های «prose prose-sm / prose-base»
+   استفاده می‌کردند. آن کلاس‌ها متعلق به افزونه‌ی @tailwindcss/typography
+   هستند که «نه در package.json نصب است و نه در tailwind.config.js به
+   plugins اضافه شده». یعنی هیچ‌کدام از آن کلاس‌ها اصلاً در CSS ساخته
+   نمی‌شد و کاملاً بی‌اثر بودند.
+
+   نتیجه‌ی عملی: خروجی the_content() — یعنی متن هر نوشته‌ی وبلاگ و توضیحات
+   سئوی هر آرشیو — با تایپوگرافی پیش‌فرض مرورگر رندر می‌شد: پاراگراف‌ها
+   بدون فاصله، لیست‌ها بدون بولت، هدینگ‌ها با اندازه‌ی پیش‌فرض، و لینک‌ها
+   آبیِ پیش‌فرض روی پس‌زمینه‌ی تیره (کنتراست بسیار پایین).
+
+   به‌جای اضافه‌کردن یک وابستگی npm جدید (که حجم بیلد را زیاد می‌کند و
+   پالت خودش را می‌آورد)، این کامپوننت سبک نوشته شد. چون همه‌ی رنگ‌هایش از
+   متغیرهای سطح می‌آید، در هر دو حالت تیره و روشن درست کار می‌کند.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.rmn-prose {
+	color: var(--on-surface-3);
+	font-size: 0.9375rem;
+	line-height: 2.1;
+	word-break: break-word;
+}
+.rmn-prose > :first-child { margin-top: 0; }
+.rmn-prose > :last-child { margin-bottom: 0; }
+
+.rmn-prose p { margin: 0 0 1.15em; }
+
+.rmn-prose h1,
+.rmn-prose h2,
+.rmn-prose h3,
+.rmn-prose h4,
+.rmn-prose h5,
+.rmn-prose h6 {
+	color: var(--on-surface);
+	font-weight: 800;
+	line-height: 1.6;
+	margin: 1.8em 0 0.7em;
+}
+.rmn-prose h1 { font-size: 1.6em; }
+.rmn-prose h2 { font-size: 1.35em; }
+.rmn-prose h3 { font-size: 1.15em; }
+.rmn-prose h4,
+.rmn-prose h5,
+.rmn-prose h6 { font-size: 1em; }
+
+.rmn-prose a {
+	color: #eab308;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	text-decoration-thickness: 1px;
+	transition: color 0.15s;
+}
+.rmn-prose a:hover { color: #06b6d4; }
+html.light .rmn-prose a { color: var(--brand-gold-text); }
+html.light .rmn-prose a:hover { color: var(--brand-cyan-text); }
+
+.rmn-prose strong,
+.rmn-prose b { color: var(--on-surface); font-weight: 700; }
+
+.rmn-prose ul,
+.rmn-prose ol { margin: 0 0 1.15em; padding-right: 1.4em; padding-left: 0; }
+.rmn-prose ul { list-style: disc; }
+.rmn-prose ol { list-style: decimal; }
+.rmn-prose li { margin-bottom: 0.45em; }
+.rmn-prose li::marker { color: #eab308; }
+.rmn-prose ul ul,
+.rmn-prose ol ol { margin-top: 0.45em; margin-bottom: 0; }
+
+.rmn-prose blockquote {
+	margin: 1.5em 0;
+	padding: 0.85em 1.15em;
+	border-right: 3px solid #eab308;
+	border-radius: 0 0.75rem 0.75rem 0;
+	background: var(--tint-2);
+	color: var(--on-surface-2);
+}
+.rmn-prose blockquote p:last-child { margin-bottom: 0; }
+
+.rmn-prose img,
+.rmn-prose figure { max-width: 100%; height: auto; border-radius: 0.85rem; margin: 1.5em auto; }
+.rmn-prose figcaption {
+	margin-top: 0.6em;
+	font-size: 0.8em;
+	color: var(--on-surface-faint);
+	text-align: center;
+}
+
+.rmn-prose hr { margin: 2em 0; border: 0; border-top: 1px solid var(--hairline); }
+
+/* جدول‌ها روی موبایل باید افقی اسکرول شوند، نه اینکه صفحه را بشکنند */
+.rmn-prose table {
+	width: 100%;
+	margin: 1.5em 0;
+	border-collapse: collapse;
+	font-size: 0.9em;
+	display: block;
+	overflow-x: auto;
+}
+.rmn-prose th,
+.rmn-prose td {
+	padding: 0.6em 0.85em;
+	border: 1px solid var(--hairline);
+	text-align: right;
+}
+.rmn-prose th { background: var(--tint-2); color: var(--on-surface); font-weight: 700; }
+
+.rmn-prose code {
+	padding: 0.15em 0.4em;
+	border-radius: 0.35rem;
+	background: var(--tint-3);
+	color: #eab308;
+	font-size: 0.875em;
+	direction: ltr;
+	display: inline-block;
+}
+.rmn-prose pre {
+	margin: 1.5em 0;
+	padding: 1em 1.15em;
+	border-radius: 0.85rem;
+	background: var(--surface-input);
+	border: 1px solid var(--hairline);
+	overflow-x: auto;
+	direction: ltr;
+	text-align: left;
+}
+.rmn-prose pre code { background: none; padding: 0; color: var(--on-surface-2); }
+
+/* نسخه‌ی کوچک‌تر برای باکس توضیحات سئو در آرشیوها */
+.rmn-prose-sm { font-size: 0.875rem; line-height: 2; }
+.rmn-prose-sm h2 { font-size: 1.2em; }
+.rmn-prose-sm h3 { font-size: 1.05em; }
+
+/* ═════════════════════════════════════════════════════════════════════════
+   لینک «پرش به محتوا» — دسترس‌پذیری
+   ─────────────────────────────────────────────────────────────────────────
+   تا وقتی فوکوس نگرفته کاملاً از دید پنهان است، ولی برای کاربر کیبورد و
+   صفحه‌خوان اولین عنصر قابل فوکوس صفحه است؛ بدون آن، رسیدن به محتوا نیازمند
+   عبور از کل هدر و مگامنو با Tab بود.
+   ═════════════════════════════════════════════════════════════════════════ */
+.romanino-skip-link {
+	position: absolute;
+	right: 1rem;
+	top: -100%;
+	z-index: 100;
+	padding: 0.7rem 1.25rem;
+	border-radius: 0 0 0.75rem 0.75rem;
+	background: #eab308;
+	color: #1a1206;
+	font-weight: 700;
+	font-size: 0.875rem;
+	text-decoration: none;
+	transition: top 0.15s;
+}
+.romanino-skip-link:focus { top: 0; }
+
+/* ═════════════════════════════════════════════════════════════════════════
    نقد و بررسی محصول — بازطراحی UI فرم و لیست
    ─────────────────────────────────────────────────────────────────────────
    قالب‌های مربوطه: woocommerce/single-product-reviews.php و

@@ -143,7 +143,7 @@ if ( is_wp_error( $tax_cats ) ) $tax_cats = [];
             <?php if ( $queried_term && ! is_wp_error( $queried_term ) && term_description( $queried_term ) ) : ?>
             <section aria-label="توضیحات دسته‌بندی <?php echo esc_attr( $queried_term->name ); ?>" class="relative mb-6 rounded-2xl border border-border bg-card p-5">
                 <div id="seo-content-wrap" class="relative overflow-hidden transition-[max-height] duration-500 ease-in-out" style="max-height: 85px;">
-                    <div class="prose prose-sm max-w-none text-justify text-sm leading-loose text-muted-foreground pb-2">
+                    <div class="rmn-prose rmn-prose-sm text-justify pb-2">
                         <?php echo wp_kses_post( term_description( $queried_term ) ); ?>
                     </div>
                     <!-- هاله محو کننده -->

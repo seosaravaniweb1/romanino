@@ -79,7 +79,8 @@ $discount_pct   = $has_discount ? round( ( ( $product->get_regular_price() - $pr
 $discount_saved = $has_discount ? ( (float) $product->get_regular_price() - (float) $product->get_sale_price() ) : 0;
 $view_count     = romanino_track_and_get_views( get_the_ID() );
 $author_link    = ( $author_name && $author_name !== 'ناشناس' ) ? romanino_get_book_author_link( get_the_ID(), $author_name ) : '';
-$romanino_fopts = romanino_get_footer_options();
+// FIX (کد مرده): $romanino_fopts حذف شد — مقداردهی می‌شد ولی هیچ‌جای این
+// فایل خوانده نمی‌شد، یعنی یک get_option اضافه در هر بار لود صفحه محصول.
 $romanino_sbopts = romanino_get_sidebar_options();
 
 // Phase 1 FIX: تشخیص «رمان رایگان» / «فعلاً قابل خرید نیست» — توابع کمکی در inc/cart-functions.php

@@ -139,7 +139,7 @@ $queried_object = get_queried_object();
             ?>
             <section aria-label="توضیحات <?php echo esc_attr( woocommerce_page_title( false ) ); ?>" class="relative mb-6 rounded-2xl border border-border bg-card p-5">
                 <div id="seo-content-wrap" class="relative overflow-hidden transition-[max-height] duration-500 ease-in-out" style="max-height: 85px;">
-                    <div class="prose prose-sm max-w-none text-justify text-sm leading-loose text-muted-foreground pb-2">
+                    <div class="rmn-prose rmn-prose-sm text-justify pb-2">
                         <?php echo wp_kses_post( $seo_description ); ?>
                     </div>
                     <div id="seo-fade-layer" class="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#0f0726] to-transparent transition-opacity duration-300"></div>

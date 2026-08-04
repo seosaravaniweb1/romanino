@@ -32,6 +32,14 @@
 <body <?php body_class('min-h-screen'); ?>>
 <?php wp_body_open(); ?>
 
+<?php
+// FIX (دسترس‌پذیری): بدون این لینک، کاربر کیبورد یا صفحه‌خوان برای رسیدن به
+// محتوای اصلی مجبور بود با Tab از کل هدر، جست‌وجو، مگامنو و منوی موبایل عبور
+// کند — و این کار در «هر» صفحه‌ی سایت تکرار می‌شد.
+// تا وقتی فوکوس نگرفته کاملاً نامرئی است (استایل در tailwind-src.css).
+?>
+<a class="romanino-skip-link" href="#romanino-main">رفتن به محتوای اصلی</a>
+
 <header class="sticky top-0 z-50 w-full">
     <!-- ── ROW 1: Top actions & search (Dark Glassmorphism) ── -->
     <!-- FIX (Task 1.2): هم این ردیف و هم ردیف ۲ (ناوبری) به‌خاطر backdrop-blur-xl
@@ -218,15 +226,22 @@
         <div class="mx-auto flex h-12 max-w-7xl items-center gap-1 px-4 lg:px-8">
             
             <!-- Mega Menu Trigger -->
+            <?php
+            // FIX (دسترس‌پذیری): این مگامنو فقط با group-hover باز می‌شد،
+            // یعنی برای کاربر کیبورد اصلاً قابل باز کردن نبود — دکمه‌اش هم
+            // type نداشت و داخل هیچ فرمی نبود ولی مرورگر آن را submit فرض
+            // می‌کرد. با افزودن گونه‌های group-focus-within، منو با Tab هم
+            // باز می‌شود و رفتار ماوس دقیقاً مثل قبل می‌ماند.
+            ?>
             <div class="relative group">
-                <button class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold text-white transition-colors duration-150 group-hover:bg-white/10 group-hover:text-[#eab308]">
+                <button type="button" aria-haspopup="true" class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold text-white transition-colors duration-150 group-hover:bg-white/10 group-hover:text-[#eab308] group-focus-within:bg-white/10 group-focus-within:text-[#eab308]">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                     دسته‌بندی رمان
                     <svg class="h-4 w-4 transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
 
                 <!-- Flat Mega Menu Grid — ۳ تب: دسته‌بندی / برچسب / نویسنده (Dynamic WooCommerce Taxonomies) -->
-                <div class="absolute right-0 top-full z-50 mt-2 w-[640px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 rounded-2xl border border-[#eab308]/20 bg-[#0f0726] p-4 shadow-2xl shadow-black/80">
+                <div class="absolute right-0 top-full z-50 mt-2 w-[640px] opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 rounded-2xl border border-[#eab308]/20 bg-[#0f0726] p-4 shadow-2xl shadow-black/80">
                     <?php romanino_render_category_tag_author_tabs( 'desktop', 'grid' ); ?>
                 </div>
             </div>
@@ -274,4 +289,7 @@
         </div>
     </nav>
 </header>
+
+<?php // هدف لینک «رفتن به محتوای اصلی» — tabindex=-1 تا فوکوس برنامه‌ای بگیرد ?>
+<span id="romanino-main" tabindex="-1"></span>
 
