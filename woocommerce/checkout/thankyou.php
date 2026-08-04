@@ -134,6 +134,54 @@ defined( 'ABSPATH' ) || exit;
 				<?php endif; ?>
 			</div>
 
+			<?php
+			/* ═════════════════════════════════════════════════════════════════
+			   شبکه‌ی ایمنی دسترسی به فایل
+			   ─────────────────────────────────────────────────────────────────
+			   چرا لازم است: صفحه‌ی جاری تنها جایی است که کاربر بلافاصله پس از
+			   پرداخت می‌بیند و معمولاً همین را می‌بندد. دو مسیر دیگر هم
+			   می‌توانند هم‌زمان بسته باشند:
+
+			     • ایمیل: کاربرانی که با کد پیامکی ثبت‌نام کرده‌اند ایمیل واقعی
+			       ندارند و آدرسشان ساختگی است، پس ایمیل حاوی لینک به جایی
+			       نمی‌رسد.
+			     • پنل کاربری: بعضی درگاه‌ها کاربر را با POST بین‌دامنه‌ای
+			       برمی‌گردانند و در آن حالت کوکی ورود ارسال نمی‌شود، پس کاربر
+			       اینجا «مهمان» دیده می‌شود.
+
+			   بنابراین اینجا صراحتاً یک لینک دائمیِ بدون‌نیاز‌به‌ورود به همین
+			   سفارش داده می‌شود، و اگر کاربر لاگین نیست راهنمایی می‌شود.
+			   ═════════════════════════════════════════════════════════════════ */
+			$romanino_order_link = function_exists( 'romanino_order_permalink' )
+				? romanino_order_permalink( $order )
+				: $order->get_checkout_order_received_url();
+			?>
+			<div class="glass rounded-2xl p-5 text-sm leading-relaxed text-ink-3">
+				<p class="mb-3 font-bold text-ink">این صفحه را برای خودتان نگه دارید</p>
+				<p class="mb-3">
+					آدرس زیر لینک دائمی همین سفارش است و برای دریافت فایل‌ها
+					<strong class="text-ink">نیازی به ورود دوباره ندارد</strong>.
+					آن را ذخیره کنید یا برای خودتان بفرستید:
+				</p>
+				<code class="mb-4 block select-all overflow-x-auto whitespace-nowrap rounded-lg border border-ink/10 bg-ink/5 px-3 py-2 text-xs" dir="ltr"><?php echo esc_html( $romanino_order_link ); ?></code>
+
+				<?php if ( is_user_logged_in() ) : ?>
+					<a href="<?php echo esc_url( wc_get_account_endpoint_url( 'downloads' ) ); ?>" class="font-bold text-gold hover:underline">
+						همه‌ی فایل‌های من در پنل کاربری ←
+					</a>
+				<?php else : ?>
+					<p class="mb-3 rounded-lg border border-ink/10 bg-ink/5 px-3 py-2 text-xs">
+						توجه: به‌نظر می‌رسد هنگام بازگشت از درگاه پرداخت از حساب خود خارج شده‌اید.
+						این موضوع روی خرید شما هیچ تأثیری ندارد و لینک‌های بالا کار می‌کنند.
+						برای دیدن همیشگی فایل‌ها می‌توانید دوباره وارد شوید.
+					</p>
+					<a href="<?php echo esc_url( add_query_arg( 'redirect_to', rawurlencode( wc_get_account_endpoint_url( 'downloads' ) ), wc_get_page_permalink( 'myaccount' ) ) ); ?>"
+						class="font-bold text-gold hover:underline">
+						ورود به حساب کاربری ←
+					</a>
+				<?php endif; ?>
+			</div>
+
 		<?php endif; ?>
 
 	<?php else : ?>

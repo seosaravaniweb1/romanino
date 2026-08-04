@@ -84,6 +84,15 @@
   /* ── ۵. صفحه ورود — جریان OTP / رمز عبور / ثبت‌نام ──────────────────────── */
   const authAjax = window.romanino || {};
 
+  /* مقصد پس از ورود/ثبت‌نام — از فیلد مخفی صفحه‌ی ورود خوانده می‌شود و همراه
+     «هر» درخواست احراز هویت ارسال می‌گردد.
+     FIX: پیش از این سرور مجبور بود مقصد را از هدر Referer درخواست ایجکس حدس
+     بزند؛ هدری که افزونه‌های امنیتی، پراکسی‌ها و Referrer-Policy حذفش می‌کنند.
+     نتیجه این بود که کاربری که وسط خرید برای ثبت‌نام فرستاده شده بود، گاهی
+     به‌جای ادامه‌ی خرید سر از پیشخوان درمی‌آورد. */
+  const authRedirectTo = document.getElementById('romanino-redirect-to')?.value || '';
+
+
   const AUTH_STEPS = ['step-phone', 'step-password', 'step-otp', 'step-name', 'step-manual-login', 'step-register'];
 
   function showAuthStep(stepId) {
@@ -124,6 +133,7 @@
         const fd = new FormData();
         fd.append('action', 'romanino_check_phone');
         fd.append('nonce', authAjax.authNonce || '');
+        if (authRedirectTo) fd.append('redirect_to', authRedirectTo);
         fd.append('phone', phone);
 
         const res  = await fetch(authAjax.ajaxUrl, { method: 'POST', body: fd });
@@ -159,6 +169,7 @@
         const fd = new FormData();
         fd.append('action', 'romanino_login_password');
         fd.append('nonce', authAjax.authNonce || '');
+        if (authRedirectTo) fd.append('redirect_to', authRedirectTo);
         fd.append('phone', currentPhone);
         fd.append('password', password);
 
@@ -191,6 +202,7 @@
         const fd = new FormData();
         fd.append('action', 'romanino_verify_otp');
         fd.append('nonce', authAjax.authNonce || '');
+        if (authRedirectTo) fd.append('redirect_to', authRedirectTo);
         fd.append('phone', currentPhone);
         fd.append('code', code);
 
@@ -225,6 +237,7 @@
       const fd = new FormData();
       fd.append('action', 'romanino_send_otp');
       fd.append('nonce', authAjax.authNonce || '');
+        if (authRedirectTo) fd.append('redirect_to', authRedirectTo);
       fd.append('phone', currentPhone);
       await fetch(authAjax.ajaxUrl, { method: 'POST', body: fd });
       startOtpCountdown(60);
@@ -236,6 +249,7 @@
     const fd = new FormData();
     fd.append('action', 'romanino_send_otp');
     fd.append('nonce', authAjax.authNonce || '');
+        if (authRedirectTo) fd.append('redirect_to', authRedirectTo);
     fd.append('phone', currentPhone);
     await fetch(authAjax.ajaxUrl, { method: 'POST', body: fd });
     document.getElementById('otp-phone-display').textContent = currentPhone;
@@ -257,6 +271,7 @@
         const fd = new FormData();
         fd.append('action', 'romanino_save_name');
         fd.append('nonce', authAjax.authNonce || '');
+        if (authRedirectTo) fd.append('redirect_to', authRedirectTo);
         fd.append('first_name', firstName);
         fd.append('last_name', lastName);
 
@@ -291,6 +306,7 @@
         const fd = new FormData();
         fd.append('action', 'romanino_login_password');
         fd.append('nonce', authAjax.authNonce || '');
+        if (authRedirectTo) fd.append('redirect_to', authRedirectTo);
         fd.append('identifier', identifier);
         fd.append('password', password);
 
@@ -333,6 +349,7 @@
         const fd = new FormData();
         fd.append('action', 'romanino_register_manual');
         fd.append('nonce', authAjax.authNonce || '');
+        if (authRedirectTo) fd.append('redirect_to', authRedirectTo);
         fd.append('username', username);
         fd.append('first_name', firstName);
         fd.append('last_name', lastName);

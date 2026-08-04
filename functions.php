@@ -73,6 +73,7 @@ if ( version_compare( PHP_VERSION, ROMANINO_MIN_PHP, '<' ) ) {
         'inc/checkout-functions.php',
         'inc/account-functions.php',
         'inc/saved-novels.php',
+        'inc/download-access.php',
         'inc/plugin-hooks.php',
         'inc/rocket-compat.php',
         'inc/seo-functions.php',

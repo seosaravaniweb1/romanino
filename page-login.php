@@ -58,6 +58,30 @@ if ( is_user_logged_in() ) {
 
 		<div id="auth-alert" class="mb-4 hidden rounded-xl px-4 py-3 text-sm"></div>
 
+		<?php
+		/* مقصد پس از ورود/ثبت‌نام
+		   ─────────────────────────────────────────────────────────────────
+		   FIX: تا پیش از این، مقصد فقط از روی هدر Referer درخواست ایجکس
+		   تشخیص داده می‌شد. هدر Referer قابل اتکا نیست — بعضی افزونه‌های
+		   امنیتی، پراکسی‌ها و سیاست‌های Referrer-Policy آن را حذف می‌کنند یا
+		   تا حد «فقط دامنه» کوتاه می‌کنند (که یعنی پارامتر redirect_to گم
+		   می‌شود). در آن حالت کاربری که وسط خرید برای ثبت‌نام فرستاده شده
+		   بود، به‌جای برگشتن به ادامه‌ی خرید سر از پیشخوان درمی‌آورد.
+
+		   حالا مقصد صریحاً در همین صفحه چاپ و همراه هر درخواست ایجکس ارسال
+		   می‌شود. سمت سرور romanino_get_post_auth_redirect_url() همچنان
+		   اعتبارسنجی می‌کند که آدرس داخلی باشد و حلقه‌ی ورود نسازد. */
+		$romanino_redirect_to = '';
+		if ( ! empty( $_GET['redirect_to'] ) ) {
+			$romanino_redirect_to = esc_url_raw( wp_unslash( $_GET['redirect_to'] ) );
+		} elseif ( function_exists( 'WC' ) && WC()->cart && ! WC()->cart->is_empty() ) {
+			// کاربر سبد پر دارد ولی مستقیم وارد صفحه‌ی ورود شده؛ بعد از ورود
+			// منطقی است به ادامه‌ی خرید برگردد.
+			$romanino_redirect_to = wc_get_checkout_url();
+		}
+		?>
+		<input type="hidden" id="romanino-redirect-to" value="<?php echo esc_attr( $romanino_redirect_to ); ?>" />
+
 		<!-- ═══ مرحله ۱: شماره موبایل (تشخیص خودکار ورود/ثبت‌نام) ═══ -->
 		<div id="step-phone">
 			<h1 class="text-xl font-extrabold text-foreground">ورود | ثبت‌نام</h1>
