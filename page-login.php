@@ -66,7 +66,7 @@ if ( is_user_logged_in() ) {
 			<div class="mt-6">
 				<label class="mb-1.5 block text-sm font-medium text-foreground">شماره موبایل</label>
 				<input type="tel" id="phone-input" inputmode="numeric" dir="ltr" maxlength="11" placeholder="09121234567"
-					class="w-full rounded-xl border border-border bg-secondary/30 px-4 py-3 text-center text-sm tracking-wider outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+					class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-center text-sm tracking-wider outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 			</div>
 
 			<button type="button" id="btn-check-phone" class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-background transition-all hover:brightness-110 active:scale-[0.98]">
@@ -94,7 +94,7 @@ if ( is_user_logged_in() ) {
 
 			<div class="mt-6">
 				<label class="mb-1.5 block text-sm font-medium text-foreground">رمز عبور</label>
-				<input type="password" id="password-input" class="w-full rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+				<input type="password" id="password-input" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 			</div>
 
 			<button type="button" id="btn-login-password" class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-background transition-all hover:brightness-110 active:scale-[0.98]">
@@ -115,7 +115,7 @@ if ( is_user_logged_in() ) {
 
 			<div class="mt-6 flex justify-center gap-2" dir="ltr">
 				<?php for ( $i = 0; $i < 5; $i++ ) : ?>
-				<input type="text" inputmode="numeric" maxlength="1" class="otp-digit h-14 w-12 rounded-xl border border-border bg-secondary/30 text-center text-lg font-bold outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+				<input type="text" inputmode="numeric" maxlength="1" class="otp-digit h-14 w-12 rounded-xl border border-border bg-secondary text-center text-lg font-bold outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 				<?php endfor; ?>
 			</div>
 
@@ -139,11 +139,11 @@ if ( is_user_logged_in() ) {
 			<div class="mt-6 grid grid-cols-2 gap-3">
 				<div>
 					<label class="mb-1.5 block text-sm font-medium text-foreground">نام</label>
-					<input type="text" id="name-first-input" class="w-full rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+					<input type="text" id="name-first-input" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 				</div>
 				<div>
 					<label class="mb-1.5 block text-sm font-medium text-foreground">نام‌خانوادگی</label>
-					<input type="text" id="name-last-input" class="w-full rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+					<input type="text" id="name-last-input" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 				</div>
 			</div>
 
@@ -160,11 +160,11 @@ if ( is_user_logged_in() ) {
 			<div class="mt-6 space-y-4">
 				<div>
 					<label class="mb-1.5 block text-sm font-medium text-foreground">شماره موبایل یا نام‌کاربری یا ایمیل را وارد کنید</label>
-					<input type="text" id="manual-identifier-input" dir="ltr" class="w-full rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+					<input type="text" id="manual-identifier-input" dir="ltr" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 				</div>
 				<div>
 					<label class="mb-1.5 block text-sm font-medium text-foreground">رمز عبور خود را وارد کنید</label>
-					<input type="password" id="manual-password-input" class="w-full rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+					<input type="password" id="manual-password-input" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 				</div>
 			</div>
 
@@ -181,26 +181,26 @@ if ( is_user_logged_in() ) {
 			<div class="mt-6 grid grid-cols-2 gap-3">
 				<div>
 					<label class="mb-1.5 block text-sm font-medium text-foreground">نام کاربری *</label>
-					<input type="text" id="register-username-input" dir="ltr" class="w-full rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+					<input type="text" id="register-username-input" dir="ltr" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 				</div>
 				<div>
 					<label class="mb-1.5 block text-sm font-medium text-foreground">نام و نام‌خانوادگی *</label>
-					<input type="text" id="register-fullname-input" class="w-full rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+					<input type="text" id="register-fullname-input" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 				</div>
 			</div>
 			<div class="mt-3 grid grid-cols-2 gap-3">
 				<div>
 					<label class="mb-1.5 block text-sm font-medium text-foreground">شماره موبایل *</label>
-					<input type="tel" id="register-phone-input" dir="ltr" maxlength="11" inputmode="numeric" placeholder="09xxxxxxxxx" class="w-full rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+					<input type="tel" id="register-phone-input" dir="ltr" maxlength="11" inputmode="numeric" placeholder="09xxxxxxxxx" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 				</div>
 				<div>
 					<label class="mb-1.5 block text-sm font-medium text-foreground">آدرس ایمیل</label>
-					<input type="email" id="register-email-input" dir="ltr" placeholder="اختیاری" class="w-full rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+					<input type="email" id="register-email-input" dir="ltr" placeholder="اختیاری" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 				</div>
 			</div>
 			<div class="mt-3">
 				<label class="mb-1.5 block text-sm font-medium text-foreground">رمز عبور مد نظر را وارد کنید *</label>
-				<input type="password" id="register-password-input" class="w-full rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+				<input type="password" id="register-password-input" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 			</div>
 
 			<button type="button" id="btn-register-manual" class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-background transition-all hover:brightness-110 active:scale-[0.98]">

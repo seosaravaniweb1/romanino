@@ -18,14 +18,14 @@ function romanino_footer_nav( $location, $fallback = array() ) {
         return;
     }
     if ( empty( $fallback ) ) {
-        echo '<p class="text-xs text-slate-500">هنوز لینکی اضافه نشده. از پیشخوان → «هدر و فوتر رمانینو» اضافه کنید.</p>';
+        echo '<p class="text-xs text-ink-faint">هنوز لینکی اضافه نشده. از پیشخوان → «هدر و فوتر رمانینو» اضافه کنید.</p>';
         return;
     }
     echo '<ul class="flex flex-col gap-3.5">';
     foreach ( $fallback as $item ) {
         if ( empty( $item['title'] ) ) continue;
         printf(
-            '<li><a href="%s" class="group flex items-center gap-2 text-sm text-slate-400 transition-colors duration-150 hover:text-white"><span class="h-1 w-1 shrink-0 rounded-full bg-slate-600 transition-colors duration-150 group-hover:bg-[#eab308] group-hover:shadow-[0_0_6px_rgba(234,179,8,0.8)]"></span>%s</a></li>',
+            '<li><a href="%s" class="group flex items-center gap-2 text-sm text-ink-muted transition-colors duration-150 hover:text-ink"><span class="h-1 w-1 shrink-0 rounded-full bg-slate-600 transition-colors duration-150 group-hover:bg-primary group-hover:shadow-[0_0_6px_rgba(234,179,8,0.8)]"></span>%s</a></li>',
             esc_url( $item['url'] ?: '#' ),
             esc_html( $item['title'] )
         );
@@ -38,27 +38,27 @@ $romanino_footer_opts = romanino_get_footer_options();
 $romanino_plan_colors = romanino_plan_color_map();
 ?>
 
-<footer class="relative mt-24 overflow-hidden border-t border-white/10 bg-[#0b0514]">
+<footer class="relative mt-24 overflow-hidden border-t border-ink/10 bg-surface">
 
     <!-- خط درخشان بالای فوتر -->
     <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#eab308]/60 to-transparent"></div>
 
     <!-- بلاب‌های نوری پس‌زمینه -->
-    <div class="pointer-events-none absolute -top-32 right-0 h-80 w-80 rounded-full bg-[#eab308]/10 blur-[110px]"></div>
-    <div class="pointer-events-none absolute top-40 left-0 h-72 w-72 rounded-full bg-[#06b6d4]/10 blur-[110px]"></div>
+    <div class="pointer-events-none absolute -top-32 right-0 h-80 w-80 rounded-full bg-primary/10 blur-[110px]"></div>
+    <div class="pointer-events-none absolute top-40 left-0 h-72 w-72 rounded-full bg-cyan-glow/10 blur-[110px]"></div>
     <div class="pointer-events-none absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-[#a855f7]/10 blur-[120px]"></div>
 
     <!-- ================= نوار اشتراک ویژه ================= -->
-    <div class="relative border-b border-white/10 bg-gradient-to-l from-[#150a2b] via-[#1a0e35] to-[#150a2b]">
+    <div class="relative border-b border-ink/10 bg-gradient-to-l from-surface-alt via-surface-input to-surface-alt">
         <div class="mx-auto flex max-w-7xl flex-col items-center gap-6 px-4 py-8 lg:flex-row lg:justify-between lg:px-8">
 
             <div class="flex items-center gap-4 text-center lg:text-right">
-                <span class="hidden h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#eab308]/15 text-[#eab308] ring-1 ring-[#eab308]/30 shadow-[0_0_20px_-4px_rgba(234,179,8,0.5)] sm:flex">
+                <span class="hidden h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-gold ring-1 ring-[#eab308]/30 shadow-[0_0_20px_-4px_rgba(234,179,8,0.5)] sm:flex">
                     <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9l4 3 6-7 6 7 4-3-2 11H4L2 9Z"/></svg>
                 </span>
                 <div>
-                    <h3 class="text-base font-extrabold text-white sm:text-lg"><?php echo esc_html( $romanino_footer_opts['sub_title'] ); ?></h3>
-                    <p class="mt-1 text-xs leading-relaxed text-slate-400 sm:text-sm"><?php echo esc_html( $romanino_footer_opts['sub_subtitle'] ); ?></p>
+                    <h3 class="text-base font-extrabold text-ink sm:text-lg"><?php echo esc_html( $romanino_footer_opts['sub_title'] ); ?></h3>
+                    <p class="mt-1 text-xs leading-relaxed text-ink-muted sm:text-sm"><?php echo esc_html( $romanino_footer_opts['sub_subtitle'] ); ?></p>
                 </div>
             </div>
 
@@ -69,9 +69,9 @@ $romanino_plan_colors = romanino_plan_color_map();
                     $hex = isset( $romanino_plan_colors[ $plan['color'] ] ) ? $romanino_plan_colors[ $plan['color'] ]['hex'] : '#eab308';
                     $link = ! empty( $plan['link'] ) ? $plan['link'] : home_url( '/subscription/' );
                     ?>
-                    <div class="flex w-[112px] flex-col items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-center backdrop-blur-sm transition-transform duration-200 hover:-translate-y-1">
+                    <div class="flex w-[112px] flex-col items-center gap-2 rounded-2xl border border-ink/10 bg-ink/[0.04] p-3 text-center backdrop-blur-sm transition-transform duration-200 hover:-translate-y-1">
                         <span class="rounded-full px-2.5 py-0.5 text-[11px] font-bold" style="background:<?php echo esc_attr( $hex ); ?>22; color:<?php echo esc_attr( $hex ); ?>"><?php echo esc_html( $plan['label'] ); ?></span>
-                        <span class="text-sm font-black text-white"><?php echo esc_html( $plan['price'] ); ?><span class="mr-1 text-[10px] font-medium text-slate-400">تومان</span></span>
+                        <span class="text-sm font-black text-ink"><?php echo esc_html( $plan['price'] ); ?><span class="mr-1 text-[10px] font-medium text-ink-muted">تومان</span></span>
                         <a href="<?php echo esc_url( $link ); ?>" class="mt-1 w-full rounded-lg py-1.5 text-[11px] font-bold text-[#0f0726] transition-all duration-150 hover:brightness-110" style="background:<?php echo esc_attr( $hex ); ?>">خرید فوری</a>
                     </div>
                 <?php endforeach; ?>
@@ -101,14 +101,14 @@ $romanino_plan_colors = romanino_plan_color_map();
                         <div class="romanino-footer-logo"><?php the_custom_logo(); ?></div>
                     <?php else : ?>
                         <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="flex items-center gap-2">
-                            <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#eab308]/15 text-[#eab308] ring-1 ring-[#eab308]/40">
+                            <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-gold ring-1 ring-primary/40">
                                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                             </span>
-                            <span class="text-lg font-black text-white"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></span>
+                            <span class="text-lg font-black text-ink"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></span>
                         </a>
                     <?php endif; ?>
                 </div>
-                <p class="max-w-xs text-sm leading-loose text-slate-400">
+                <p class="max-w-xs text-sm leading-loose text-ink-muted">
                     <?php echo esc_html( $romanino_footer_opts['footer_description'] ); ?>
                 </p>
 
@@ -137,7 +137,7 @@ $romanino_plan_colors = romanino_plan_color_map();
                         target="_blank" rel="nofollow noopener"
                         title="<?php echo esc_attr( $romanino_social_label ); ?>"
                         aria-label="<?php echo esc_attr( $romanino_social_label ); ?>"
-                        class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/[0.04] text-slate-300 transition-all duration-150 hover:border-[#eab308]/40 hover:text-[#eab308] hover:shadow-[0_0_16px_-4px_rgba(234,179,8,0.5)]">
+                        class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-ink/10 bg-ink/[0.04] text-ink-3 transition-all duration-150 hover:border-primary/40 hover:text-gold hover:shadow-[0_0_16px_-4px_rgba(234,179,8,0.5)]">
                         <?php if ( $romanino_social_icon ) : ?>
                             <img src="<?php echo esc_url( $romanino_social_icon ); ?>"
                                 alt="<?php echo esc_attr( $romanino_social_label ); ?>"
@@ -154,19 +154,19 @@ $romanino_plan_colors = romanino_plan_color_map();
 
             <!-- ستون لینک ۱: درباره رمانینو -->
             <div class="col-span-1 md:col-span-1 lg:col-span-2">
-                <h4 class="mb-5 text-sm font-extrabold text-white">درباره رمانینو</h4>
+                <h4 class="mb-5 text-sm font-extrabold text-ink">درباره رمانینو</h4>
                 <?php romanino_footer_nav( 'footer_1', $romanino_footer_opts['about_links'] ); ?>
             </div>
 
             <!-- ستون لینک ۲: راهنمای مشتریان -->
             <div class="col-span-1 md:col-span-1 lg:col-span-2">
-                <h4 class="mb-5 text-sm font-extrabold text-white">راهنمای مشتریان</h4>
+                <h4 class="mb-5 text-sm font-extrabold text-ink">راهنمای مشتریان</h4>
                 <?php romanino_footer_nav( 'footer_2', $romanino_footer_opts['guide_links'] ); ?>
             </div>
 
             <!-- ستون محصولات: جدیدترین / پرفروش‌ترین -->
             <div class="col-span-2 md:col-span-2 lg:col-span-2">
-                <div class="mb-5 flex items-center gap-1 rounded-xl border border-white/10 bg-white/[0.03] p-1">
+                <div class="mb-5 flex items-center gap-1 rounded-xl border border-ink/10 bg-ink/[0.03] p-1">
                     <button type="button" data-footer-tab="latest" class="footer-tab-btn flex-1 rounded-lg py-1.5 text-xs font-bold transition-all duration-150">جدیدترین</button>
                     <button type="button" data-footer-tab="bestseller" class="footer-tab-btn flex-1 rounded-lg py-1.5 text-xs font-bold transition-all duration-150">پرفروش‌ترین</button>
                 </div>
@@ -184,19 +184,19 @@ $romanino_plan_colors = romanino_plan_color_map();
                             if ( ! $product ) continue;
                             ?>
                             <a href="<?php echo esc_url( get_permalink( $romanino_f_id ) ); ?>" class="group flex items-center gap-3" title="<?php echo esc_attr( $product->get_name() ); ?>">
-                                <span class="block h-14 w-10 shrink-0 overflow-hidden rounded-md bg-white/5 ring-1 ring-white/10">
+                                <span class="block h-14 w-10 shrink-0 overflow-hidden rounded-md bg-ink/5 ring-1 ring-ink/10">
                                     <?php if ( has_post_thumbnail( $romanino_f_id ) ) : ?>
                                         <?php echo get_the_post_thumbnail( $romanino_f_id, 'thumbnail', array( 'class' => 'h-full w-full object-cover transition-transform duration-300 group-hover:scale-110' ) ); ?>
                                     <?php endif; ?>
                                 </span>
                                 <span class="min-w-0">
-                                    <span class="line-clamp-2 block text-xs font-bold leading-relaxed text-slate-200 transition-colors duration-150 group-hover:text-[#eab308]"><?php echo esc_html( $product->get_name() ); ?></span>
-                                    <span class="mt-1 block text-[11px] font-bold text-[#eab308]"><?php echo wp_kses_post( $product->get_price_html() ?: 'رایگان' ); ?></span>
+                                    <span class="line-clamp-2 block text-xs font-bold leading-relaxed text-ink-2 transition-colors duration-150 group-hover:text-gold"><?php echo esc_html( $product->get_name() ); ?></span>
+                                    <span class="mt-1 block text-[11px] font-bold text-gold"><?php echo wp_kses_post( $product->get_price_html() ?: 'رایگان' ); ?></span>
                                 </span>
                             </a>
                         <?php endforeach;
                     else :
-                        echo '<p class="text-xs text-slate-500">فعلا محصولی ثبت نشده است.</p>';
+                        echo '<p class="text-xs text-ink-faint">فعلا محصولی ثبت نشده است.</p>';
                     endif;
                     ?>
                 </div>
@@ -214,19 +214,19 @@ $romanino_plan_colors = romanino_plan_color_map();
                             if ( ! $product ) continue;
                             ?>
                             <a href="<?php echo esc_url( get_permalink( $romanino_f_id ) ); ?>" class="group flex items-center gap-3" title="<?php echo esc_attr( $product->get_name() ); ?>">
-                                <span class="block h-14 w-10 shrink-0 overflow-hidden rounded-md bg-white/5 ring-1 ring-white/10">
+                                <span class="block h-14 w-10 shrink-0 overflow-hidden rounded-md bg-ink/5 ring-1 ring-ink/10">
                                     <?php if ( has_post_thumbnail( $romanino_f_id ) ) : ?>
                                         <?php echo get_the_post_thumbnail( $romanino_f_id, 'thumbnail', array( 'class' => 'h-full w-full object-cover transition-transform duration-300 group-hover:scale-110' ) ); ?>
                                     <?php endif; ?>
                                 </span>
                                 <span class="min-w-0">
-                                    <span class="line-clamp-2 block text-xs font-bold leading-relaxed text-slate-200 transition-colors duration-150 group-hover:text-[#eab308]"><?php echo esc_html( $product->get_name() ); ?></span>
-                                    <span class="mt-1 block text-[11px] font-bold text-[#eab308]"><?php echo wp_kses_post( $product->get_price_html() ?: 'رایگان' ); ?></span>
+                                    <span class="line-clamp-2 block text-xs font-bold leading-relaxed text-ink-2 transition-colors duration-150 group-hover:text-gold"><?php echo esc_html( $product->get_name() ); ?></span>
+                                    <span class="mt-1 block text-[11px] font-bold text-gold"><?php echo wp_kses_post( $product->get_price_html() ?: 'رایگان' ); ?></span>
                                 </span>
                             </a>
                         <?php endforeach;
                     else :
-                        echo '<p class="text-xs text-slate-500">فعلا آمار فروشی ثبت نشده است.</p>';
+                        echo '<p class="text-xs text-ink-faint">فعلا آمار فروشی ثبت نشده است.</p>';
                     endif;
                     ?>
                 </div>
@@ -276,7 +276,7 @@ $romanino_plan_colors = romanino_plan_color_map();
                 <div class="flex flex-col gap-2.5">
                     <?php foreach ( $romanino_app_stores as $romanino_store ) : ?>
                     <a href="<?php echo esc_url( $romanino_store['url'] ); ?>" target="_blank" rel="nofollow noopener"
-                        class="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 transition-all duration-150 hover:bg-white/[0.08]"
+                        class="flex items-center gap-2.5 rounded-xl border border-ink/10 bg-ink/[0.04] px-3 py-2 transition-all duration-150 hover:bg-ink/[0.08]"
                         style="--rmn-store: <?php echo esc_attr( $romanino_store['color'] ); ?>;">
                         <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
                             style="background: <?php echo esc_attr( $romanino_store['color'] ); ?>26; color: <?php echo esc_attr( $romanino_store['color'] ); ?>;">
@@ -287,8 +287,8 @@ $romanino_plan_colors = romanino_plan_color_map();
                                 aria-hidden="true"><?php echo $romanino_store['icon']; // phpcs:ignore WordPress.Security.EscapeOutput -- مسیر SVG ثابت و داخلی است ?></svg>
                         </span>
                         <span class="flex flex-col leading-tight">
-                            <span class="text-[10px] text-slate-400">دانلود از</span>
-                            <span class="text-xs font-bold text-white"><?php echo esc_html( $romanino_store['label'] ); ?></span>
+                            <span class="text-[10px] text-ink-muted">دانلود از</span>
+                            <span class="text-xs font-bold text-ink"><?php echo esc_html( $romanino_store['label'] ); ?></span>
                         </span>
                     </a>
                     <?php endforeach; ?>
@@ -300,13 +300,13 @@ $romanino_plan_colors = romanino_plan_color_map();
     </div>
 
     <!-- ================= نوار اعتماد، درگاه و بانک‌ها ================= -->
-    <div class="relative border-t border-white/10 bg-[#0a0418]/70">
+    <div class="relative border-t border-ink/10 bg-surface-nav/70">
         <div class="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 lg:flex-row lg:items-center lg:justify-between lg:px-8">
 
             <!-- نماد اعتماد الکترونیکی (کد از پنل مدیریت) -->
             <?php if ( ! empty( $romanino_footer_opts['enamad_code'] ) ) : ?>
             <div class="flex flex-wrap items-center justify-center gap-3">
-                <div id="enamad-container" class="flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/5 p-1.5 [&_img]:h-full [&_img]:w-full [&_img]:object-contain">
+                <div id="enamad-container" class="flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl border border-ink/10 bg-ink/5 p-1.5 [&_img]:h-full [&_img]:w-full [&_img]:object-contain">
                     <?php
                     // FIX: خروجی بدون escape چاپ می‌شد. مقدار هنگام ذخیره پاک‌سازی
                     // می‌شود، ولی خروجی هم باید از همان allowlist رد شود تا اگر
@@ -321,18 +321,18 @@ $romanino_plan_colors = romanino_plan_color_map();
             <!-- بانک‌های عضو شتاب -->
             <?php if ( ! empty( $romanino_footer_opts['banks'] ) ) : ?>
             <div class="flex flex-col items-center gap-2.5 lg:items-start">
-                <span class="flex items-center gap-1.5 text-[11px] font-bold text-slate-400">
-                    <svg class="h-3.5 w-3.5 text-[#10b981]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                <span class="flex items-center gap-1.5 text-[11px] font-bold text-ink-muted">
+                    <svg class="h-3.5 w-3.5 text-emerald-glow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
                     امکان پرداخت با تمامی کارت‌های بانکی عضو شتاب
                 </span>
                 <div class="flex flex-wrap items-center justify-center gap-2">
                     <?php foreach ( $romanino_footer_opts['banks'] as $bank ) :
                         if ( empty( $bank['name'] ) && empty( $bank['logo'] ) ) continue; ?>
-                        <span class="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-[11px] font-medium text-slate-300">
+                        <span class="flex items-center gap-1.5 rounded-lg border border-ink/10 bg-ink/[0.04] px-2.5 py-1.5 text-[11px] font-medium text-ink-3">
                             <?php if ( ! empty( $bank['logo'] ) ) : ?>
                                 <img src="<?php echo esc_url( $bank['logo'] ); ?>" alt="بانک <?php echo esc_attr( $bank['name'] ); ?>" class="h-3.5 w-3.5 object-contain" loading="lazy">
                             <?php else : ?>
-                                <svg class="h-3.5 w-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M4 10h16M12 3l8 5H4l8-5ZM6 10v8M10 10v8M14 10v8M18 10v8"/></svg>
+                                <svg class="h-3.5 w-3.5 text-ink-faint" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M4 10h16M12 3l8 5H4l8-5ZM6 10v8M10 10v8M14 10v8M18 10v8"/></svg>
                             <?php endif; ?>
                             <?php echo esc_html( $bank['name'] ? 'بانک ' . $bank['name'] : '' ); ?>
                         </span>
@@ -343,12 +343,12 @@ $romanino_plan_colors = romanino_plan_color_map();
 
             <!-- درگاه پرداخت -->
             <div class="flex items-center gap-2">
-                <span class="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-[11px] font-bold text-slate-300">
+                <span class="flex items-center gap-1.5 rounded-lg border border-ink/10 bg-ink/[0.04] px-3 py-2 text-[11px] font-bold text-ink-3">
                     <svg class="h-3.5 w-3.5 text-[#a855f7]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
                     <?php echo esc_html( $romanino_footer_opts['gateway_1_label'] ); ?>
                 </span>
-                <span class="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-[11px] font-bold text-slate-300">
-                    <svg class="h-3.5 w-3.5 text-[#eab308]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>
+                <span class="flex items-center gap-1.5 rounded-lg border border-ink/10 bg-ink/[0.04] px-3 py-2 text-[11px] font-bold text-ink-3">
+                    <svg class="h-3.5 w-3.5 text-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>
                     <?php echo esc_html( $romanino_footer_opts['gateway_2_label'] ); ?>
                 </span>
             </div>
@@ -356,16 +356,16 @@ $romanino_plan_colors = romanino_plan_color_map();
     </div>
 
     <!-- ================= نوار پایانی ================= -->
-    <div class="relative border-t border-white/5 bg-[#08030f] py-5">
+    <div class="relative border-t border-ink/5 bg-surface-deep py-5">
         <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 text-center sm:flex-row sm:text-right lg:px-8">
-            <p class="text-xs font-medium text-slate-500">© <?php echo esc_html( date_i18n( 'Y' ) ); ?> <?php echo esc_html( $romanino_footer_opts['copyright_text'] ); ?></p>
-            <p class="text-xs font-medium text-slate-600">طراحی رابط کاربری با <span class="text-[#ff6955]">♥</span> برای رمان‌خوان‌های ایرانی</p>
+            <p class="text-xs font-medium text-ink-faint">© <?php echo esc_html( date_i18n( 'Y' ) ); ?> <?php echo esc_html( $romanino_footer_opts['copyright_text'] ); ?></p>
+            <p class="text-xs font-medium text-ink-fainter">طراحی رابط کاربری با <span class="text-[#ff6955]">♥</span> برای رمان‌خوان‌های ایرانی</p>
         </div>
     </div>
 </footer>
 
 <!-- دکمه بازگشت به بالا -->
-<button type="button" id="scroll-top-btn" aria-label="بازگشت به بالا" class="fixed bottom-6 left-6 z-40 hidden h-11 w-11 items-center justify-center rounded-full bg-[#eab308] text-[#0f0726] shadow-[0_0_20px_-4px_rgba(234,179,8,0.6)] transition-all duration-200 hover:brightness-110">
+<button type="button" id="scroll-top-btn" aria-label="بازگشت به بالا" class="fixed bottom-6 left-6 z-40 hidden h-11 w-11 items-center justify-center rounded-full bg-primary text-[#0f0726] shadow-[0_0_20px_-4px_rgba(234,179,8,0.6)] transition-all duration-200 hover:brightness-110">
     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
 </button>
 

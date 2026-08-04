@@ -30,7 +30,7 @@ class Romanino_Nav_Walker extends Walker_Nav_Menu {
 	 *
 	 * @var string
 	 */
-	protected $link_class = 'rounded-lg px-3 py-1.5 transition-colors duration-150 hover:bg-white/10 hover:text-[#06b6d4]';
+	protected $link_class = 'rounded-lg px-3 py-1.5 transition-colors duration-150 hover:bg-ink/10 hover:text-cyan-glow';
 
 	/**
 	 * رندر یک آیتم منو.
@@ -62,7 +62,7 @@ class Romanino_Nav_Walker extends Walker_Nav_Menu {
 		if ( $is_current ) {
 			// رنگ تأکیدی همان رنگی است که hover هم استفاده می‌کند، پس
 			// آیتم فعال از پالت فعلی خارج نمی‌شود.
-			$classes[] = 'text-[#06b6d4]';
+			$classes[] = 'text-cyan-glow';
 		}
 
 		$class_attr = trim( $this->link_class . ' ' . implode( ' ', $classes ) );

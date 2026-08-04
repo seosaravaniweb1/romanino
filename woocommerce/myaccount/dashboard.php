@@ -26,11 +26,11 @@ $romanino_myacc_opts = function_exists( 'romanino_get_myaccount_options' ) ? rom
     <?php endif; ?>
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div class="rounded-xl border border-border bg-secondary/30 p-4">
+        <div class="rounded-xl border border-border bg-secondary p-4">
             <p class="text-xs text-muted-foreground">تعداد سفارش‌ها</p>
             <p class="mt-1 text-xl font-extrabold text-foreground"><?php echo esc_html( $orders_count ); ?></p>
         </div>
-        <div class="rounded-xl border border-border bg-secondary/30 p-4">
+        <div class="rounded-xl border border-border bg-secondary p-4">
             <p class="text-xs text-muted-foreground">فایل‌های قابل دانلود</p>
             <p class="mt-1 text-xl font-extrabold text-foreground"><?php echo count( wc_get_customer_available_downloads( get_current_user_id() ) ); ?></p>
         </div>

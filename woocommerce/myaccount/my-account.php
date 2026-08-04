@@ -25,10 +25,10 @@ do_action( 'woocommerce_before_account_navigation' );
 	<!-- هدر پنل کاربری -->
 	<div class="glass glow-gold relative overflow-hidden rounded-3xl p-6 md:p-8 mb-6 flex flex-col md:flex-row items-center justify-between gap-6">
 		<!-- درخشش تزئینی پس‌زمینه -->
-		<div class="pointer-events-none absolute -top-16 -left-16 h-56 w-56 rounded-full bg-gold/10 blur-3xl"></div>
+		<div class="pointer-events-none absolute -top-16 -left-16 h-56 w-56 rounded-full bg-primary/10 blur-3xl"></div>
 
 		<div class="relative flex items-center gap-4">
-			<div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gold text-background text-2xl font-black shadow-[0_0_20px_-4px_rgba(234,179,8,0.6)] ring-1 ring-gold/40">
+			<div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary text-background text-2xl font-black shadow-[0_0_20px_-4px_rgba(234,179,8,0.6)] ring-1 ring-primary/40">
 				<?php echo esc_html( mb_substr( $first_name ?: $current_user->display_name, 0, 1 ) ); ?>
 			</div>
 			<div>
@@ -62,10 +62,10 @@ do_action( 'woocommerce_before_account_navigation' );
 
 	<!-- بنر تخفیف -->
 	<div class="glass relative overflow-hidden rounded-2xl p-4 mb-6 flex items-center gap-3">
-		<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold/15 text-xl ring-1 ring-gold/30">🎁</span>
+		<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-xl ring-1 ring-primary/30">🎁</span>
 		<div class="text-xs leading-relaxed text-muted-foreground">
 			<strong class="text-foreground">جشنواره تخفیف رمانینو:</strong> با کد
-			<code class="rounded bg-gold/15 px-2 py-0.5 font-mono font-black text-gold">ROMAN20</code>
+			<code class="rounded bg-primary/15 px-2 py-0.5 font-mono font-black text-gold">ROMAN20</code>
 			از ۲۰٪ تخفیف بهره‌مند شوید!
 		</div>
 	</div>
@@ -86,21 +86,21 @@ do_action( 'woocommerce_before_account_navigation' );
 
 			<input type="text" name="first_name" value="<?php echo esc_attr( $first_name ); ?>"
 				placeholder="نام *" required
-				class="w-full rounded-xl border border-border bg-input px-3 py-2.5 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-gold/60 focus:ring-1 focus:ring-gold/40" />
+				class="w-full rounded-xl border border-border bg-input px-3 py-2.5 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-primary/60 focus:ring-1 focus:ring-primary/40" />
 
 			<input type="text" name="last_name" value="<?php echo esc_attr( $last_name ); ?>"
 				placeholder="نام خانوادگی *" required
-				class="w-full rounded-xl border border-border bg-input px-3 py-2.5 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-gold/60 focus:ring-1 focus:ring-gold/40" />
+				class="w-full rounded-xl border border-border bg-input px-3 py-2.5 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-primary/60 focus:ring-1 focus:ring-primary/40" />
 
 			<select name="user_gender" required
-				class="w-full rounded-xl border border-border bg-input px-3 py-2.5 text-xs text-foreground outline-none focus:border-gold/60 focus:ring-1 focus:ring-gold/40">
+				class="w-full rounded-xl border border-border bg-input px-3 py-2.5 text-xs text-foreground outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/40">
 				<option value="" class="bg-background">جنسیت *</option>
 				<option value="female" class="bg-background" <?php selected( $gender, 'female' ); ?>>خانم</option>
 				<option value="male" class="bg-background" <?php selected( $gender, 'male' ); ?>>آقا</option>
 			</select>
 
 			<button type="submit"
-				class="glow-gold w-full rounded-xl bg-gold py-2.5 text-xs font-bold text-background transition-all hover:brightness-110">
+				class="glow-gold w-full rounded-xl bg-primary py-2.5 text-xs font-bold text-background transition-all hover:brightness-110">
 				ثبت و ذخیره
 			</button>
 		</form>

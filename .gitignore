@@ -1,0 +1,8 @@
+# وابستگی‌های بیلد — نباید در مخزن باشند
+node_modules/
+vendor/
+
+# فایل‌های موقت سیستم
+.DS_Store
+Thumbs.db
+*.log

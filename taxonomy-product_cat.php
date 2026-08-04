@@ -52,7 +52,7 @@ if ( is_wp_error( $tax_cats ) ) $tax_cats = [];
                     <form role="search" method="get" action="<?php echo esc_url( home_url( '/' ) ); ?>">
                         <input type="search" name="s" value="<?php echo esc_attr( get_search_query() ); ?>"
                             placeholder="نام رمان یا نویسنده..."
-                            class="w-full rounded-xl border border-border bg-secondary/30 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring" />
+                            class="w-full rounded-xl border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring" />
                         <input type="hidden" name="post_type" value="product" />
                         <button type="submit" class="mt-2 w-full rounded-xl bg-primary py-2 text-sm font-semibold text-[#0b0514] hover:bg-primary/90">جست‌وجو</button>
                     </form>
@@ -147,11 +147,11 @@ if ( is_wp_error( $tax_cats ) ) $tax_cats = [];
                         <?php echo wp_kses_post( term_description( $queried_term ) ); ?>
                     </div>
                     <!-- هاله محو کننده -->
-                    <div id="seo-fade-layer" class="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#0f0726] to-transparent transition-opacity duration-300"></div>
+                    <div id="seo-fade-layer" class="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-surface-card to-transparent transition-opacity duration-300"></div>
                 </div>
 
                 <div class="relative z-10 mt-2 flex justify-center">
-                    <button type="button" id="seo-read-more-btn" class="flex items-center gap-1.5 rounded-lg bg-secondary/50 px-4 py-2 text-xs font-bold text-foreground transition-all hover:bg-secondary">
+                    <button type="button" id="seo-read-more-btn" class="flex items-center gap-1.5 rounded-lg bg-secondary px-4 py-2 text-xs font-bold text-foreground transition-all hover:bg-secondary">
                         مشاهده بیشتر
                         <svg class="h-4 w-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
@@ -169,7 +169,7 @@ if ( is_wp_error( $tax_cats ) ) $tax_cats = [];
                 ?>
                 <a href="<?php echo esc_url( get_term_link( $subcat ) ); ?>"
                     class="group flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-4 text-center transition-shadow hover:shadow-md">
-                    <div class="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-secondary/40 lg:h-16 lg:w-16">
+                    <div class="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-secondary lg:h-16 lg:w-16">
                         <?php if ( $thumb_url ) : ?>
                         <img src="<?php echo esc_url( $thumb_url ); ?>" alt="<?php echo esc_attr( $subcat->name ); ?>" loading="lazy" class="h-full w-full object-cover" />
                         <?php else : ?>

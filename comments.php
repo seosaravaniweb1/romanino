@@ -56,7 +56,7 @@ if ( post_password_required() ) {
 	<?php
 	if ( comments_open() ) :
 
-		$romanino_field_class = 'w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/30';
+		$romanino_field_class = 'w-full rounded-xl border border-ink/10 bg-ink/5 px-4 py-3 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/30';
 
 		comment_form( array(
 			'title_reply'          => 'دیدگاه خود را بنویسید',

@@ -44,28 +44,118 @@
 	font-display: swap;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════
+   توکن‌های رنگ — تنها منبع حقیقت
+   ─────────────────────────────────────────────────────────────────────────
+   هر رنگ دو نمایش دارد:
+
+     --c-xxx   کانال‌های خام RGB («234 179 8»). این چیزی است که
+               tailwind.config.js با placeholder <alpha-value> مصرف می‌کند.
+               بدون این فرمت، Tailwind هیچ کلاسی با اصلاح‌گر شفافیت تولید
+               نمی‌کند — دلیل اینکه پیش از این هر ۸۳ کاربردِ الگوهایی مثل
+               bg-primary/90 و ring-primary/40 در قالب کاملاً بی‌اثر بودند.
+
+     --xxx     رنگ آماده‌ی مصرف («rgb(234 179 8)») برای CSS دست‌نویسِ همین
+               فایل. از روی همان کانال مشتق می‌شود، پس هیچ‌وقت از هم جدا
+               نمی‌افتند.
+
+   حالت روشن فقط همین کانال‌ها را بازتعریف می‌کند (بخش html.light پایین‌تر).
+   ═════════════════════════════════════════════════════════════════════════ */
+
 :root {
 	color-scheme: dark;
-	--background: #0b0514;
-	--foreground: #f8fafc;
-	--card: rgba(15, 7, 38, 0.75);
-	--popover: #0f0726;
-	--primary: #eab308;
-	--primary-foreground: #1a1206;
-	--gold: #eab308;
-	--cyan-glow: #06b6d4;
-	--emerald-glow: #10b981;
-	--secondary: rgba(255, 255, 255, 0.06);
-	--secondary-foreground: #f8fafc;
-	--muted: rgba(255, 255, 255, 0.05);
-	--muted-foreground: #94a3b8;
-	--accent: rgba(255, 255, 255, 0.08);
-	--accent-foreground: #f8fafc;
-	--border: rgba(255, 255, 255, 0.1);
-	--input: rgba(255, 255, 255, 0.08);
-	--ring: #eab308;
-	--destructive: #ef4444;
-	--destructive-foreground: #fef2f2;
+
+	/* ── پایه ─────────────────────────────────────────────────────────── */
+	--c-background: 11 5 20;
+	--c-foreground: 248 250 252;
+	--c-popover: 15 7 38;
+	--c-primary: 234 179 8;
+	--c-primary-foreground: 26 18 6;
+	--c-secondary: 255 255 255;
+	--c-secondary-foreground: 248 250 252;
+	--c-muted: 255 255 255;
+	--c-muted-foreground: 148 163 184;
+	--c-accent: 255 255 255;
+	--c-accent-foreground: 248 250 252;
+	--c-border: 255 255 255;
+	--c-input: 255 255 255;
+	--c-ring: 234 179 8;
+	--c-destructive: 239 68 68;
+	--c-destructive-foreground: 254 242 242;
+
+	/* ── برند ─────────────────────────────────────────────────────────── */
+	--c-gold: 234 179 8;
+	--c-cyan-glow: 6 182 212;
+	--c-emerald-glow: 16 185 129;
+
+	/* ── مقیاس سطوح (همان رنگ‌های ثابتِ قبلیِ تمپلیت‌ها) ─────────────────── */
+	--c-surface: 11 5 20;              /* #0b0514 */
+	--c-surface-card: 15 7 38;         /* #0f0726 */
+	--c-surface-nav: 10 4 24;          /* #0a0418 */
+	--c-surface-deep: 8 3 15;          /* #08030f */
+	--c-surface-alt: 21 10 43;         /* #150a2b */
+	--c-surface-input: 26 14 53;       /* #1a0e35 */
+	--c-surface-input-focus: 35 19 71; /* #231347 */
+
+	/* ── مقیاس مرکب: متن روی سطوح + خطوط و لایه‌های شفاف ─────────────────── */
+	--c-ink: 255 255 255;
+	--c-ink-2: 226 232 240;   /* slate-200 */
+	--c-ink-3: 203 213 225;   /* slate-300 */
+	--c-ink-muted: 148 163 184;  /* slate-400 */
+	--c-ink-faint: 100 116 139;  /* slate-500 */
+	--c-ink-fainter: 71 85 105;  /* slate-600 */
+
+	/* ── نسخه‌ی آماده‌ی مصرف برای CSS دست‌نویس ──────────────────────────── */
+	--background: rgb(var(--c-background));
+	--foreground: rgb(var(--c-foreground));
+	--popover: rgb(var(--c-popover));
+	--primary: rgb(var(--c-primary));
+	--primary-foreground: rgb(var(--c-primary-foreground));
+	--gold: rgb(var(--c-gold));
+	--cyan-glow: rgb(var(--c-cyan-glow));
+	--emerald-glow: rgb(var(--c-emerald-glow));
+	--muted-foreground: rgb(var(--c-muted-foreground));
+	--destructive: rgb(var(--c-destructive));
+	--ring: rgb(var(--c-ring));
+
+	/* توکن‌هایی که ذاتاً نیمه‌شفاف‌اند */
+	--card: rgb(var(--c-surface-card) / 0.75);
+	--secondary: rgb(var(--c-secondary) / 0.06);
+	--muted: rgb(var(--c-muted) / 0.05);
+	--accent: rgb(var(--c-accent) / 0.08);
+	--border: rgb(var(--c-border) / 0.1);
+	--input: rgb(var(--c-input) / 0.08);
+
+	/* سطوح و مرکب — نسخه‌ی آماده */
+	--surface-base: rgb(var(--c-surface));
+	--surface-card: rgb(var(--c-surface-card));
+	--surface-nav: rgb(var(--c-surface-nav));
+	--surface-deep: rgb(var(--c-surface-deep));
+	--surface-alt: rgb(var(--c-surface-alt));
+	--surface-input: rgb(var(--c-surface-input));
+	--surface-input-focus: rgb(var(--c-surface-input-focus));
+
+	--on-surface: rgb(var(--c-ink));
+	--on-surface-2: rgb(var(--c-ink-2));
+	--on-surface-3: rgb(var(--c-ink-3));
+	--on-surface-muted: rgb(var(--c-ink-muted));
+	--on-surface-faint: rgb(var(--c-ink-faint));
+	--on-surface-fainter: rgb(var(--c-ink-fainter));
+
+	--hairline: rgb(var(--c-ink) / 0.1);
+	--hairline-soft: rgb(var(--c-ink) / 0.05);
+	--tint-1: rgb(var(--c-ink) / 0.03);
+	--tint-2: rgb(var(--c-ink) / 0.05);
+	--tint-3: rgb(var(--c-ink) / 0.1);
+
+	--glass-bg: rgb(var(--c-surface-card) / 0.6);
+	--glass-border: rgb(var(--c-ink) / 0.1);
+
+	/* رنگ برند وقتی «متن» است (در حالت روشن تیره‌تر می‌شود) */
+	--brand-gold-text: rgb(var(--c-gold));
+	--brand-cyan-text: rgb(var(--c-cyan-glow));
+	--brand-emerald-text: rgb(var(--c-emerald-glow));
+
 	--radius: 1rem;
 }
 
@@ -584,93 +674,68 @@ html.light .rmn-prose a:hover { color: var(--brand-cyan-text); }
    این لایه‌ی نگاشت کاملاً حذف می‌شود و حالت روشن فقط چند متغیر خواهد بود.
    ═════════════════════════════════════════════════════════════════════════ */
 
-:root {
-	/* مقیاس سطوح — مقادیر دقیقاً همان رنگ‌های ثابتِ فعلی تمپلیت‌ها */
-	--surface-deep: #08030f;   /* نوار پایانی فوتر */
-	--surface-base: #0b0514;   /* پس‌زمینه‌ی صفحه */
-	--surface-nav: #0a0418;    /* ردیف ناوبری هدر */
-	--surface-card: #0f0726;   /* کارت‌ها و پاپ‌اوورها */
-	--surface-alt: #150a2b;    /* گرادیان نوار اشتراک فوتر */
-	--surface-input: #1a0e35;  /* پس‌زمینه‌ی ورودی‌ها */
-	--surface-input-focus: #231347;
-
-	/* مقیاس متن روی سطوح */
-	--on-surface: #ffffff;
-	--on-surface-2: #e2e8f0;   /* slate-200 */
-	--on-surface-3: #cbd5e1;   /* slate-300 */
-	--on-surface-muted: #94a3b8;   /* slate-400 */
-	--on-surface-faint: #64748b;   /* slate-500 */
-	--on-surface-fainter: #475569; /* slate-600 */
-
-	/* خطوط و لایه‌های شفاف */
-	--hairline: rgba(255, 255, 255, 0.1);
-	--hairline-soft: rgba(255, 255, 255, 0.05);
-	--tint-1: rgba(255, 255, 255, 0.03);
-	--tint-2: rgba(255, 255, 255, 0.05);
-	--tint-3: rgba(255, 255, 255, 0.1);
-
-	/* رنگ‌های برند وقتی به‌عنوان «متن» استفاده می‌شوند.
-	   روی پس‌زمینه‌ی تیره همان رنگ اصلی خواناست؛ در حالت روشن باید تیره‌تر
-	   شود وگرنه کنتراست به حد استاندارد WCAG نمی‌رسد. */
-	--brand-gold-text: #eab308;
-	--brand-cyan-text: #06b6d4;
-	--brand-emerald-text: #10b981;
-
-	--glass-bg: rgba(15, 7, 38, 0.6);
-	--glass-border: rgba(255, 255, 255, 0.1);
-}
 
 html.light {
 	color-scheme: light;
 
-	/* توکن‌های اصلی قالب */
-	--background: #f5f6fb;
-	--foreground: #0f172a;
-	--card: rgba(255, 255, 255, 0.85);
-	--popover: #ffffff;
-	--primary: #eab308;
-	--primary-foreground: #1a1206;
-	--secondary: rgba(15, 23, 42, 0.05);
-	--secondary-foreground: #0f172a;
-	--muted: rgba(15, 23, 42, 0.04);
-	--muted-foreground: #64748b;
-	--accent: rgba(15, 23, 42, 0.06);
-	--accent-foreground: #0f172a;
-	--border: rgba(15, 23, 42, 0.1);
-	--input: rgba(15, 23, 42, 0.06);
-	--ring: #ca8a04;
-	--destructive: #dc2626;
-	--destructive-foreground: #fef2f2;
+	/* فقط «کانال‌ها» بازتعریف می‌شوند؛ همه‌ی رنگ‌های آماده و همه‌ی کلاس‌های
+	   Tailwind خودکار از همین‌ها مشتق می‌شوند. */
 
-	/* مقیاس سطوح — نسخه‌ی روشن */
-	--surface-deep: #e9ecf4;
-	--surface-base: #f5f6fb;
-	--surface-nav: #ffffff;
-	--surface-card: #ffffff;
-	--surface-alt: #eef1f8;
-	--surface-input: #eef1f7;
-	--surface-input-focus: #e3e8f2;
+	/* ── پایه ─────────────────────────────────────────────────────────── */
+	--c-background: 245 246 251;
+	--c-foreground: 15 23 42;
+	--c-popover: 255 255 255;
+	--c-primary: 234 179 8;              /* طلایی برند در هر دو حالت یکسان */
+	--c-primary-foreground: 26 18 6;
+	--c-secondary: 15 23 42;
+	--c-secondary-foreground: 15 23 42;
+	--c-muted: 15 23 42;
+	--c-muted-foreground: 100 116 139;
+	--c-accent: 15 23 42;
+	--c-accent-foreground: 15 23 42;
+	--c-border: 15 23 42;
+	--c-input: 15 23 42;
+	--c-ring: 202 138 4;
+	--c-destructive: 220 38 38;
+	--c-destructive-foreground: 254 242 242;
 
-	/* متن روی سطوح روشن */
-	--on-surface: #0f172a;
-	--on-surface-2: #1e293b;
-	--on-surface-3: #334155;
-	--on-surface-muted: #64748b;
-	--on-surface-faint: #7c8899;
-	--on-surface-fainter: #94a3b8;
+	/* ── سطوح ─────────────────────────────────────────────────────────── */
+	--c-surface: 245 246 251;
+	--c-surface-card: 255 255 255;
+	--c-surface-nav: 255 255 255;
+	--c-surface-deep: 233 236 244;
+	--c-surface-alt: 238 241 248;
+	--c-surface-input: 238 241 247;
+	--c-surface-input-focus: 227 232 242;
 
-	--hairline: rgba(15, 23, 42, 0.1);
-	--hairline-soft: rgba(15, 23, 42, 0.06);
-	--tint-1: rgba(15, 23, 42, 0.02);
-	--tint-2: rgba(15, 23, 42, 0.04);
-	--tint-3: rgba(15, 23, 42, 0.07);
+	/* ── مرکب: متن، خطوط و لایه‌های شفاف ────────────────────────────────── */
+	--c-ink: 15 23 42;
+	--c-ink-2: 30 41 59;
+	--c-ink-3: 51 65 85;
+	--c-ink-muted: 100 116 139;
+	--c-ink-faint: 124 136 153;
+	--c-ink-fainter: 148 163 184;
 
-	--brand-gold-text: #a16207;    /* amber-700 — کنتراست کافی روی سفید */
+	/* ── مقادیری که صرفاً مشتق نیستند و باید صراحتاً عوض شوند ──────────── */
+	--card: rgb(var(--c-surface-card) / 0.85);
+	--glass-bg: rgb(var(--c-surface-card) / 0.75);
+	--glass-border: rgb(var(--c-ink) / 0.08);
+	--hairline-soft: rgb(var(--c-ink) / 0.06);
+	--tint-1: rgb(var(--c-ink) / 0.02);
+	--tint-2: rgb(var(--c-ink) / 0.04);
+	--tint-3: rgb(var(--c-ink) / 0.07);
+
+	/* رنگ برند وقتی «متن» است — روی سفید باید تیره‌تر شود وگرنه کنتراست
+	   به حد استاندارد WCAG نمی‌رسد. */
+	--brand-gold-text: #a16207;    /* amber-700 */
 	--brand-cyan-text: #0e7490;    /* cyan-700 */
 	--brand-emerald-text: #047857; /* emerald-700 */
-
-	--glass-bg: rgba(255, 255, 255, 0.75);
-	--glass-border: rgba(15, 23, 42, 0.08);
+	--gold: var(--brand-gold-text);
+	--cyan-glow: var(--brand-cyan-text);
+	--emerald-glow: var(--brand-emerald-text);
+	--c-gold: 161 98 7;
+	--c-cyan-glow: 14 116 144;
+	--c-emerald-glow: 4 120 87;
 }
 
 /* ── کلاس‌های سفارشی قالب: به متغیر وصل می‌شوند تا هر دو حالت را بگیرند ── */
@@ -689,85 +754,23 @@ html.light .glow-cyan { box-shadow: 0 4px 16px -6px rgba(6, 182, 212, 0.45); }
 html.light .glow-emerald { box-shadow: 0 4px 16px -6px rgba(16, 185, 129, 0.45); }
 html.light .rmn-cta { animation: none; box-shadow: 0 6px 18px -8px rgba(234, 179, 8, 0.7); }
 
-/* ── لایه‌ی نگاشت: کلاس‌های رنگ‌ثابتِ تمپلیت‌ها → متغیرهای بالا ────────────
-   فقط زیر html.light اعمال می‌شود، پس حالت تیره اصلاً این قوانین را نمی‌بیند. */
+/* ── لایه‌ی نگاشت: حذف شد ────────────────────────────────────────────────
+   پیش‌تر اینجا حدود ۴۰ قانون بود که کلاس‌های رنگ‌ثابتِ تمپلیت‌ها
+   (bg-[#0b0514]، text-white، border-white/10 و…) را زیر html.light به
+   متغیرها وصل می‌کرد. آن لایه یک راه‌حل موقت بود.
 
-/* پس‌زمینه‌ها */
-html.light .bg-\[\#08030f\]      { background-color: var(--surface-deep); }
-html.light .bg-\[\#0b0514\]      { background-color: var(--surface-base); }
-html.light .bg-\[\#0a0418\]      { background-color: var(--surface-nav); }
-html.light .bg-\[\#0a0418\]\/70  { background-color: rgb(255 255 255 / 0.7); }
-html.light .bg-\[\#0a0418\]\/90  { background-color: rgb(255 255 255 / 0.9); }
-html.light .bg-\[\#0f0726\]      { background-color: var(--surface-card); }
-html.light .bg-\[\#0f0726\]\/80  { background-color: rgb(255 255 255 / 0.85); }
-html.light .bg-\[\#1a0e35\]      { background-color: var(--surface-input); }
-html.light .bg-\[\#231347\]      { background-color: var(--surface-input-focus); }
-html.light .focus\:bg-\[\#231347\]:focus { background-color: var(--surface-input-focus); }
+   حالا خودِ تمپلیت‌ها به توکن مهاجرت کرده‌اند (۳۳۰ جایگزینی در ۲۵ فایل)، پس
+   کلاس‌ها مستقیماً از متغیرهای کانالی می‌خوانند و لایه‌ی واسط بی‌معنی شد.
+   نتیجه: افزودن هر بخش جدید به قالب، خودکار در هر دو حالت درست کار می‌کند و
+   دیگر لازم نیست کسی یادش باشد قانون نگاشت متناظرش را هم اضافه کند.
 
-/* لایه‌های شفافِ سفید — روی پس‌زمینه‌ی روشن باید تیره شوند وگرنه نامرئی‌اند */
-html.light .bg-white\/5        { background-color: var(--tint-2); }
-html.light .bg-white\/10       { background-color: var(--tint-3); }
-html.light .bg-white\/\[0\.03\] { background-color: var(--tint-1); }
-html.light .bg-white\/\[0\.04\] { background-color: var(--tint-2); }
-html.light .bg-white\/\[0\.08\] { background-color: var(--tint-3); }
-html.light .hover\:bg-white\/5:hover  { background-color: var(--tint-2); }
-html.light .hover\:bg-white\/10:hover { background-color: var(--tint-3); }
-html.light .hover\:bg-white\/\[0\.08\]:hover { background-color: var(--tint-3); }
-
-/* خطوط */
-html.light .border-white\/5  { border-color: var(--hairline-soft); }
-html.light .border-white\/10 { border-color: var(--hairline); }
-html.light .divide-white\/10 > :not([hidden]) ~ :not([hidden]) { border-color: var(--hairline); }
-html.light .bg-white\/10.h-px,
-html.light .bg-white\/10\.h-px { background-color: var(--hairline); }
-html.light .ring-white\/10 { --tw-ring-color: var(--hairline); }
-
-/* متن — استثنا: عنصری که خودش پس‌زمینه‌ی رنگی دارد باید سفید بماند */
-html.light .text-white     { color: var(--on-surface); }
-html.light .text-slate-200 { color: var(--on-surface-2); }
-html.light .text-slate-300 { color: var(--on-surface-3); }
-html.light .text-slate-400 { color: var(--on-surface-muted); }
-html.light .text-slate-500 { color: var(--on-surface-faint); }
-html.light .text-slate-600 { color: var(--on-surface-fainter); }
-html.light .hover\:text-white:hover { color: var(--on-surface); }
-
-/* دکمه‌ها/بج‌های رنگی: متن سفیدشان باید سفید بماند */
-html.light [class*="bg-red-"].text-white,
-html.light [class*="bg-emerald-"].text-white,
-html.light [class*="bg-slate-7"].text-white,
-html.light [class*="bg-\[\#eab308\]"].text-white,
-html.light [class*="bg-\[\#06b6d4\]"].text-white,
-html.light [class*="bg-primary"].text-white {
-	color: #ffffff;
-}
-
-/* رنگ‌های برند وقتی «متن» هستند */
-html.light .text-\[\#eab308\] { color: var(--brand-gold-text); }
-html.light .text-\[\#06b6d4\] { color: var(--brand-cyan-text); }
-html.light .text-\[\#10b981\] { color: var(--brand-emerald-text); }
-html.light .hover\:text-\[\#eab308\]:hover { color: var(--brand-gold-text); }
-html.light .hover\:text-\[\#06b6d4\]:hover { color: var(--brand-cyan-text); }
-html.light .group:hover .group-hover\:text-\[\#eab308\] { color: var(--brand-gold-text); }
-/* روی پس‌زمینه‌ی طلایی، متن تیره‌ی اصلی همچنان درست است — دست نمی‌زنیم */
-
-/* گرادیان نوار اشتراک فوتر */
-html.light .from-\[\#150a2b\] {
-	--tw-gradient-from: var(--surface-alt) var(--tw-gradient-from-position);
-	--tw-gradient-to: rgb(238 241 248 / 0) var(--tw-gradient-to-position);
-	--tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-stops-mid, ), var(--tw-gradient-to);
-}
-html.light .via-\[\#1a0e35\] {
-	--tw-gradient-to: rgb(238 241 247 / 0) var(--tw-gradient-to-position);
-	--tw-gradient-stops: var(--tw-gradient-from), var(--surface-input) var(--tw-gradient-via-position), var(--tw-gradient-to);
-}
-html.light .to-\[\#150a2b\] {
-	--tw-gradient-to: var(--surface-alt) var(--tw-gradient-to-position);
-}
-html.light .from-\[\#0f0726\] {
-	--tw-gradient-from: var(--surface-card) var(--tw-gradient-from-position);
-	--tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position);
-	--tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
-}
+   تنها رنگ‌هایی که هنوز ثابت‌اند، عمداً ثابت‌اند:
+     • text-[#0f0726] و text-[#0b0514] — متن تیره روی دکمه‌ی طلایی؛ در حالت
+       روشن هم باید تیره بماند وگرنه روی طلایی ناخواناست.
+     • from-[#0b0514]/80 و مشابه — اورلی گرادیان روی کاور رمان؛ باید تیره
+       بماند تا متن روی تصویر خوانا باشد.
+     • رنگ‌های تزئینی یک‌باره (#ff6955 قلب فوتر، #a855f7 بلاب بنفش).
+   ───────────────────────────────────────────────────────────────────────── */
 
 /* هدر: سوییچ تم و آیکون سبد — همان قانون قبلی، حالا بخشی از سیستم */
 html.light #romanino-theme-toggle,

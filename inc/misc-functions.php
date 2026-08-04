@@ -506,9 +506,9 @@ function romanino_render_category_tag_author_tabs( string $id_prefix, string $la
 
     $wrap_class = $layout === 'grid' ? 'grid grid-cols-4 gap-2' : 'flex flex-col gap-1';
     $link_class = $layout === 'grid'
-        ? 'group/cat flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-slate-300 transition-colors duration-150 hover:bg-white/5 hover:text-white'
-        : 'flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-slate-300 hover:bg-white/10 hover:text-white';
-    $dot = '<span class="h-1.5 w-1.5 shrink-0 rounded-full bg-[#eab308]/50"></span>';
+        ? 'group/cat flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-ink-3 transition-colors duration-150 hover:bg-ink/5 hover:text-ink'
+        : 'flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-ink-3 hover:bg-ink/10 hover:text-ink';
+    $dot = '<span class="h-1.5 w-1.5 shrink-0 rounded-full bg-primary/50"></span>';
 
     $panels = array(
         'cat'    => array( 'label' => 'بر اساس دسته‌بندی', 'terms' => $cats,    'link_fn' => 'get_term_link' ),
@@ -520,7 +520,7 @@ function romanino_render_category_tag_author_tabs( string $id_prefix, string $la
         <?php foreach ( $panels as $key => $panel ) : ?>
             <button type="button" role="tab" onclick="romaninoTaxTab('<?php echo esc_js( $id_prefix ); ?>','<?php echo esc_js( $key ); ?>')"
                 id="<?php echo esc_attr( $id_prefix ); ?>-tabbtn-<?php echo esc_attr( $key ); ?>"
-                class="romanino-tax-tabbtn-<?php echo esc_attr( $id_prefix ); ?> rounded-full px-3 py-1.5 text-xs font-bold transition-all duration-150 <?php echo $key === 'cat' ? 'bg-[#eab308] text-[#0f0726]' : 'bg-white/5 text-slate-400 hover:text-white'; ?>">
+                class="romanino-tax-tabbtn-<?php echo esc_attr( $id_prefix ); ?> rounded-full px-3 py-1.5 text-xs font-bold transition-all duration-150 <?php echo $key === 'cat' ? 'bg-primary text-[#0f0726]' : 'bg-ink/5 text-ink-muted hover:text-ink'; ?>">
                 <?php echo esc_html( $panel['label'] ); ?>
             </button>
         <?php endforeach; ?>
@@ -560,7 +560,7 @@ function romanino_render_category_tag_author_tabs( string $id_prefix, string $la
                                     }
                                 ?>
                                     <a href="<?php echo esc_url( $sub_link ); ?>"
-                                        class="truncate rounded-lg px-2 py-1 text-xs text-slate-400 transition-colors duration-150 hover:text-[#eab308]">
+                                        class="truncate rounded-lg px-2 py-1 text-xs text-ink-muted transition-colors duration-150 hover:text-gold">
                                         <?php echo esc_html( $sub->name ); ?>
                                     </a>
                                 <?php endforeach; ?>
@@ -569,7 +569,7 @@ function romanino_render_category_tag_author_tabs( string $id_prefix, string $la
                     </div>
                 <?php endforeach; ?>
             <?php else : ?>
-                <span class="px-3 py-2 text-xs text-slate-500">موردی یافت نشد.</span>
+                <span class="px-3 py-2 text-xs text-ink-faint">موردی یافت نشد.</span>
             <?php endif; ?>
         </div>
     <?php endforeach;

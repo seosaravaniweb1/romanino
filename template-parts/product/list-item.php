@@ -40,8 +40,8 @@ $romanino_li_price  = $romanino_li_product->get_price();
 				class="h-full w-full object-cover" loading="lazy" width="64" height="64" />
 		</div>
 		<div class="min-w-0 flex-1">
-			<h4 class="line-clamp-1 text-sm font-bold text-white"><?php echo esc_html( $romanino_li_title ); ?></h4>
-			<p class="mt-1 flex items-center gap-1 text-[11px] text-slate-400">
+			<h4 class="line-clamp-1 text-sm font-bold text-ink"><?php echo esc_html( $romanino_li_title ); ?></h4>
+			<p class="mt-1 flex items-center gap-1 text-[11px] text-ink-muted">
 				<?php echo esc_html( romanino_get_book_author( $romanino_li_id ) ?: 'ناشناس' ); ?>
 				<span aria-hidden="true">·</span>
 				<span><?php echo esc_html( $romanino_li_nat['emoji'] . ' ' . $romanino_li_nat['label'] ); ?></span>
@@ -56,6 +56,6 @@ $romanino_li_price  = $romanino_li_product->get_price();
 				?>
 			</p>
 		</div>
-		<svg class="h-4 w-4 shrink-0 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+		<svg class="h-4 w-4 shrink-0 text-ink-faint" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
 	</a>
 </li>

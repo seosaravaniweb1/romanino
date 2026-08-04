@@ -41,12 +41,12 @@ defined( 'ABSPATH' ) || exit;
 				</div>
 
 				<?php if ( ! empty( $guidance_steps ) ) : ?>
-					<div class="mx-auto mt-8 max-w-md rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-right">
-						<h2 class="mb-3 text-sm font-bold text-white">چرا این اتفاق می‌افتد و چه‌کار کنم؟</h2>
+					<div class="mx-auto mt-8 max-w-md rounded-2xl border border-ink/10 bg-ink/[0.03] p-5 text-right">
+						<h2 class="mb-3 text-sm font-bold text-ink">چرا این اتفاق می‌افتد و چه‌کار کنم؟</h2>
 						<ol class="space-y-2.5">
 							<?php foreach ( $guidance_steps as $i => $step ) : ?>
-								<li class="flex items-start gap-2.5 text-xs leading-relaxed text-slate-300">
-									<span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/10 text-[10px] font-bold text-slate-300"><?php echo esc_html( $i + 1 ); ?></span>
+								<li class="flex items-start gap-2.5 text-xs leading-relaxed text-ink-3">
+									<span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-ink/10 text-[10px] font-bold text-ink-3"><?php echo esc_html( $i + 1 ); ?></span>
 									<?php echo esc_html( $step ); ?>
 								</li>
 							<?php endforeach; ?>
@@ -67,17 +67,17 @@ defined( 'ABSPATH' ) || exit;
 				<p class="mt-2 text-sm text-muted-foreground">از خرید شما سپاسگزاریم. فایل‌های رمان شما هم‌اکنون آماده‌ی دانلود است.</p>
 
 				<!-- جزئیات سریع تراکنش -->
-				<div class="mt-8 flex flex-wrap justify-center gap-6 border-t border-white/10 pt-6 text-sm">
+				<div class="mt-8 flex flex-wrap justify-center gap-6 border-t border-ink/10 pt-6 text-sm">
 					<div class="flex flex-col items-center">
 						<span class="text-[11px] text-muted-foreground">شماره سفارش</span>
 						<strong class="font-mono text-gold mt-1">#<?php echo esc_html( $order->get_order_number() ); ?></strong>
 					</div>
-					<div class="h-8 w-px bg-white/10"></div>
+					<div class="h-8 w-px bg-ink/10"></div>
 					<div class="flex flex-col items-center">
 						<span class="text-[11px] text-muted-foreground">تاریخ</span>
 						<strong class="mt-1 text-foreground"><?php echo wc_format_datetime( $order->get_date_created() ); ?></strong>
 					</div>
-					<div class="h-8 w-px bg-white/10"></div>
+					<div class="h-8 w-px bg-ink/10"></div>
 					<div class="flex flex-col items-center">
 						<span class="text-[11px] text-muted-foreground">مبلغ پرداختی</span>
 						<strong class="mt-1 text-emerald-400"><?php echo wp_kses_post( $order->get_formatted_order_total() ); ?></strong>
@@ -87,7 +87,7 @@ defined( 'ABSPATH' ) || exit;
 
 			<!-- باکس دانلود فایل‌ها -->
 			<div class="mb-8">
-				<h2 class="mb-4 flex items-center gap-2 text-lg font-extrabold text-white">
+				<h2 class="mb-4 flex items-center gap-2 text-lg font-extrabold text-ink">
 					<span class="text-gold">📥</span> لینک‌های دانلود شما
 				</h2>
 				
@@ -117,7 +117,7 @@ defined( 'ABSPATH' ) || exit;
 							</div>
 							
 							<!-- استفاده از download attribute برای جلوگیری از باز شدن ناخواسته فایل در تب مرورگر -->
-							<a href="<?php echo esc_url( $download['download_url'] ); ?>" download rel="noopener noreferrer" class="flex w-full items-center justify-center gap-2 rounded-xl bg-gold py-2.5 text-xs font-bold text-background transition-all hover:brightness-110">
+							<a href="<?php echo esc_url( $download['download_url'] ); ?>" download rel="noopener noreferrer" class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-xs font-bold text-background transition-all hover:brightness-110">
 								دانلود مستقیم
 							</a>
 						</div>

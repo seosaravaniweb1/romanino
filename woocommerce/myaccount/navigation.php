@@ -42,7 +42,7 @@ add_filter( 'woocommerce_account_menu_items', function ( array $items ): array {
 		?>
 			<li class="<?php echo esc_attr( $classes ); ?> shrink-0 lg:shrink">
 				<a href="<?php echo esc_url( wc_get_account_endpoint_url( $endpoint ) ); ?>"
-					class="flex items-center gap-2.5 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all duration-150 <?php echo $is_active ? 'glow-gold bg-gold text-background' : 'text-slate-300 hover:bg-secondary hover:text-white'; ?>">
+					class="flex items-center gap-2.5 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all duration-150 <?php echo $is_active ? 'glow-gold bg-primary text-background' : 'text-ink-3 hover:bg-secondary hover:text-ink'; ?>">
 					<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="<?php echo esc_attr( $path ); ?>"/></svg>
 					<?php echo esc_html( $label ); ?>
 				</a>

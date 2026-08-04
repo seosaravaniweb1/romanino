@@ -94,15 +94,15 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 <?php
 // FIX (دارک/لایت‌مود): رنگ پس‌زمینه قبلاً یک style اینلاین بود. استایل اینلاین
 // بالاترین اولویت را دارد و با هیچ CSS ای (به‌جز !important) قابل override
-// نیست، یعنی این صفحه در حالت روشن هم تیره می‌ماند. حالا از کلاس bg-[#0b0514]
+// نیست، یعنی این صفحه در حالت روشن هم تیره می‌ماند. حالا از کلاس bg-surface
 // استفاده می‌شود که لایه‌ی html.light می‌تواند آن را عوض کند.
 ?>
-<main id="primary" dir="rtl" class="min-h-screen w-full bg-[#0b0514] text-slate-200 rmn-font pb-24 lg:pb-8">
+<main id="primary" dir="rtl" class="min-h-screen w-full bg-surface text-ink-2 rmn-font pb-24 lg:pb-8">
 	<div class="mx-auto max-w-7xl px-4 py-5 lg:px-8 lg:py-8">
 
 		<!-- مسیر بازگشت — یکسان در همه‌ی سایزها -->
-		<nav aria-label="مسیر صفحه" class="mb-4 flex items-center gap-1.5 overflow-x-auto whitespace-nowrap text-xs text-slate-400 lg:mb-6 lg:gap-2 lg:text-sm">
-			<a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="hover:text-white">خانه</a><span>/</span>
+		<nav aria-label="مسیر صفحه" class="mb-4 flex items-center gap-1.5 overflow-x-auto whitespace-nowrap text-xs text-ink-muted lg:mb-6 lg:gap-2 lg:text-sm">
+			<a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="hover:text-ink">خانه</a><span>/</span>
 			<?php
 			// FIX (Task 3.1 — سئو): قبلاً wc_get_product_category_list() همه‌ی
 			// دسته‌های محصول را با «/» پشت سر هم چاپ می‌کرد؛ حالا فقط «دسته‌ی
@@ -111,10 +111,10 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 			$romanino_primary_cat = romanino_get_primary_product_category( get_the_ID() );
 			if ( $romanino_primary_cat ) :
 			?>
-			<span class="hidden lg:inline"><a href="<?php echo esc_url( get_term_link( $romanino_primary_cat ) ); ?>" class="hover:text-white"><?php echo esc_html( $romanino_primary_cat->name ); ?></a></span>
+			<span class="hidden lg:inline"><a href="<?php echo esc_url( get_term_link( $romanino_primary_cat ) ); ?>" class="hover:text-ink"><?php echo esc_html( $romanino_primary_cat->name ); ?></a></span>
 			<span class="hidden lg:inline">/</span>
 			<?php endif; ?>
-			<span class="text-white"><?php echo esc_html( $product_title ); ?></span>
+			<span class="text-ink"><?php echo esc_html( $product_title ); ?></span>
 		</nav>
 
 		<!-- گرید اصلی: موبایل یک‌ستونه (استک) → دسکتاپ ۱۲ ستونه -->
@@ -124,17 +124,17 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 
 			<!-- ═══ عنوان محصول — موبایل: ۲ (بعد از تصویر) ═══ -->
 			<header class="order-2 lg:mb-6">
-				<h1 class="mb-2 text-xl font-extrabold leading-relaxed text-white lg:mb-3 lg:text-3xl">
+				<h1 class="mb-2 text-xl font-extrabold leading-relaxed text-ink lg:mb-3 lg:text-3xl">
 					<?php
 					// Phase 1 FIX (سئو): فقط H1 به‌صورت داینامیک به این قالب درمی‌آید؛
 					// بقیه‌ی هدینگ‌های صفحه دست‌نخورده می‌مانند چون محتوای آن‌ها با رنک‌مث سئو می‌شود.
 					echo esc_html( sprintf( 'دانلود رمان %s PDF', $product_title ) );
 					?>
 				</h1>
-				<div class="flex flex-wrap items-center gap-3 text-xs text-slate-400 lg:gap-4 lg:text-sm">
+				<div class="flex flex-wrap items-center gap-3 text-xs text-ink-muted lg:gap-4 lg:text-sm">
 					<span class="flex items-center gap-1 text-amber-400">
 						<?php echo wc_get_rating_html( $average_rating, $rating_count ); ?>
-						<span class="mr-1 font-bold text-slate-300">(<?php echo esc_html( $review_count ); ?> نظر)</span>
+						<span class="mr-1 font-bold text-ink-3">(<?php echo esc_html( $review_count ); ?> نظر)</span>
 					</span>
 					<span>•</span>
 					<span>تاریخ انتشار: <?php echo esc_html( romanino_product_date( get_the_ID() ) ); ?></span>
@@ -162,28 +162,28 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 
 				<!-- باکس اطلاعات سریع: موبایل ۱ ستون ساده، دسکتاپ ۳ یا ۴ ستون با آیکون -->
 				<section class="glass-box rounded-2xl p-4 lg:p-5">
-					<div class="grid grid-cols-1 divide-y divide-white/10 lg:gap-4 lg:divide-y-0 <?php echo $file_size ? 'lg:grid-cols-4' : 'lg:grid-cols-3'; ?>">
+					<div class="grid grid-cols-1 divide-y divide-ink/10 lg:gap-4 lg:divide-y-0 <?php echo $file_size ? 'lg:grid-cols-4' : 'lg:grid-cols-3'; ?>">
 						<div class="flex items-center gap-3 py-2 first:pt-0 last:pb-0 lg:items-start lg:py-0">
 							<span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-400">#</span>
 							<div>
-								<div class="mb-0.5 text-xs text-slate-400">کد محصول</div>
-								<div class="text-sm font-semibold text-white"><?php echo esc_html( $product_sku ); ?></div>
+								<div class="mb-0.5 text-xs text-ink-muted">کد محصول</div>
+								<div class="text-sm font-semibold text-ink"><?php echo esc_html( $product_sku ); ?></div>
 							</div>
 						</div>
 						<div class="flex items-center gap-3 py-2 first:pt-0 last:pb-0 lg:items-start lg:py-0">
 							<span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">🎧</span>
 							<div>
-								<div class="mb-0.5 text-xs text-slate-400">فرمت رمان</div>
-								<div class="text-sm font-semibold text-white"><?php echo esc_html( $format_label ); ?></div>
+								<div class="mb-0.5 text-xs text-ink-muted">فرمت رمان</div>
+								<div class="text-sm font-semibold text-ink"><?php echo esc_html( $format_label ); ?></div>
 							</div>
 						</div>
 						<div class="flex items-center gap-3 py-2 first:pt-0 last:pb-0 lg:items-start lg:py-0">
 							<span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">✍️</span>
 							<div>
-								<div class="mb-0.5 text-xs text-slate-400">نویسنده</div>
-								<div class="text-sm font-semibold text-white">
+								<div class="mb-0.5 text-xs text-ink-muted">نویسنده</div>
+								<div class="text-sm font-semibold text-ink">
 									<?php if ( $author_link ) : ?>
-										<a href="<?php echo esc_url( $author_link ); ?>" class="transition-colors hover:text-[#eab308]"><?php echo esc_html( $author_name ); ?></a>
+										<a href="<?php echo esc_url( $author_link ); ?>" class="transition-colors hover:text-gold"><?php echo esc_html( $author_name ); ?></a>
 									<?php else : ?>
 										<?php echo esc_html( $author_name ); ?>
 									<?php endif; ?>
@@ -193,10 +193,10 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 						<?php if ( $file_size ) : ?>
 						<!-- FIX: حجم فایل قبلاً فقط داخل تب «مشخصات» و Schema بود؛ حالا همیشه در همین باکس اطلاعات سریع هم دیده می‌شود. -->
 						<div class="flex items-center gap-3 py-2 first:pt-0 last:pb-0 lg:items-start lg:py-0">
-							<span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/20 bg-white/5 text-slate-300">💾</span>
+							<span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/20 bg-ink/5 text-ink-3">💾</span>
 							<div>
-								<div class="mb-0.5 text-xs text-slate-400">حجم فایل</div>
-								<div class="text-sm font-semibold text-white" dir="ltr"><?php echo esc_html( $file_size ); ?></div>
+								<div class="mb-0.5 text-xs text-ink-muted">حجم فایل</div>
+								<div class="text-sm font-semibold text-ink" dir="ltr"><?php echo esc_html( $file_size ); ?></div>
 							</div>
 						</div>
 						<?php endif; ?>
@@ -215,13 +215,13 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 				?>
 				<?php if ( ! empty( $romanino_genre_terms ) ) : ?>
 				<section class="glass-box rounded-2xl p-4 lg:p-5">
-					<h2 class="mb-3 text-sm font-bold text-white lg:text-base">ژانر رمان</h2>
+					<h2 class="mb-3 text-sm font-bold text-ink lg:text-base">ژانر رمان</h2>
 					<div class="flex flex-wrap gap-2">
 						<?php foreach ( $romanino_genre_terms as $romanino_genre_term ) :
 							$romanino_genre_link = get_term_link( $romanino_genre_term );
 							if ( is_wp_error( $romanino_genre_link ) ) continue;
 						?>
-						<a href="<?php echo esc_url( $romanino_genre_link ); ?>" class="rounded-full border border-[#eab308]/30 bg-[#eab308]/10 px-3.5 py-1.5 text-xs font-bold text-[#eab308] transition-colors hover:bg-[#eab308]/20 hover:text-white lg:text-sm">
+						<a href="<?php echo esc_url( $romanino_genre_link ); ?>" class="rounded-full border border-primary/30 bg-primary/10 px-3.5 py-1.5 text-xs font-bold text-gold transition-colors hover:bg-primary/20 hover:text-ink lg:text-sm">
 							<?php echo esc_html( $romanino_genre_term->name ); ?>
 						</a>
 						<?php endforeach; ?>
@@ -230,7 +230,7 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 				<?php endif; ?>
 
 				<!-- توضیح کوتاه -->
-				<section class="glass-box rounded-2xl p-4 text-sm leading-loose text-slate-300 lg:p-5 lg:text-base">
+				<section class="glass-box rounded-2xl p-4 text-sm leading-loose text-ink-3 lg:p-5 lg:text-base">
 					<?php echo apply_filters( 'woocommerce_short_description', $post->post_excerpt ); ?>
 				</section>
 
@@ -238,15 +238,15 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 				<nav class="glass-box sticky top-2 z-20 rounded-2xl p-1.5">
 					<div class="flex gap-1.5 lg:gap-2" id="product-tabs" role="tablist">
 						<button type="button" onclick="romaninoSwitchTab('specs')" id="ptab-btn-specs" role="tab" aria-selected="true"
-							class="flex-1 rounded-xl bg-[#eab308] px-2 py-2.5 text-xs font-semibold text-[#0b0514] transition-all lg:px-4 lg:py-3 lg:text-base">
+							class="flex-1 rounded-xl bg-primary px-2 py-2.5 text-xs font-semibold text-[#0b0514] transition-all lg:px-4 lg:py-3 lg:text-base">
 							مشخصات
 						</button>
 						<button type="button" onclick="romaninoSwitchTab('desc')" id="ptab-btn-desc" role="tab" aria-selected="false"
-							class="flex-1 rounded-xl px-2 py-2.5 text-xs font-semibold text-slate-400 transition-all hover:text-white lg:px-4 lg:py-3 lg:text-base">
+							class="flex-1 rounded-xl px-2 py-2.5 text-xs font-semibold text-ink-muted transition-all hover:text-ink lg:px-4 lg:py-3 lg:text-base">
 							توضیحات و داستان
 						</button>
 						<button type="button" onclick="romaninoSwitchTab('reviews')" id="ptab-btn-reviews" role="tab" aria-selected="false"
-							class="flex-1 rounded-xl px-2 py-2.5 text-xs font-semibold text-slate-400 transition-all hover:text-white lg:px-4 lg:py-3 lg:text-base">
+							class="flex-1 rounded-xl px-2 py-2.5 text-xs font-semibold text-ink-muted transition-all hover:text-ink lg:px-4 lg:py-3 lg:text-base">
 							نقد و بررسی (<?php echo esc_html( $review_count ); ?>)
 						</button>
 					</div>
@@ -254,37 +254,37 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 
 				<section class="glass-box rounded-2xl p-4 lg:p-6">
 					<div id="ppanel-specs" class="product-panel block">
-						<h2 class="mb-4 text-base font-bold text-white lg:text-lg">ویژگی‌ها و شناسنامه رمان</h2>
-						<dl class="divide-y divide-white/10">
-							<div class="flex items-center justify-between py-3"><dt class="text-sm text-slate-400">ملیت رمان</dt><dd class="text-sm font-semibold text-white"><?php echo esc_html( $nationality ); ?></dd></div>
-							<div class="flex items-center justify-between py-3"><dt class="text-sm text-slate-400">نویسنده</dt><dd class="text-sm font-semibold text-cyan-400"><?php if ( $author_link ) : ?><a href="<?php echo esc_url( $author_link ); ?>" class="hover:text-[#eab308]"><?php echo esc_html( $author_name ); ?></a><?php else : ?><?php echo esc_html( $author_name ); ?><?php endif; ?></dd></div>
+						<h2 class="mb-4 text-base font-bold text-ink lg:text-lg">ویژگی‌ها و شناسنامه رمان</h2>
+						<dl class="divide-y divide-ink/10">
+							<div class="flex items-center justify-between py-3"><dt class="text-sm text-ink-muted">ملیت رمان</dt><dd class="text-sm font-semibold text-ink"><?php echo esc_html( $nationality ); ?></dd></div>
+							<div class="flex items-center justify-between py-3"><dt class="text-sm text-ink-muted">نویسنده</dt><dd class="text-sm font-semibold text-cyan-400"><?php if ( $author_link ) : ?><a href="<?php echo esc_url( $author_link ); ?>" class="hover:text-gold"><?php echo esc_html( $author_name ); ?></a><?php else : ?><?php echo esc_html( $author_name ); ?><?php endif; ?></dd></div>
 							<?php // FIX (Task 3.3): مترجم فقط برای رمان‌های «خارجی» نمایش داده می‌شود؛ برای رمان ایرانی نمایش مترجم بی‌معنی/گمراه‌کننده است. ?>
 							<?php if ( $translator && $romanino_nat['is_foreign'] ) : ?>
-							<div class="flex items-center justify-between py-3"><dt class="text-sm text-slate-400">مترجم اثر</dt><dd class="text-sm font-semibold text-white"><?php echo esc_html( $translator ); ?></dd></div>
+							<div class="flex items-center justify-between py-3"><dt class="text-sm text-ink-muted">مترجم اثر</dt><dd class="text-sm font-semibold text-ink"><?php echo esc_html( $translator ); ?></dd></div>
 							<?php endif; ?>
-							<div class="flex items-center justify-between py-3"><dt class="text-sm text-slate-400">شماره جلد</dt><dd class="text-sm font-semibold text-white"><?php echo esc_html( $romanino_volume_text ); ?></dd></div>
+							<div class="flex items-center justify-between py-3"><dt class="text-sm text-ink-muted">شماره جلد</dt><dd class="text-sm font-semibold text-ink"><?php echo esc_html( $romanino_volume_text ); ?></dd></div>
 							<?php if ( $page_count ) : ?>
-							<div class="flex items-center justify-between py-3"><dt class="text-sm text-slate-400">تعداد صفحات</dt><dd class="text-sm font-semibold text-white"><?php echo esc_html( $page_count ); ?> صفحه</dd></div>
+							<div class="flex items-center justify-between py-3"><dt class="text-sm text-ink-muted">تعداد صفحات</dt><dd class="text-sm font-semibold text-ink"><?php echo esc_html( $page_count ); ?> صفحه</dd></div>
 							<?php endif; ?>
-							<div class="flex items-center justify-between py-3"><dt class="text-sm text-slate-400">فرمت فایل</dt><dd class="text-sm font-semibold text-white"><?php echo esc_html( $format_label ); ?></dd></div>
+							<div class="flex items-center justify-between py-3"><dt class="text-sm text-ink-muted">فرمت فایل</dt><dd class="text-sm font-semibold text-ink"><?php echo esc_html( $format_label ); ?></dd></div>
 							<?php if ( $file_size ) : ?>
-							<div class="flex items-center justify-between py-3"><dt class="text-sm text-slate-400">حجم فایل</dt><dd class="text-sm font-semibold text-white" dir="ltr"><?php echo esc_html( $file_size ); ?></dd></div>
+							<div class="flex items-center justify-between py-3"><dt class="text-sm text-ink-muted">حجم فایل</dt><dd class="text-sm font-semibold text-ink" dir="ltr"><?php echo esc_html( $file_size ); ?></dd></div>
 							<?php endif; ?>
 						</dl>
 
 						<?php if ( ! empty( $romanino_vol['siblings'] ) ) : ?>
 						<!-- FIX (Task 3.3 — لینک‌سازی داخلی): سایر جلدهای همین مجموعه، با تصویر کاور -->
-						<div class="mt-6 border-t border-white/10 pt-5">
-							<h3 class="mb-3 text-sm font-bold text-white">سایر جلدهای این مجموعه</h3>
+						<div class="mt-6 border-t border-ink/10 pt-5">
+							<h3 class="mb-3 text-sm font-bold text-ink">سایر جلدهای این مجموعه</h3>
 							<div class="flex flex-wrap gap-3">
 								<?php foreach ( $romanino_vol['siblings'] as $romanino_sib_post ) :
 									$romanino_sib_vol = absint( get_post_meta( $romanino_sib_post->ID, 'romanino_volume_number', true ) );
 								?>
 								<a href="<?php echo esc_url( get_permalink( $romanino_sib_post ) ); ?>" class="group flex w-20 flex-col items-center gap-1.5 text-center">
-									<span class="block h-24 w-20 overflow-hidden rounded-lg border border-white/10 bg-slate-900">
+									<span class="block h-24 w-20 overflow-hidden rounded-lg border border-ink/10 bg-slate-900">
 										<img src="<?php echo esc_url( get_the_post_thumbnail_url( $romanino_sib_post, 'medium' ) ?: wc_placeholder_img_src() ); ?>" alt="<?php echo esc_attr( get_the_title( $romanino_sib_post ) ); ?>" class="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105" loading="lazy" width="80" height="96" />
 									</span>
-									<span class="line-clamp-1 text-[11px] font-semibold text-slate-300 group-hover:text-[#eab308]"><?php echo esc_html( romanino_get_volume_display_text( $romanino_sib_vol ) ); ?></span>
+									<span class="line-clamp-1 text-[11px] font-semibold text-ink-3 group-hover:text-gold"><?php echo esc_html( romanino_get_volume_display_text( $romanino_sib_vol ) ); ?></span>
 								</a>
 								<?php endforeach; ?>
 							</div>
@@ -292,17 +292,17 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 						<?php endif; ?>
 					</div>
 
-					<div id="ppanel-desc" class="product-panel hidden space-y-4 text-sm leading-loose text-slate-300 lg:text-base">
-						<h2 class="mb-4 text-base font-bold text-white lg:text-lg">توضیحات کامل و خلاصه داستان</h2>
+					<div id="ppanel-desc" class="product-panel hidden space-y-4 text-sm leading-loose text-ink-3 lg:text-base">
+						<h2 class="mb-4 text-base font-bold text-ink lg:text-lg">توضیحات کامل و خلاصه داستان</h2>
 						<?php the_content(); ?>
 					</div>
 
 					<div id="ppanel-reviews" class="product-panel hidden space-y-6">
-						<h2 class="mb-4 text-base font-bold text-white lg:text-lg">نقد و بررسی رمان توسط کاربران</h2>
+						<h2 class="mb-4 text-base font-bold text-ink lg:text-lg">نقد و بررسی رمان توسط کاربران</h2>
 						<?php if ( $review_count === 0 ) : ?>
-							<div class="rounded-xl bg-white/5 p-5 text-center text-sm text-slate-400">هنوز نظری ثبت نشده است. اولین نفری باشید که نظر می‌دهید! ✨</div>
+							<div class="rounded-xl bg-ink/5 p-5 text-center text-sm text-ink-muted">هنوز نظری ثبت نشده است. اولین نفری باشید که نظر می‌دهید! ✨</div>
 						<?php endif; ?>
-						<div class="rounded-xl bg-white/5 p-4 lg:p-5">
+						<div class="rounded-xl bg-ink/5 p-4 lg:p-5">
 							<?php comments_template(); // فقط یک‌بار فراخوانی می‌شود؛ برای هر دو سایز مشترک است ?>
 						</div>
 					</div>
@@ -328,11 +328,11 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 				<div class="hidden grid-cols-2 gap-4 lg:order-none lg:grid">
 					<div class="glass-box rounded-2xl p-4 text-center">
 						<div class="text-2xl font-extrabold text-emerald-400"><?php echo esc_html( $satisfaction ); ?></div>
-						<div class="mt-1 text-xs text-slate-400">رضایت کاربران</div>
+						<div class="mt-1 text-xs text-ink-muted">رضایت کاربران</div>
 					</div>
 					<div class="glass-box rounded-2xl p-4 text-center">
-						<div class="text-2xl font-extrabold text-[#eab308]"><?php echo esc_html( $sales_display ); ?></div>
-						<div class="mt-1 text-xs text-slate-400">فروش موفق</div>
+						<div class="text-2xl font-extrabold text-gold"><?php echo esc_html( $sales_display ); ?></div>
+						<div class="mt-1 text-xs text-ink-muted">فروش موفق</div>
 					</div>
 				</div>
 
@@ -355,11 +355,11 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 				<div class="order-4 grid grid-cols-2 gap-3 lg:order-none lg:hidden">
 					<div class="glass-box rounded-xl p-3 text-center">
 						<div class="text-lg font-extrabold text-emerald-400"><?php echo esc_html( $satisfaction ); ?></div>
-						<div class="mt-0.5 text-[11px] text-slate-400">رضایت کاربران</div>
+						<div class="mt-0.5 text-[11px] text-ink-muted">رضایت کاربران</div>
 					</div>
 					<div class="glass-box rounded-xl p-3 text-center">
-						<div class="text-lg font-extrabold text-[#eab308]"><?php echo esc_html( $sales_display ); ?></div>
-						<div class="mt-0.5 text-[11px] text-slate-400">فروش موفق</div>
+						<div class="text-lg font-extrabold text-gold"><?php echo esc_html( $sales_display ); ?></div>
+						<div class="mt-0.5 text-[11px] text-ink-muted">فروش موفق</div>
 					</div>
 				</div>
 
@@ -374,28 +374,28 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 							<?php if ( $has_discount ) : ?>
 								<div class="mb-1.5 flex items-center gap-2">
 									<span class="rounded-md bg-red-500 px-2 py-1 text-xs font-bold text-white">تخفیف</span>
-									<span class="text-xs text-slate-400 line-through lg:text-sm"><?php echo wc_price( $product->get_regular_price() ); ?></span>
+									<span class="text-xs text-ink-muted line-through lg:text-sm"><?php echo wc_price( $product->get_regular_price() ); ?></span>
 								</div>
 							<?php endif; ?>
-							<div class="text-2xl font-extrabold text-[#eab308] lg:text-3xl" style="text-shadow:0 0 18px rgba(234,179,8,.35);">
+							<div class="text-2xl font-extrabold text-gold lg:text-3xl" style="text-shadow:0 0 18px rgba(234,179,8,.35);">
 								<?php echo $is_unavailable ? 'به‌زودی' : wc_price( $product->get_price() ); ?>
 							</div>
 							<?php if ( $has_discount ) : ?>
 								<div class="mt-2 flex flex-wrap items-center gap-1.5 text-xs font-bold text-emerald-400 lg:text-sm">
 									<span>💰</span>
 									<span><?php echo wc_price( $discount_saved ); ?> صرفه‌جویی</span>
-									<span class="font-normal text-slate-400">(٪<?php echo esc_html( $discount_pct ); ?> تخفیف)</span>
+									<span class="font-normal text-ink-muted">(٪<?php echo esc_html( $discount_pct ); ?> تخفیف)</span>
 								</div>
 							<?php endif; ?>
 						</div>
-						<span class="hidden shrink-0 text-2xl text-[#eab308] lg:block">✨</span>
+						<span class="hidden shrink-0 text-2xl text-gold lg:block">✨</span>
 					</div>
 
-					<div class="flex flex-col gap-3 border-t border-white/10 pt-5">
+					<div class="flex flex-col gap-3 border-t border-ink/10 pt-5">
 					<?php if ( $is_unavailable ) : ?>
 						<!-- Phase 1: فیلد قیمت کاملاً خالی است → دکمه غیرفعال -->
 						<button type="button" disabled
-							class="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-slate-700 py-3.5 text-sm font-bold text-slate-400 lg:text-base">
+							class="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-slate-700 py-3.5 text-sm font-bold text-ink-muted lg:text-base">
 							فعلاً قابل خرید نیست
 						</button>
 					<?php elseif ( $is_free_product ) : ?>
@@ -406,18 +406,18 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 						</a>
 					<?php else : ?>
 						<button type="button" data-product_id="<?php echo esc_attr( $product->get_id() ); ?>" data-product_name="<?php echo esc_attr( $product_title ); ?>"
-							class="romanino-buy-btn rmn-cta flex w-full items-center justify-center gap-2 rounded-xl bg-[#eab308] py-3.5 text-sm font-bold text-[#0b0514] lg:text-base">
+							class="romanino-buy-btn rmn-cta flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-[#0b0514] lg:text-base">
 							🛒 خرید و دانلود رمان
 						</button>
 					<?php endif; ?>
 
 					<?php if ( $sample_url && ! $is_free_product ) : ?>
 					<div class="rmn-hover-lift flex flex-col gap-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3.5 lg:p-4">
-						<span class="text-xs font-semibold text-slate-200 lg:text-sm">مردد هستید یا کیفیت را تست کنید؟</span>
+						<span class="text-xs font-semibold text-ink-2 lg:text-sm">مردد هستید یا کیفیت را تست کنید؟</span>
 						<a href="<?php echo esc_url( $sample_url ); ?>" class="flex items-center justify-center gap-2 rounded-lg bg-emerald-500 py-2.5 text-xs font-bold text-white transition-all hover:bg-emerald-600 lg:text-sm">
 							📥 دانلود رایگان نمونه رمان
 						</a>
-						<span class="hidden text-center text-xs text-slate-400 lg:block">دانلود فایل تست جهت بررسی کیفیت و نگارش اثر</span>
+						<span class="hidden text-center text-xs text-ink-muted lg:block">دانلود فایل تست جهت بررسی کیفیت و نگارش اثر</span>
 					</div>
 					<?php endif; ?>
 					</div>
@@ -435,7 +435,7 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 						if ( '' === trim( (string) $romanino_trust_text ) ) continue;
 						$romanino_c = $romanino_trust_colors[ $romanino_ti % count( $romanino_trust_colors ) ];
 					?>
-					<div class="flex items-center gap-2.5 text-xs text-slate-300 lg:text-sm">
+					<div class="flex items-center gap-2.5 text-xs text-ink-3 lg:text-sm">
 						<span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-<?php echo esc_attr( $romanino_c ); ?>-500/30 bg-<?php echo esc_attr( $romanino_c ); ?>-500/10 text-<?php echo esc_attr( $romanino_c ); ?>-400"><?php echo esc_html( $romanino_trust_icons[ $romanino_ti % count( $romanino_trust_icons ) ] ); ?></span>
 						<?php echo esc_html( $romanino_trust_text ); ?>
 					</div>
@@ -448,17 +448,17 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 					$romanino_bank_icons = $romanino_sbopts['bank_icons'] ?? array();
 					?>
 					<?php if ( ! empty( $romanino_bank_icons ) ) : ?>
-					<div class="mt-1 border-t border-white/10 pt-4">
+					<div class="mt-1 border-t border-ink/10 pt-4">
 						<div class="grid grid-cols-5 gap-2">
 							<?php foreach ( $romanino_bank_icons as $romanino_bank_icon_url ) :
 								if ( '' === trim( (string) $romanino_bank_icon_url ) ) continue;
 							?>
-							<div class="flex aspect-square items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-white/5 p-1.5">
+							<div class="flex aspect-square items-center justify-center overflow-hidden rounded-lg border border-ink/10 bg-ink/5 p-1.5">
 								<img src="<?php echo esc_url( $romanino_bank_icon_url ); ?>" alt="پرداخت بانکی" class="h-full w-full object-contain" loading="lazy" width="40" height="40" />
 							</div>
 							<?php endforeach; ?>
 						</div>
-						<p class="mt-3 text-center text-[11px] text-slate-400 lg:text-xs">قابل خرید با تمامی بانک های کشور فقط با رمز دوم</p>
+						<p class="mt-3 text-center text-[11px] text-ink-muted lg:text-xs">قابل خرید با تمامی بانک های کشور فقط با رمز دوم</p>
 					</div>
 					<?php endif; ?>
 				</div>
@@ -469,7 +469,7 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 		<!-- ۹ در موبایل: محصولات مرتبط (بعد از همه‌ی بلوک‌های بالا) -->
 		<section class="mt-10 lg:mt-12">
 			<div class="mb-4 flex items-center justify-between lg:mb-5">
-				<h2 class="text-lg font-extrabold text-white lg:text-2xl">رمان‌هایی که دیگران خریده‌اند</h2>
+				<h2 class="text-lg font-extrabold text-ink lg:text-2xl">رمان‌هایی که دیگران خریده‌اند</h2>
 				<span class="text-xs font-bold text-emerald-400 lg:text-sm">🔒 خرید امن</span>
 			</div>
 			<?php
@@ -495,16 +495,16 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 	</div>
 
 	<!-- نوار خرید ثابت پایین صفحه — فقط موبایل (thumb-reachable CTA) -->
-	<div class="fixed inset-x-0 bottom-0 z-30 flex items-center gap-3 border-t border-white/10 px-4 py-3 glass-box lg:hidden">
+	<div class="fixed inset-x-0 bottom-0 z-30 flex items-center gap-3 border-t border-ink/10 px-4 py-3 glass-box lg:hidden">
 		<div class="flex flex-col leading-tight whitespace-nowrap">
 			<?php if ( $has_discount ) : ?>
-				<span class="text-[10px] text-slate-400 line-through"><?php echo wc_price( $product->get_regular_price() ); ?></span>
+				<span class="text-[10px] text-ink-muted line-through"><?php echo wc_price( $product->get_regular_price() ); ?></span>
 			<?php endif; ?>
-			<span class="text-sm font-extrabold text-[#eab308]"><?php echo $is_unavailable ? '' : wc_price( $product->get_price() ); ?></span>
+			<span class="text-sm font-extrabold text-gold"><?php echo $is_unavailable ? '' : wc_price( $product->get_price() ); ?></span>
 		</div>
 		<?php if ( $is_unavailable ) : ?>
 			<button type="button" disabled
-				class="flex flex-1 cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-slate-700 py-2.5 text-center text-xs font-bold text-slate-400 shadow-md">
+				class="flex flex-1 cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-slate-700 py-2.5 text-center text-xs font-bold text-ink-muted shadow-md">
 				فعلاً قابل خرید نیست
 			</button>
 		<?php elseif ( $is_free_product ) : ?>
@@ -514,7 +514,7 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 			</a>
 		<?php else : ?>
 			<button type="button" data-product_id="<?php echo esc_attr( $product->get_id() ); ?>" data-product_name="<?php echo esc_attr( $product_title ); ?>"
-				class="romanino-buy-btn rmn-cta flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#eab308] py-2.5 text-center text-xs font-bold text-[#0b0514] shadow-md">
+				class="romanino-buy-btn rmn-cta flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-center text-xs font-bold text-[#0b0514] shadow-md">
 				🛒 خرید و دانلود
 			</button>
 		<?php endif; ?>
