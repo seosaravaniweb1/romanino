@@ -7,26 +7,6 @@
 (function () {
   'use strict';
 
-  /* ── ۰. Nonce ــ گرفته‌شده در لحظه، نه از HTML کش‌شده ───────────────────
-     FIX: قبلاً nonce با wp_localize_script داخل خود صفحه چاپ می‌شد. روی سایتی
-     که WP Rocket/LiteSpeed کش کامل صفحه دارد، آن nonce بعد از ۱۲ تا ۲۴ ساعت
-     منقضی می‌شد ولی در HTML کش‌شده باقی می‌ماند — و همه‌ی درخواست‌های AJAX
-     بی‌صدا با -1 رد می‌شدند. حالا یک بار در هر بارگذاری صفحه و فقط هنگام
-     نیاز واقعی، از یک endpoint no-cache گرفته می‌شود.
-     window.romaninoNonce برای mini-cart.js هم قابل استفاده است. */
-  let noncePromise = null;
-
-  window.romaninoNonce = function (type) {
-    const cfg = window.romanino || window.romaninoCart || {};
-    if (!cfg.nonceUrl) return Promise.resolve('');
-    if (!noncePromise) {
-      noncePromise = fetch(cfg.nonceUrl, { credentials: 'same-origin' })
-        .then(res => res.json())
-        .catch(() => ({}));
-    }
-    return noncePromise.then(data => (data && data[type]) || '');
-  };
-
   /* ── ۱. منوی موبایل ─────────────────────────────────────────────────────── */
   const mobileBtn  = document.getElementById('mobile-menu-btn');
   const mobileMenu = document.getElementById('mobile-menu');
@@ -143,21 +123,18 @@
       try {
         const fd = new FormData();
         fd.append('action', 'romanino_check_phone');
-        fd.append('nonce', await window.romaninoNonce('auth'));
+        fd.append('nonce', authAjax.authNonce || '');
         fd.append('phone', phone);
 
         const res  = await fetch(authAjax.ajaxUrl, { method: 'POST', body: fd });
         const json = await res.json();
 
         if (json.success) {
-          if (json.data.has_password) {
-            document.getElementById('password-phone-display').textContent = phone;
-            showAuthStep('step-password');
-          } else {
-            document.getElementById('otp-phone-display').textContent = phone;
-            showAuthStep('step-otp');
-            startOtpCountdown(60);
-          }
+          // سرور همیشه کد می‌فرستد؛ مرحله‌ی بعد همیشه تأیید کد است.
+          // ورود با رمز عبور مسیر جداگانه دارد (لینک «ورود بدون احراز پیامکی»).
+          document.getElementById('otp-phone-display').textContent = phone;
+          showAuthStep('step-otp');
+          startOtpCountdown(60);
         } else {
           showAuthAlert(json.data?.message || 'خطایی رخ داد.');
         }
@@ -181,7 +158,7 @@
       try {
         const fd = new FormData();
         fd.append('action', 'romanino_login_password');
-        fd.append('nonce', await window.romaninoNonce('auth'));
+        fd.append('nonce', authAjax.authNonce || '');
         fd.append('phone', currentPhone);
         fd.append('password', password);
 
@@ -213,7 +190,7 @@
       try {
         const fd = new FormData();
         fd.append('action', 'romanino_verify_otp');
-        fd.append('nonce', await window.romaninoNonce('auth'));
+        fd.append('nonce', authAjax.authNonce || '');
         fd.append('phone', currentPhone);
         fd.append('code', code);
 
@@ -247,7 +224,7 @@
       btnResend.disabled = true;
       const fd = new FormData();
       fd.append('action', 'romanino_send_otp');
-      fd.append('nonce', await window.romaninoNonce('auth'));
+      fd.append('nonce', authAjax.authNonce || '');
       fd.append('phone', currentPhone);
       await fetch(authAjax.ajaxUrl, { method: 'POST', body: fd });
       startOtpCountdown(60);
@@ -258,7 +235,7 @@
   document.getElementById('btn-use-otp-instead')?.addEventListener('click', async () => {
     const fd = new FormData();
     fd.append('action', 'romanino_send_otp');
-    fd.append('nonce', await window.romaninoNonce('auth'));
+    fd.append('nonce', authAjax.authNonce || '');
     fd.append('phone', currentPhone);
     await fetch(authAjax.ajaxUrl, { method: 'POST', body: fd });
     document.getElementById('otp-phone-display').textContent = currentPhone;
@@ -279,7 +256,7 @@
       try {
         const fd = new FormData();
         fd.append('action', 'romanino_save_name');
-        fd.append('nonce', await window.romaninoNonce('auth'));
+        fd.append('nonce', authAjax.authNonce || '');
         fd.append('first_name', firstName);
         fd.append('last_name', lastName);
 
@@ -313,7 +290,7 @@
       try {
         const fd = new FormData();
         fd.append('action', 'romanino_login_password');
-        fd.append('nonce', await window.romaninoNonce('auth'));
+        fd.append('nonce', authAjax.authNonce || '');
         fd.append('identifier', identifier);
         fd.append('password', password);
 
@@ -338,24 +315,24 @@
   const btnRegisterManual = document.getElementById('btn-register-manual');
   if (btnRegisterManual) {
     btnRegisterManual.addEventListener('click', async () => {
-      const username = (document.getElementById('register-username-input')?.value || '').trim();
-      const fullName = (document.getElementById('register-fullname-input')?.value || '').trim();
-      const email    = (document.getElementById('register-email-input')?.value || '').trim();
-      const phone    = (document.getElementById('register-phone-input')?.value || '').trim();
-      const password = document.getElementById('register-password-input')?.value || '';
+      const firstName = (document.getElementById('register-firstname-input')?.value || '').trim();
+      const lastName  = (document.getElementById('register-lastname-input')?.value || '').trim();
+      const username  = (document.getElementById('register-username-input')?.value || '').trim();
+      const email     = (document.getElementById('register-email-input')?.value || '').trim();
+      const phone     = (document.getElementById('register-phone-input')?.value || '').trim();
+      const password  = document.getElementById('register-password-input')?.value || '';
 
-      if (!username || !fullName || !phone || !password) { showAuthAlert('لطفاً فیلدهای الزامی (نام‌کاربری، نام، موبایل، رمز عبور) را کامل کنید.'); return; }
-
-      const nameParts = fullName.split(/\s+/);
-      const firstName = nameParts.shift() || fullName;
-      const lastName  = nameParts.join(' ') || firstName;
+      if (!firstName || !lastName || !username || !phone || !password) {
+        showAuthAlert('لطفاً فیلدهای الزامی (نام، نام خانوادگی، نام کاربری، موبایل، رمز عبور) را کامل کنید.');
+        return;
+      }
 
       btnRegisterManual.disabled = true; btnRegisterManual.textContent = 'در حال ثبت‌نام...';
 
       try {
         const fd = new FormData();
         fd.append('action', 'romanino_register_manual');
-        fd.append('nonce', await window.romaninoNonce('auth'));
+        fd.append('nonce', authAjax.authNonce || '');
         fd.append('username', username);
         fd.append('first_name', firstName);
         fd.append('last_name', lastName);

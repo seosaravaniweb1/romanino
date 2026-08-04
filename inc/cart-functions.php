@@ -148,11 +148,10 @@ function romanino_enqueue_cart_assets() {
         wp_get_theme()->get( 'Version' ), // FIX: نسخه‌ی هاردکد '1.0.0' باعث می‌شد بعد از هر ویرایش، فایل قدیمی از کش مرورگر سرو شود
         array( 'strategy' => 'defer', 'in_footer' => true )
     );
-    // FIX (کش صفحه): nonce دیگر داخل HTML چاپ نمی‌شود — از همان endpoint
-    // no-cache گرفته می‌شود که romanino-main استفاده می‌کند.
+    // nonce مستقیماً چاپ می‌شود — توضیح کامل در inc/enqueue.php
     wp_localize_script( 'romanino-mini-cart', 'romaninoCart', array(
-        'ajaxUrl'  => esc_url( admin_url( 'admin-ajax.php' ) ),
-        'nonceUrl' => esc_url( rest_url( 'romanino/v1/nonce' ) ),
+        'ajaxUrl' => esc_url( admin_url( 'admin-ajax.php' ) ),
+        'nonce'   => wp_create_nonce( 'romanino_cart_nonce' ),
     ) );
 }
 add_action( 'wp_enqueue_scripts', 'romanino_enqueue_cart_assets' );

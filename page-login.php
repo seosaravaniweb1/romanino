@@ -180,27 +180,31 @@ if ( is_user_logged_in() ) {
 
 			<div class="mt-6 grid grid-cols-2 gap-3">
 				<div>
-					<label class="mb-1.5 block text-sm font-medium text-foreground">نام کاربری *</label>
-					<input type="text" id="register-username-input" dir="ltr" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+					<label for="register-firstname-input" class="mb-1.5 block text-sm font-medium text-foreground">نام *</label>
+					<input type="text" id="register-firstname-input" autocomplete="given-name" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 				</div>
 				<div>
-					<label class="mb-1.5 block text-sm font-medium text-foreground">نام و نام‌خانوادگی *</label>
-					<input type="text" id="register-fullname-input" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+					<label for="register-lastname-input" class="mb-1.5 block text-sm font-medium text-foreground">نام خانوادگی *</label>
+					<input type="text" id="register-lastname-input" autocomplete="family-name" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 				</div>
 			</div>
 			<div class="mt-3 grid grid-cols-2 gap-3">
 				<div>
-					<label class="mb-1.5 block text-sm font-medium text-foreground">شماره موبایل *</label>
-					<input type="tel" id="register-phone-input" dir="ltr" maxlength="11" inputmode="numeric" placeholder="09xxxxxxxxx" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+					<label for="register-username-input" class="mb-1.5 block text-sm font-medium text-foreground">نام کاربری *</label>
+					<input type="text" id="register-username-input" dir="ltr" autocomplete="username" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 				</div>
 				<div>
-					<label class="mb-1.5 block text-sm font-medium text-foreground">آدرس ایمیل</label>
-					<input type="email" id="register-email-input" dir="ltr" placeholder="اختیاری" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+					<label for="register-email-input" class="mb-1.5 block text-sm font-medium text-foreground">آدرس ایمیل</label>
+					<input type="email" id="register-email-input" dir="ltr" autocomplete="email" placeholder="اختیاری" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 				</div>
 			</div>
 			<div class="mt-3">
-				<label class="mb-1.5 block text-sm font-medium text-foreground">رمز عبور مد نظر را وارد کنید *</label>
-				<input type="password" id="register-password-input" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+				<label for="register-phone-input" class="mb-1.5 block text-sm font-medium text-foreground">شماره موبایل *</label>
+				<input type="tel" id="register-phone-input" dir="ltr" maxlength="11" inputmode="numeric" autocomplete="tel" placeholder="09xxxxxxxxx" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+			</div>
+			<div class="mt-3">
+				<label for="register-password-input" class="mb-1.5 block text-sm font-medium text-foreground">رمز عبور مد نظر را وارد کنید *</label>
+				<input type="password" id="register-password-input" autocomplete="new-password" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 			</div>
 
 			<button type="button" id="btn-register-manual" class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-background transition-all hover:brightness-110 active:scale-[0.98]">

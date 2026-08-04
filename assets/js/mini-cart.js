@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const res = await fetch(romaninoCart.ajaxUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({ action: 'romanino_get_mini_cart', nonce: await window.romaninoNonce('cart') }),
+                body: new URLSearchParams({ action: 'romanino_get_mini_cart', nonce: romaninoCart.nonce }),
             });
             const json = await res.json();
             if (!json.success) {
@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     await fetch(romaninoCart.ajaxUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: new URLSearchParams({ action: 'romanino_remove_cart_item', nonce: await window.romaninoNonce('cart'), key }),
+                        body: new URLSearchParams({ action: 'romanino_remove_cart_item', nonce: romaninoCart.nonce, key }),
                     });
                 } finally {
                     refreshCart();
@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function () {
         openDrawer();
     });
 
-    document.body.addEventListener('click', async function (e) {
+    document.body.addEventListener('click', function (e) {
         const btn = e.target.closest('.ajax_add_to_cart');
         if (!btn) return;
         e.preventDefault();
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function () {
         fetch(romaninoCart.ajaxUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ action: 'romanino_add_to_cart', nonce: await window.romaninoNonce('cart'), product_id: productId }),
+            body: new URLSearchParams({ action: 'romanino_add_to_cart', nonce: romaninoCart.nonce, product_id: productId }),
         })
         .then(res => res.json())
         .then(json => {
@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function () {
     /* ── «خرید و دانلود رمان»: افزودن + پاپ‌آپ تاییدیه، بدون رفرش صفحه ────── */
 
     async function addToCart(productId, replace) {
-        const body = { action: 'romanino_add_to_cart', nonce: await window.romaninoNonce('cart'), product_id: productId };
+        const body = { action: 'romanino_add_to_cart', nonce: romaninoCart.nonce, product_id: productId };
         if (replace) body.replace = '1';
         const res  = await fetch(romaninoCart.ajaxUrl, {
             method: 'POST',

@@ -104,6 +104,74 @@ function romanino_handle_checkout_info_step(): void {
 }
 
 /* ==========================================================================
+   ۴ب. پر کردن خودکار اطلاعات صورتحساب از روی حساب کاربری
+   ─────────────────────────────────────────────────────────────────────────
+   دو دلیل:
+
+   ۱) کاربرانی که پیش از اصلاحِ ثبت‌نام ساخته شده‌اند، متای billing_email
+      ندارند. برای آن‌ها فیلد ایمیل در چک‌اوت خالی می‌ماند، سفارش بدون ایمیل
+      ثبت می‌شود و ووکامرس نمی‌تواند ایمیلِ حاوی لینک دانلود را بفرستد —
+      یعنی کاربر بعد از پرداخت به فایل نمی‌رسد.
+
+   ۲) حتی برای کاربران جدید، اگر سشن ووکامرس تازه ساخته شده باشد،
+      WC()->customer هنوز از متای کاربر پر نشده است.
+
+   این تابع فقط «جای خالی» را پر می‌کند و هیچ مقداری را که کاربر خودش وارد
+   کرده بازنویسی نمی‌کند.
+   ========================================================================== */
+
+add_action( 'template_redirect', 'romanino_backfill_billing_from_account', 4 );
+function romanino_backfill_billing_from_account(): void {
+	if ( ! function_exists( 'is_checkout' ) || ! is_checkout() || is_order_received_page() ) {
+		return;
+	}
+	if ( ! is_user_logged_in() || ! WC()->customer ) {
+		return;
+	}
+
+	$user    = wp_get_current_user();
+	$changed = false;
+
+	// ایمیل — اگر روی صورتحساب نیست، از حساب کاربری برداشته می‌شود.
+	if ( ! WC()->customer->get_billing_email() ) {
+		$email = $user->user_email;
+		if ( ! $email || ! is_email( $email ) ) {
+			// حساب بدون ایمیل معتبر: از شماره‌ی موبایل یک ایمیل یکتا می‌سازیم
+			$phone = get_user_meta( $user->ID, 'phone_number', true );
+			$email = $phone ? romanino_build_placeholder_email( $phone ) : '';
+		}
+		if ( $email ) {
+			WC()->customer->set_billing_email( $email );
+			update_user_meta( $user->ID, 'billing_email', $email );
+			$changed = true;
+		}
+	}
+
+	// موبایل
+	if ( ! WC()->customer->get_billing_phone() ) {
+		$phone = get_user_meta( $user->ID, 'phone_number', true );
+		if ( $phone ) {
+			WC()->customer->set_billing_phone( $phone );
+			$changed = true;
+		}
+	}
+
+	// نام و نام خانوادگی
+	if ( ! WC()->customer->get_billing_first_name() && $user->first_name ) {
+		WC()->customer->set_billing_first_name( $user->first_name );
+		$changed = true;
+	}
+	if ( ! WC()->customer->get_billing_last_name() && $user->last_name ) {
+		WC()->customer->set_billing_last_name( $user->last_name );
+		$changed = true;
+	}
+
+	if ( $changed ) {
+		WC()->customer->save();
+	}
+}
+
+/* ==========================================================================
    ۵. جلوگیری از رسیدن مستقیم به مرحله‌ی پرداخت بدون تکمیل اطلاعات
    ========================================================================== */
 

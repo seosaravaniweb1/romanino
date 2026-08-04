@@ -143,39 +143,26 @@ function romanino_ajax_check_phone(): void {
         wp_send_json_error( [ 'message' => 'درخواست‌های زیادی ارسال شده. لطفاً چند دقیقه صبر کنید.' ], 429 );
     }
 
-    /* FIX (M15 — نشت وجود حساب): پاسخ has_password ذاتاً افشاگر است — مقدار
-       true یعنی «این شماره حتماً حساب دارد». حذف کامل این پاسخ، مرحله‌ی
-       «ورود با رمز عبور» را از جریان می‌انداخت؛ طبق تصمیم مالک سایت این روش
-       ورود باید حفظ شود. بنابراین به‌جای حذف پاسخ، خودِ «حمله‌ی شمارش» را
-       غیرعملی می‌کنیم:
+    /* جریان مورد نظر فروشگاه: فیلد شماره موبایل «همیشه» کد یک‌بارمصرف
+       می‌فرستد — چه کاربر از قبل ثبت‌نام کرده باشد چه نه. ورود با رمز عبور
+       مسیر جداگانه‌ی خودش را دارد (لینک «ورود بدون احراز پیامکی»).
 
-       ۱) سقف روی «تعداد شماره‌های متمایز» هر IP. سقف‌های قبلی بر مبنای تعداد
-          درخواست بودند و مانع کسی که با هر IP فقط چند شماره را تست می‌کند
-          نمی‌شدند. شمارش، ذاتاً یعنی «شماره‌های زیاد، هرکدام یک بار» — و
-          دقیقاً همین الگو حالا بسته می‌شود.
-       ۲) تأخیر یکسان در هر دو مسیر، تا زمان پاسخ (که ارسال پیامک آن را
-          محسوس‌تر می‌کرد) خودش به یک کانال نشت تبدیل نشود.
-
-       این یک کاهش ریسک است، نه حذف کامل نشت — حذف کامل بدون تغییر جریان
-       ورود ممکن نیست. */
+       این هم‌زمان نشت «آیا این شماره حساب دارد؟» را می‌بندد: پاسخ برای هر
+       شماره‌ای دقیقاً یکسان است، پس نمی‌شود با آزمودن شماره‌ها فهمید کدام‌ها
+       در سایت ثبت‌نام کرده‌اند. سقف تعداد شماره‌های متمایز هر IP هم به‌عنوان
+       لایه‌ی دوم باقی می‌ماند. */
     if ( romanino_track_distinct_phone_lookups( $ip, $phone, 15, HOUR_IN_SECONDS ) ) {
         wp_send_json_error( [ 'message' => 'درخواست‌های زیادی از این شبکه ارسال شده. لطفاً بعداً تلاش کنید.' ], 429 );
     }
 
-    $user         = romanino_find_user_by_phone( $phone );
-    $has_password = $user && get_user_meta( $user->ID, 'has_set_password', true );
+    $code = romanino_generate_otp( $phone );
+    $sent = romanino_send_sms_code( $phone, $code );
 
-    if ( ! $has_password ) {
-        // ارسال OTP — چه کاربر موجود باشد چه نباشد
-        $code = romanino_generate_otp( $phone );
-        romanino_send_sms_code( $phone, $code );
-    } else {
-        // مسیر «رمز دارد» پیامکی نمی‌فرستد و طبیعتاً خیلی سریع‌تر پاسخ می‌داد.
-        // این تأخیر تصادفی، اختلاف زمانی بین دو مسیر را می‌پوشاند.
-        usleep( random_int( 150000, 300000 ) );
+    if ( ! $sent ) {
+        wp_send_json_error( [ 'message' => 'خطا در ارسال پیامک. لطفاً دوباره تلاش کنید یا از «ورود بدون احراز پیامکی» استفاده کنید.' ] );
     }
 
-    wp_send_json_success( [ 'has_password' => (bool) $has_password ] );
+    wp_send_json_success( [ 'otp_sent' => true ] );
 }
 
 
@@ -267,8 +254,16 @@ function romanino_ajax_verify_otp(): void {
         if ( is_wp_error( $user_id ) ) {
             wp_send_json_error( [ 'message' => 'خطا در ساخت حساب کاربری.' ] );
         }
+        /* FIX (بحرانی — خطای دانلود پس از خرید): قبلاً فقط phone_number و
+           billing_phone ست می‌شد. ایمیل جایگزین روی خودِ حساب کاربری ساخته
+           می‌شد ولی هرگز روی «ایمیل صورتحساب» ننشست.
+           نتیجه: در چک‌اوت فیلد ایمیل خالی می‌ماند، سفارش بدون ایمیل ثبت
+           می‌شد و ووکامرس نمی‌توانست ایمیلِ حاوی لینک دانلود را بفرستد —
+           یعنی کاربر بعد از پرداخت به فایل نمی‌رسید. */
+        $placeholder_email = romanino_build_placeholder_email( $phone );
         update_user_meta( $user_id, 'phone_number', $phone );
         update_user_meta( $user_id, 'billing_phone', $phone );
+        update_user_meta( $user_id, 'billing_email', $placeholder_email );
         update_user_meta( $user_id, 'has_set_password', '' ); // هنوز رمز تنظیم نکرده
         $user = get_user_by( 'id', $user_id );
         // Hook برای ووکامرس
@@ -369,9 +364,10 @@ function romanino_ajax_register_manual(): void {
     $phone_raw   = sanitize_text_field( wp_unslash( $_POST['phone'] ?? '' ) );
     $password    = (string) ( $_POST['password'] ?? '' );
 
-    // FIX: طبق سیاست جدید، فقط نام/نام‌خانوادگی/موبایل الزامی‌اند؛ ایمیل اختیاری است.
-    if ( ! $username || ! $first || ! $phone_raw || ! $password ) {
-        wp_send_json_error( [ 'message' => 'لطفاً فیلدهای الزامی (نام‌کاربری، نام، موبایل، رمز عبور) را کامل کنید.' ], 400 );
+    // فرم ثبت‌نام دستی شش فیلد دارد؛ همه به‌جز ایمیل الزامی‌اند (ایمیل در
+    // نبودِ ورودی، خودکار از روی شماره موبایل ساخته می‌شود).
+    if ( ! $username || ! $first || ! $last || ! $phone_raw || ! $password ) {
+        wp_send_json_error( [ 'message' => 'لطفاً فیلدهای الزامی (نام، نام خانوادگی، نام کاربری، موبایل، رمز عبور) را کامل کنید.' ], 400 );
     }
     if ( strlen( $password ) < 6 ) {
         wp_send_json_error( [ 'message' => 'رمز عبور باید حداقل ۶ کاراکتر باشد.' ], 400 );
@@ -414,6 +410,11 @@ function romanino_ajax_register_manual(): void {
         'display_name' => trim( $first . ' ' . $last ) ?: $username,
     ] );
     update_user_meta( $user_id, 'has_set_password', '1' );
+    // همان دلیل بالا: ایمیل و نام باید روی فیلدهای صورتحساب هم بنشینند تا
+    // چک‌اوت از قبل پر شود و ایمیل لینک دانلود واقعاً ارسال شود.
+    update_user_meta( $user_id, 'billing_email', $email );
+    update_user_meta( $user_id, 'billing_first_name', $first );
+    update_user_meta( $user_id, 'billing_last_name', $last );
     if ( $phone ) {
         update_user_meta( $user_id, 'phone_number', $phone );
         update_user_meta( $user_id, 'billing_phone', $phone );
@@ -457,6 +458,9 @@ function romanino_ajax_save_name(): void {
         'last_name'    => $last,
         'display_name' => trim( $first . ' ' . $last ),
     ] );
+    // نام صورتحساب هم پر می‌شود تا کاربر مجبور نباشد در چک‌اوت دوباره بنویسد.
+    update_user_meta( $user_id, 'billing_first_name', $first );
+    update_user_meta( $user_id, 'billing_last_name', $last );
 
     $redirect = apply_filters(
         'romanino_after_login_redirect',
