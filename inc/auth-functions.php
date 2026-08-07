@@ -87,11 +87,11 @@ function romanino_find_user_by_identifier( string $identifier ): WP_User|false {
  * @return bool
  */
 function romanino_send_sms_code( string $phone, string $code ): bool {
-    // اتصال واقعی: پیامک الگو (پترن) از طریق ippanel.ir ارسال می‌شود.
-    // تنظیمات (API Key / شماره خط / کد پترن) از پیشخوان » هدر و فوتر
-    // رمانینو » تب «پیامک (OTP)» خوانده می‌شوند — به inc/sms-functions.php
-    // مراجعه کنید. پترن باید دقیقاً یک متغیر با نام code داشته باشد.
-    $sent = romanino_ippanel_send_pattern( $phone, [ 'code' => $code ] );
+    /* اتصال واقعی: پیامک الگو (پترن) از طریق ippanel.ir ارسال می‌شود.
+       همه‌ی تنظیمات (کلید وب‌سرویس، شماره خط، کد پترن و «نام متغیر پترن»)
+       از پیشخوان ← تنظیمات قالب رمانینو ← تب «پیامک» خوانده می‌شوند.
+       جزئیات API و راهنمای پر کردن فیلدها در inc/sms-functions.php است. */
+    $sent = romanino_ippanel_send_otp( $phone, $code );
 
     // FIX امنیتی: قبلاً فقط شرط WP_DEBUG چک می‌شد. اگر یک روز روی سرور
     // Production به‌اشتباه WP_DEBUG روشن بماند (اشتباه تنظیمات رایج)، یا

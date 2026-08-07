@@ -161,9 +161,12 @@ function romanino_get_myaccount_options() {
 
 function romanino_sms_defaults() {
     return array(
-        'ippanel_api_key'      => '',
-        'ippanel_originator'   => '', // شماره خط ارسال (در پنل ippanel، بخش «خطوط»)
-        'ippanel_pattern_otp'  => '', // کد پترنی که برای ورود/ثبت‌نام ساختید (مثلا lrhbzV0qbfeYkzj)
+        'ippanel_enabled'      => 0,  // کلید اصلی روشن/خاموش ارسال پیامک
+        'ippanel_test_mode'    => 0,  // حالت آزمایشی: کد فقط در لاگ، بدون ارسال واقعی
+        'ippanel_api_key'      => '', // پنل ← توسعه‌دهندگان/وب‌سرویس ← کلید API
+        'ippanel_originator'   => '', // پنل ← «خطوط من» (مثلاً 3000505)
+        'ippanel_pattern_otp'  => '', // پنل ← «پترن‌ها» ← کد پترن (مثلاً t2cfmnyo0c)
+        'ippanel_pattern_var'  => 'code', // نام متغیر داخل پترن؛ در «%code%» یعنی code
     );
 }
 
@@ -555,11 +558,15 @@ add_action( 'admin_init', function () {
     // ذخیره تنظیمات پیامک (ippanel)
     if ( isset( $_POST['romanino_save_sms'] ) && check_admin_referer( 'romanino_sms_nonce', 'romanino_sms_nonce_field' ) ) {
         $data = array(
-            // FIX: کلید API عمداً trim می‌شود ولی sanitize_text_field روش اعمال
-            // نمی‌شود چون ممکن است شامل کاراکترهایی باشد که با آن حذف می‌شوند.
+            'ippanel_enabled'     => isset( $_POST['ippanel_enabled'] ) ? 1 : 0,
+            'ippanel_test_mode'   => isset( $_POST['ippanel_test_mode'] ) ? 1 : 0,
+            // FIX: کلید API عمداً فقط trim می‌شود و sanitize_text_field رویش
+            // اعمال نمی‌شود، چون ممکن است کاراکترهایی داشته باشد که آن تابع حذف می‌کند.
             'ippanel_api_key'     => trim( wp_unslash( $_POST['ippanel_api_key'] ?? '' ) ),
             'ippanel_originator'  => preg_replace( '/[^0-9+]/', '', wp_unslash( $_POST['ippanel_originator'] ?? '' ) ),
             'ippanel_pattern_otp' => sanitize_text_field( wp_unslash( $_POST['ippanel_pattern_otp'] ?? '' ) ),
+            // نام متغیر پترن: فقط حروف/عدد/خط‌تیره/زیرخط مجاز است.
+            'ippanel_pattern_var' => preg_replace( '/[^A-Za-z0-9_\-]/', '', wp_unslash( $_POST['ippanel_pattern_var'] ?? 'code' ) ) ?: 'code',
         );
         update_option( 'romanino_sms_options', $data );
         romanino_options_saved_redirect( 'sms', 'تنظیمات پیامک با موفقیت ذخیره شد.' );
@@ -607,7 +614,7 @@ function romanino_render_options_page() {
             'sidebar'   => 'صفحه محصول (باکس اعتماد)',
             'faq'       => 'صفحه اصلی (سوالات متداول + متن سئو)',
             'myaccount' => 'پیشخوان مشتری',
-            'sms'       => 'پیامک (OTP)',
+            'sms'       => 'پنل پیامک (ippanel)',
         );
         ?>
         <h2 class="nav-tab-wrapper romanino-tab-nav">
@@ -974,42 +981,163 @@ function romanino_render_options_page() {
 
         <form method="post" class="romanino-admin-form">
             <?php wp_nonce_field( 'romanino_sms_nonce', 'romanino_sms_nonce_field' ); ?>
+
             <div class="romanino-box">
-                <h2>اتصال به پنل پیامکی ippanel</h2>
+                <h2>اتصال به پنل پیامکی آی‌پی‌پنل <span class="description">(ippanel.ir)</span></h2>
                 <p class="description">
-                    برای این‌که ارسال فعال شود، ابتدا پکیج رسمی <code>ippanel/php-rest-sdk</code> باید در پوشه‌ی
-                    قالب نصب شده باشد (به <code>inc/sms-functions.php</code> مراجعه کنید). این تنظیمات فقط اطلاعات
-                    اتصال را ذخیره می‌کند.
+                    این تنظیمات برای ارسال «کد ورود/ثبت‌نام» به کاربران استفاده می‌شود.
+                    نیازی به نصب هیچ افزونه یا پکیج اضافه‌ای نیست — ارتباط مستقیماً با وب‌سرویس آی‌پی‌پنل برقرار می‌شود.
                 </p>
+
                 <table class="form-table">
                     <tr>
-                        <th><label for="ippanel_api_key">API Key</label></th>
+                        <th scope="row">وضعیت ارسال</th>
                         <td>
-                            <input type="password" id="ippanel_api_key" name="ippanel_api_key" class="large-text" autocomplete="off" value="<?php echo esc_attr( $sms['ippanel_api_key'] ); ?>">
-                            <p class="description">از پنل ippanel.ir → بخش وب‌سرویس/API بگیرید.</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th><label for="ippanel_originator">شماره خط ارسال‌کننده (Originator)</label></th>
-                        <td>
-                            <input type="text" id="ippanel_originator" name="ippanel_originator" class="regular-text" placeholder="مثلا 3000xxxxxx" value="<?php echo esc_attr( $sms['ippanel_originator'] ); ?>">
-                            <p class="description">از پنل ippanel.ir → بخش «خطوط» شماره‌ی خط فعال خودتان را کپی کنید.</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th><label for="ippanel_pattern_otp">کد پترن ورود/ثبت‌نام</label></th>
-                        <td>
-                            <input type="text" id="ippanel_pattern_otp" name="ippanel_pattern_otp" class="regular-text" placeholder="مثلا lrhbzV0qbfeYkzj" value="<?php echo esc_attr( $sms['ippanel_pattern_otp'] ); ?>">
+                            <label>
+                                <input type="checkbox" name="ippanel_enabled" value="1" <?php checked( $sms['ippanel_enabled'], 1 ); ?>>
+                                ارسال پیامک فعال باشد
+                            </label>
+                            <p class="description">تا وقتی این تیک خورده نباشد، هیچ پیامکی ارسال نمی‌شود و کاربران فقط می‌توانند از «ورود بدون احراز پیامکی» استفاده کنند.</p>
+
+                            <label style="display:block; margin-top:10px;">
+                                <input type="checkbox" name="ippanel_test_mode" value="1" <?php checked( $sms['ippanel_test_mode'], 1 ); ?>>
+                                حالت آزمایشی (پیامک واقعی ارسال نشود)
+                            </label>
                             <p class="description">
-                                همان کدی که در بخش «پترن‌های آماده» پنل ippanel می‌بینید — پترن باید دقیقاً یک متغیر
-                                به نام <code>code</code> داشته باشد (مثل: «کد ورود %code% به رمانینو»).
+                                در این حالت کد فقط در فایل لاگ ثبت می‌شود و اعتبار پنل خرج نمی‌شود.
+                                برای تست کل جریان ورود پیش از راه‌اندازی نهایی مفید است.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row"><label for="ippanel_api_key">۱. کلید وب‌سرویس (API Key)</label></th>
+                        <td>
+                            <input type="password" id="ippanel_api_key" name="ippanel_api_key" class="large-text" autocomplete="off" dir="ltr" value="<?php echo esc_attr( $sms['ippanel_api_key'] ); ?>">
+                            <p class="description">
+                                در پنل ippanel.ir از منوی <strong>«توسعه‌دهندگان» یا «وب‌سرویس»</strong> کلید API را بردارید.
+                                <br>توجه: این همان «نام کاربری و رمز پنل» نیست — پنل جدید آی‌پی‌پنل با کلید کار می‌کند، نه یوزر/پسورد.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row"><label for="ippanel_originator">۲. شماره خط ارسال (Sender)</label></th>
+                        <td>
+                            <input type="text" id="ippanel_originator" name="ippanel_originator" class="regular-text" dir="ltr" placeholder="3000505" value="<?php echo esc_attr( $sms['ippanel_originator'] ); ?>">
+                            <p class="description">
+                                در پنل، بخش <strong>«خطوط من»</strong> — همان شماره‌ای که پیامک با آن فرستاده می‌شود.
+                                فقط رقم و علامت + مجاز است.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row"><label for="ippanel_pattern_otp">۳. کد پترن (الگو)</label></th>
+                        <td>
+                            <input type="text" id="ippanel_pattern_otp" name="ippanel_pattern_otp" class="regular-text" dir="ltr" placeholder="t2cfmnyo0c" value="<?php echo esc_attr( $sms['ippanel_pattern_otp'] ); ?>">
+                            <p class="description">
+                                در پنل، بخش <strong>«پترن‌ها»</strong>. برای هر پترن یک کد کوتاه ساخته می‌شود؛ همان را اینجا وارد کنید.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row"><label for="ippanel_pattern_var">۴. نام متغیر پترن</label></th>
+                        <td>
+                            <input type="text" id="ippanel_pattern_var" name="ippanel_pattern_var" class="regular-text" dir="ltr" placeholder="code" value="<?php echo esc_attr( $sms['ippanel_pattern_var'] ); ?>">
+                            <p class="description">
+                                وقتی پترن را در پنل می‌سازید متنش چیزی شبیه این است:
+                                <code style="direction:rtl;">کد ورود شما به رمانینو: %code%</code>
+                                <br>کلمه‌ی داخل درصدها همان «نام متغیر» است. اگر موقع ساخت پترن اسم دیگری گذاشتید
+                                (مثلاً <code>verification-code</code>)، باید <strong>دقیقاً همان</strong> را اینجا بنویسید،
+                                وگرنه آی‌پی‌پنل درخواست را با خطای ۴۲۲ رد می‌کند.
+                                <br>پترن باید فقط همین یک متغیر را داشته باشد.
                             </p>
                         </td>
                     </tr>
                 </table>
             </div>
+
             <p><button type="submit" name="romanino_save_sms" value="1" class="button button-primary button-hero">ذخیره تنظیمات پیامک</button></p>
         </form>
+
+        <?php
+        /* ابزار عیب‌یابی — بدون این، تنها راه فهمیدن اینکه تنظیمات درست است یا
+           نه، ثبت‌نام واقعی با یک شماره‌ی واقعی بود و در صورت شکست هم هیچ پیام
+           مشخصی دیده نمی‌شد. */
+        $romanino_sms_last_error = get_option( 'romanino_sms_last_error' );
+        ?>
+        <div class="romanino-box">
+            <h2>بررسی اتصال</h2>
+            <p class="description">بعد از ذخیره‌ی تنظیمات بالا، با این دو دکمه مطمئن شوید همه‌چیز درست است.</p>
+
+            <p style="margin-top:14px;">
+                <button type="button" class="button button-secondary" id="romanino-sms-test-credit">بررسی کلید و نمایش اعتبار پنل</button>
+                <span class="description" style="margin-right:8px;">فقط کلید وب‌سرویس را می‌سنجد و اعتبار باقی‌مانده را نشان می‌دهد (پیامکی ارسال نمی‌شود).</span>
+            </p>
+
+            <p style="margin-top:14px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <input type="tel" id="romanino-sms-test-phone" class="regular-text" dir="ltr" placeholder="09123456789" style="max-width:200px;">
+                <button type="button" class="button button-secondary" id="romanino-sms-test-send">ارسال پیامک آزمایشی</button>
+                <span class="description">یک کد تصادفی به این شماره می‌فرستد تا شماره خط و کد پترن هم سنجیده شود.</span>
+            </p>
+
+            <div id="romanino-sms-test-result" style="margin-top:12px;"></div>
+
+            <?php if ( is_array( $romanino_sms_last_error ) && ! empty( $romanino_sms_last_error['message'] ) ) : ?>
+                <div class="notice notice-error inline" style="margin-top:14px;">
+                    <p>
+                        <strong>آخرین خطای ثبت‌شده‌ی پیامک:</strong><br>
+                        <code style="direction:ltr; display:inline-block; margin-top:6px;"><?php echo esc_html( $romanino_sms_last_error['message'] ); ?></code><br>
+                        <span class="description">
+                            زمان: <?php echo esc_html( date_i18n( 'Y/m/d H:i', (int) $romanino_sms_last_error['time'] ) ); ?>
+                            — پس از یک ارسال موفق، این پیام خودکار پاک می‌شود.
+                        </span>
+                    </p>
+                </div>
+            <?php endif; ?>
+
+            <p class="description" style="margin-top:16px;">
+                <strong>راهنمای خطاهای پرتکرار:</strong><br>
+                <code>403</code> کلید وب‌سرویس اشتباه است یا IP سرور در پنل مجاز نشده.<br>
+                <code>404</code> کد پترن پیدا نشد.<br>
+                <code>422</code> معمولاً «نام متغیر پترن» یا «شماره خط» با پنل هم‌خوانی ندارد.
+            </p>
+        </div>
+
+        <script>
+        (function ($) {
+            var nonce = '<?php echo esc_js( wp_create_nonce( 'romanino_sms_test' ) ); ?>';
+            var $out  = $('#romanino-sms-test-result');
+
+            function run(mode, phone, $btn) {
+                var label = $btn.text();
+                $btn.prop('disabled', true).text('در حال بررسی...');
+                $out.html('');
+
+                $.post(ajaxurl, { action: 'romanino_sms_test', nonce: nonce, mode: mode, phone: phone || '' })
+                    .done(function (res) {
+                        var ok  = res && res.success;
+                        var msg = (res && res.data && res.data.message) ? res.data.message : 'پاسخ نامشخص از سرور.';
+                        $out.html('<div class="notice notice-' + (ok ? 'success' : 'error') + ' inline"><p>' + msg + '</p></div>');
+                    })
+                    .fail(function () {
+                        $out.html('<div class="notice notice-error inline"><p>ارتباط با سرور برقرار نشد.</p></div>');
+                    })
+                    .always(function () {
+                        $btn.prop('disabled', false).text(label);
+                    });
+            }
+
+            $('#romanino-sms-test-credit').on('click', function () { run('credit', '', $(this)); });
+            $('#romanino-sms-test-send').on('click', function () {
+                var phone = $('#romanino-sms-test-phone').val();
+                if (!phone) { $out.html('<div class="notice notice-error inline"><p>ابتدا شماره موبایل را وارد کنید.</p></div>'); return; }
+                run('send', phone, $(this));
+            });
+        })(jQuery);
+        </script>
 
         </div>
     </div>
