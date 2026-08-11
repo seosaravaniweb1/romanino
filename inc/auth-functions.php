@@ -22,6 +22,49 @@ defined( 'ROMANINO_OTP_EXPIRE' )  || define( 'ROMANINO_OTP_EXPIRE',  5 * MINUTE_
 defined( 'ROMANINO_OTP_MAX_TRY' ) || define( 'ROMANINO_OTP_MAX_TRY', 5 );                      // حداکثر ۵ تلاش ناموفق
 defined( 'ROMANINO_RATE_WINDOW' ) || define( 'ROMANINO_RATE_WINDOW', 15 * MINUTE_IN_SECONDS ); // پنجره rate-limit
 
+/* ═════════════════════════════════════════════════════════════════════════
+   FIX (بحرانی — «هر اسمی وارد می‌کنیم خطا می‌دهد»)
+   ─────────────────────────────────────────────────────────────────────────
+   علامت مسئله: کاربر با شماره موبایل ثبت‌نام می‌کرد، به مرحله‌ی «نام و نام
+   خانوادگی» می‌رسید و هر چه وارد می‌کرد خطا می‌گرفت.
+
+   علت: nonce وردپرس به «کاربر» گره خورده است، نه فقط به اکشن. مقدارش از
+   ترکیب  tick | action | user_id | session_token  ساخته می‌شود.
+
+   جریان خراب:
+     ۱. صفحه‌ی ورود برای یک «مهمان» رندر می‌شد → nonce با user_id = 0 چاپ می‌شد.
+     ۲. کاربر کد را تأیید می‌کرد → همان‌جا لاگین می‌شد (user_id = 57 مثلاً).
+     ۳. مرحله‌ی بعد (ذخیره‌ی نام) همان nonce قدیمی را می‌فرستاد، ولی سرور حالا
+        آن را برای کاربر لاگین‌شده اعتبارسنجی می‌کرد → دو مقدار متفاوت →
+        check_ajax_referer با -1 می‌مُرد و کاربر فقط یک «خطا» عمومی می‌دید.
+        هیچ ربطی به خودِ نام واردشده نداشت؛ برای همین «هر چیزی» خطا می‌داد.
+
+   راه‌حل دو تکه است و هر دو لازم‌اند:
+
+     الف) همگام‌سازی $_COOKIE در همان درخواست (همین تابع پایین).
+          wp_set_auth_cookie() فقط هدر Set-Cookie می‌فرستد و $_COOKIE را
+          به‌روز نمی‌کند. تا وقتی این کار نشود، wp_get_session_token() در
+          ادامه‌ی همان درخواست رشته‌ی خالی برمی‌گرداند و nonce ی که می‌سازیم
+          با آنچه در درخواست بعدی انتظار می‌رود فرق می‌کند — یعنی مشکل فقط
+          یک قدم جابه‌جا می‌شد.
+
+     ب) برگرداندن یک nonce تازه در پاسخ ورود، و استفاده‌ی جاوااسکریپت از آن
+          برای درخواست‌های بعدی (در همین فایل، پایین‌تر).
+   ═════════════════════════════════════════════════════════════════════════ */
+
+add_action( 'set_logged_in_cookie', 'romanino_sync_logged_in_cookie_to_request' );
+function romanino_sync_logged_in_cookie_to_request( $logged_in_cookie ): void {
+    $_COOKIE[ LOGGED_IN_COOKIE ] = $logged_in_cookie;
+}
+
+/**
+ * nonce تازه برای کاربری که همین الان لاگین شد.
+ * باید «بعد از» wp_set_auth_cookie() صدا زده شود.
+ */
+function romanino_fresh_auth_nonce(): string {
+    return wp_create_nonce( 'romanino_auth_nonce' );
+}
+
 /* ─── توابع کمکی ────────────────────────────────────────────────────────── */
 
 /**
@@ -123,7 +166,14 @@ function romanino_generate_otp( string $phone ): string {
 add_action( 'wp_ajax_nopriv_romanino_check_phone', 'romanino_ajax_check_phone' );
 // کاربر لاگین‌شده نباید این endpoint را فراخوانی کند
 function romanino_ajax_check_phone(): void {
-    check_ajax_referer( 'romanino_auth_nonce', 'nonce' );
+    /* FIX (تشخیص‌پذیری): پیش‌فرضِ check_ajax_referer این است که با یک «-1»
+       خام بمیرد. آن خروجی نه JSON معتبرِ قابل‌فهم برای فرانت است و نه هیچ
+       سرنخی به کاربر می‌دهد؛ دقیقاً به همین دلیل بود که مشکلِ nonce به شکل
+       «هر چه وارد می‌کنم خطا می‌دهد» دیده می‌شد و ربطش به نشست معلوم نبود.
+       حالا پیام واقعی و قابل‌اقدام برگردانده می‌شود. */
+    if ( ! check_ajax_referer( 'romanino_auth_nonce', 'nonce', false ) ) {
+        wp_send_json_error( [ 'message' => 'نشست شما منقضی شده است. لطفاً صفحه را تازه‌سازی کنید و دوباره تلاش کنید.' ], 403 );
+    }
 
     $ip    = romanino_get_client_ip();
     $phone = romanino_normalize_phone( wp_unslash( $_POST['phone'] ?? '' ) );
@@ -170,7 +220,14 @@ function romanino_ajax_check_phone(): void {
 
 add_action( 'wp_ajax_nopriv_romanino_send_otp', 'romanino_ajax_send_otp' );
 function romanino_ajax_send_otp(): void {
-    check_ajax_referer( 'romanino_auth_nonce', 'nonce' );
+    /* FIX (تشخیص‌پذیری): پیش‌فرضِ check_ajax_referer این است که با یک «-1»
+       خام بمیرد. آن خروجی نه JSON معتبرِ قابل‌فهم برای فرانت است و نه هیچ
+       سرنخی به کاربر می‌دهد؛ دقیقاً به همین دلیل بود که مشکلِ nonce به شکل
+       «هر چه وارد می‌کنم خطا می‌دهد» دیده می‌شد و ربطش به نشست معلوم نبود.
+       حالا پیام واقعی و قابل‌اقدام برگردانده می‌شود. */
+    if ( ! check_ajax_referer( 'romanino_auth_nonce', 'nonce', false ) ) {
+        wp_send_json_error( [ 'message' => 'نشست شما منقضی شده است. لطفاً صفحه را تازه‌سازی کنید و دوباره تلاش کنید.' ], 403 );
+    }
 
     $ip    = romanino_get_client_ip();
     $phone = romanino_normalize_phone( wp_unslash( $_POST['phone'] ?? '' ) );
@@ -203,7 +260,14 @@ function romanino_ajax_send_otp(): void {
 
 add_action( 'wp_ajax_nopriv_romanino_verify_otp', 'romanino_ajax_verify_otp' );
 function romanino_ajax_verify_otp(): void {
-    check_ajax_referer( 'romanino_auth_nonce', 'nonce' );
+    /* FIX (تشخیص‌پذیری): پیش‌فرضِ check_ajax_referer این است که با یک «-1»
+       خام بمیرد. آن خروجی نه JSON معتبرِ قابل‌فهم برای فرانت است و نه هیچ
+       سرنخی به کاربر می‌دهد؛ دقیقاً به همین دلیل بود که مشکلِ nonce به شکل
+       «هر چه وارد می‌کنم خطا می‌دهد» دیده می‌شد و ربطش به نشست معلوم نبود.
+       حالا پیام واقعی و قابل‌اقدام برگردانده می‌شود. */
+    if ( ! check_ajax_referer( 'romanino_auth_nonce', 'nonce', false ) ) {
+        wp_send_json_error( [ 'message' => 'نشست شما منقضی شده است. لطفاً صفحه را تازه‌سازی کنید و دوباره تلاش کنید.' ], 403 );
+    }
 
     $ip    = romanino_get_client_ip();
     $phone = romanino_normalize_phone( wp_unslash( $_POST['phone'] ?? '' ) );
@@ -288,6 +352,10 @@ function romanino_ajax_verify_otp(): void {
     wp_send_json_success( [
         'redirect'   => esc_url_raw( $redirect ),
         'needs_name' => $needs_name,
+        /* nonce تازه برای مرحله‌ی بعد (ذخیره‌ی نام). nonce ی که در صفحه چاپ
+           شده بود متعلق به «مهمان» است و حالا که کاربر لاگین شده دیگر
+           اعتبارسنجی نمی‌شود — توضیح کامل بالای همین فایل. */
+        'nonce'      => romanino_fresh_auth_nonce(),
     ] );
 }
 
@@ -296,7 +364,14 @@ function romanino_ajax_verify_otp(): void {
 
 add_action( 'wp_ajax_nopriv_romanino_login_password', 'romanino_ajax_login_password' );
 function romanino_ajax_login_password(): void {
-    check_ajax_referer( 'romanino_auth_nonce', 'nonce' );
+    /* FIX (تشخیص‌پذیری): پیش‌فرضِ check_ajax_referer این است که با یک «-1»
+       خام بمیرد. آن خروجی نه JSON معتبرِ قابل‌فهم برای فرانت است و نه هیچ
+       سرنخی به کاربر می‌دهد؛ دقیقاً به همین دلیل بود که مشکلِ nonce به شکل
+       «هر چه وارد می‌کنم خطا می‌دهد» دیده می‌شد و ربطش به نشست معلوم نبود.
+       حالا پیام واقعی و قابل‌اقدام برگردانده می‌شود. */
+    if ( ! check_ajax_referer( 'romanino_auth_nonce', 'nonce', false ) ) {
+        wp_send_json_error( [ 'message' => 'نشست شما منقضی شده است. لطفاً صفحه را تازه‌سازی کنید و دوباره تلاش کنید.' ], 403 );
+    }
 
     $ip = romanino_get_client_ip();
 
@@ -342,7 +417,10 @@ function romanino_ajax_login_password(): void {
         wc_get_page_permalink( 'myaccount' ),
         $user
     );
-    wp_send_json_success( [ 'redirect' => esc_url_raw( $redirect ) ] );
+    wp_send_json_success( [
+        'redirect' => esc_url_raw( $redirect ),
+        'nonce'    => romanino_fresh_auth_nonce(),
+    ] );
 }
 
 
@@ -354,7 +432,14 @@ function romanino_ajax_login_password(): void {
 
 add_action( 'wp_ajax_nopriv_romanino_register_manual', 'romanino_ajax_register_manual' );
 function romanino_ajax_register_manual(): void {
-    check_ajax_referer( 'romanino_auth_nonce', 'nonce' );
+    /* FIX (تشخیص‌پذیری): پیش‌فرضِ check_ajax_referer این است که با یک «-1»
+       خام بمیرد. آن خروجی نه JSON معتبرِ قابل‌فهم برای فرانت است و نه هیچ
+       سرنخی به کاربر می‌دهد؛ دقیقاً به همین دلیل بود که مشکلِ nonce به شکل
+       «هر چه وارد می‌کنم خطا می‌دهد» دیده می‌شد و ربطش به نشست معلوم نبود.
+       حالا پیام واقعی و قابل‌اقدام برگردانده می‌شود. */
+    if ( ! check_ajax_referer( 'romanino_auth_nonce', 'nonce', false ) ) {
+        wp_send_json_error( [ 'message' => 'نشست شما منقضی شده است. لطفاً صفحه را تازه‌سازی کنید و دوباره تلاش کنید.' ], 403 );
+    }
 
     $ip          = romanino_get_client_ip();
     $username    = sanitize_user( wp_unslash( $_POST['username'] ?? '' ), true );
@@ -427,7 +512,10 @@ function romanino_ajax_register_manual(): void {
     do_action( 'wp_login', $user->user_login, $user );
 
     $redirect = apply_filters( 'romanino_after_login_redirect', wc_get_page_permalink( 'myaccount' ), $user );
-    wp_send_json_success( [ 'redirect' => esc_url_raw( $redirect ) ] );
+    wp_send_json_success( [
+        'redirect' => esc_url_raw( $redirect ),
+        'nonce'    => romanino_fresh_auth_nonce(),
+    ] );
 }
 
 
@@ -438,7 +526,14 @@ function romanino_ajax_register_manual(): void {
 
 add_action( 'wp_ajax_romanino_save_name', 'romanino_ajax_save_name' );
 function romanino_ajax_save_name(): void {
-    check_ajax_referer( 'romanino_auth_nonce', 'nonce' );
+    /* FIX (تشخیص‌پذیری): پیش‌فرضِ check_ajax_referer این است که با یک «-1»
+       خام بمیرد. آن خروجی نه JSON معتبرِ قابل‌فهم برای فرانت است و نه هیچ
+       سرنخی به کاربر می‌دهد؛ دقیقاً به همین دلیل بود که مشکلِ nonce به شکل
+       «هر چه وارد می‌کنم خطا می‌دهد» دیده می‌شد و ربطش به نشست معلوم نبود.
+       حالا پیام واقعی و قابل‌اقدام برگردانده می‌شود. */
+    if ( ! check_ajax_referer( 'romanino_auth_nonce', 'nonce', false ) ) {
+        wp_send_json_error( [ 'message' => 'نشست شما منقضی شده است. لطفاً صفحه را تازه‌سازی کنید و دوباره تلاش کنید.' ], 403 );
+    }
 
     if ( ! is_user_logged_in() ) {
         wp_send_json_error( [ 'message' => 'ابتدا باید وارد حساب کاربری شوید.' ], 401 );

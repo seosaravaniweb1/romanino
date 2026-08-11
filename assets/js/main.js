@@ -92,6 +92,21 @@
      به‌جای ادامه‌ی خرید سر از پیشخوان درمی‌آورد. */
   const authRedirectTo = document.getElementById('romanino-redirect-to')?.value || '';
 
+  /* nonce احراز هویت — عمداً «متغیر» است، نه ثابت.
+     FIX (بحرانی): nonce وردپرس به شناسه‌ی کاربر گره خورده است. nonce ی که در
+     صفحه‌ی ورود چاپ می‌شود متعلق به «مهمان» است؛ به‌محض اینکه کاربر با کد
+     پیامکی وارد شد، سرور همان nonce را برای «کاربر لاگین‌شده» اعتبارسنجی
+     می‌کند و رد می‌شود. نتیجه‌اش این بود که مرحله‌ی «نام و نام خانوادگی»
+     هرچه وارد می‌شد خطا می‌داد — بی‌ربط به خودِ نام.
+     پس هر پاسخ موفقِ ورود یک nonce تازه برمی‌گرداند و از این به بعد همان
+     استفاده می‌شود. */
+  let currentAuthNonce = authAjax.authNonce || '';
+
+  /** اگر پاسخ سرور nonce تازه داشت، جایگزینش کن. */
+  function refreshAuthNonce(json) {
+    if (json && json.data && json.data.nonce) currentAuthNonce = json.data.nonce;
+  }
+
 
   const AUTH_STEPS = ['step-phone', 'step-password', 'step-otp', 'step-name', 'step-manual-login', 'step-register'];
 
@@ -132,7 +147,7 @@
       try {
         const fd = new FormData();
         fd.append('action', 'romanino_check_phone');
-        fd.append('nonce', authAjax.authNonce || '');
+        fd.append('nonce', currentAuthNonce);
         if (authRedirectTo) fd.append('redirect_to', authRedirectTo);
         fd.append('phone', phone);
 
@@ -168,7 +183,7 @@
       try {
         const fd = new FormData();
         fd.append('action', 'romanino_login_password');
-        fd.append('nonce', authAjax.authNonce || '');
+        fd.append('nonce', currentAuthNonce);
         if (authRedirectTo) fd.append('redirect_to', authRedirectTo);
         fd.append('phone', currentPhone);
         fd.append('password', password);
@@ -201,7 +216,7 @@
       try {
         const fd = new FormData();
         fd.append('action', 'romanino_verify_otp');
-        fd.append('nonce', authAjax.authNonce || '');
+        fd.append('nonce', currentAuthNonce);
         if (authRedirectTo) fd.append('redirect_to', authRedirectTo);
         fd.append('phone', currentPhone);
         fd.append('code', code);
@@ -210,6 +225,9 @@
         const json = await res.json();
 
         if (json.success) {
+          // کاربر همین حالا لاگین شد → nonce قدیمی (مهمان) دیگر معتبر نیست.
+          refreshAuthNonce(json);
+
           if (json.data.needs_name) {
             // کاربر تازه ثبت‌نام کرده — قبل از انتقال، نام و نام‌خانوادگی را می‌پرسیم
             pendingRedirect = json.data.redirect || authAjax.homeUrl;
@@ -236,7 +254,7 @@
       btnResend.disabled = true;
       const fd = new FormData();
       fd.append('action', 'romanino_send_otp');
-      fd.append('nonce', authAjax.authNonce || '');
+      fd.append('nonce', currentAuthNonce);
         if (authRedirectTo) fd.append('redirect_to', authRedirectTo);
       fd.append('phone', currentPhone);
       await fetch(authAjax.ajaxUrl, { method: 'POST', body: fd });
@@ -248,7 +266,7 @@
   document.getElementById('btn-use-otp-instead')?.addEventListener('click', async () => {
     const fd = new FormData();
     fd.append('action', 'romanino_send_otp');
-    fd.append('nonce', authAjax.authNonce || '');
+    fd.append('nonce', currentAuthNonce);
         if (authRedirectTo) fd.append('redirect_to', authRedirectTo);
     fd.append('phone', currentPhone);
     await fetch(authAjax.ajaxUrl, { method: 'POST', body: fd });
@@ -270,7 +288,7 @@
       try {
         const fd = new FormData();
         fd.append('action', 'romanino_save_name');
-        fd.append('nonce', authAjax.authNonce || '');
+        fd.append('nonce', currentAuthNonce);
         if (authRedirectTo) fd.append('redirect_to', authRedirectTo);
         fd.append('first_name', firstName);
         fd.append('last_name', lastName);
@@ -305,7 +323,7 @@
       try {
         const fd = new FormData();
         fd.append('action', 'romanino_login_password');
-        fd.append('nonce', authAjax.authNonce || '');
+        fd.append('nonce', currentAuthNonce);
         if (authRedirectTo) fd.append('redirect_to', authRedirectTo);
         fd.append('identifier', identifier);
         fd.append('password', password);
@@ -348,7 +366,7 @@
       try {
         const fd = new FormData();
         fd.append('action', 'romanino_register_manual');
-        fd.append('nonce', authAjax.authNonce || '');
+        fd.append('nonce', currentAuthNonce);
         if (authRedirectTo) fd.append('redirect_to', authRedirectTo);
         fd.append('username', username);
         fd.append('first_name', firstName);
