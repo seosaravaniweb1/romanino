@@ -307,6 +307,21 @@
                     <?php echo esc_html( $romanino_account_label ); ?>
                 </a>
 
+                <?php if ( $romanino_is_logged ) : ?>
+                    <?php
+                    /* FIX (گزارش‌شده): در دسکتاپ هیچ راه مستقیمی برای خروج از
+                       حساب نبود — کاربر باید اول وارد پیشخوان می‌شد و آنجا هم
+                       دکمه‌اش در حالت روشن عملاً نامرئی بود. حالا یک آیکون خروج
+                       کنار حساب کاربری هست. در موبایل، منوی سایت از قبل بخش
+                       «خروج از حساب» را دارد. */
+                    ?>
+                    <a href="<?php echo esc_url( wp_logout_url( home_url( '/' ) ) ); ?>"
+                        aria-label="خروج از حساب" title="خروج از حساب"
+                        class="rounded-lg p-2 text-ink-3 transition-colors duration-150 hover:bg-ink/10 hover:text-ink">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    </a>
+                <?php endif; ?>
+
                 <button type="button" id="cart-open-btn-desktop" aria-label="سبد خرید"
                     class="relative rounded-lg p-2 text-ink-3 transition-colors duration-150 hover:bg-ink/10 hover:text-ink">
                     <?php printf( $romanino_icon_cart, 'h-5 w-5' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>

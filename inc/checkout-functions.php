@@ -1,14 +1,24 @@
 <?php
 /**
- * چک‌اوت مرحله‌ای — رمانینو
+ * چک‌اوت یک‌صفحه‌ای — رمانینو
  * ─────────────────────────────────────────────────────────────────────────────
- * ۳ مرحله: سبد خرید (صفحه‌ی /cart/ موجود) → اطلاعات تماس → روش پرداخت
- * حرکت بین مرحله‌ها با ریلود کامل صفحه انجام می‌شود (بدون AJAX/fetch)، یعنی:
- * - مرحله‌ی «اطلاعات»: یک فرم معمولی POST می‌شود، سرور اعتبارسنجی می‌کند و
- *   با ریدایرکت واقعی (Post/Redirect/Get) کاربر را به مرحله‌ی بعد می‌فرستد.
- * - مرحله‌ی «پرداخت»: فرم نهایی ووکامرس است و چون اسکریپت wc-checkout (AJAX)
- *   در این صفحه غیرفعال می‌شود، ثبت سفارش هم با یک POST/ریلود واقعی انجام
- *   می‌شود (قابلیت پشتیبان بومی خود ووکامرس، بدون نیاز به کد اضافه).
+ * FIX (تجربه‌ی کاربری — گزارش‌شده):
+ *   نسخه‌ی قبلی چک‌اوت سه مرحله‌ی جدا داشت: سبد خرید → اطلاعات تماس → پرداخت.
+ *   یعنی کاربر برای یک خرید ساده‌ی دیجیتال سه بار صفحه عوض می‌کرد و دو بار
+ *   دکمه‌ی «ادامه» می‌زد تا تازه به انتخاب درگاه برسد. هر مرحله‌ی اضافه در
+ *   چک‌اوت یعنی ریزش بیشتر.
+ *
+ *   حالا همه‌چیز در «یک صفحه و یک فرم» است:
+ *       ۱. سبد خرید (با امکان حذف آیتم)
+ *       ۲. اطلاعات کاربر (از قبل پر شده، قابل ویرایش در همان‌جا)
+ *       ۳. جمع پرداخت + انتخاب درگاه + دکمه‌ی پرداخت نهایی
+ *
+ *   چون همه در یک <form> هستند، یک بار POST هم اطلاعات را ذخیره می‌کند و هم
+ *   سفارش را ثبت می‌کند — دیگر نیازی به مرحله‌ی واسط و ریدایرکت نیست.
+ *
+ * اسکریپت wc-checkout (چک‌اوت ایجکسی ووکامرس) عمداً در این صفحه غیرفعال
+ * می‌شود: چون نه ارسال داریم نه محاسبه‌ی پویا، یک POST/ریلود واقعی هم ساده‌تر
+ * است و هم در برابر خطاهای شبکه مقاوم‌تر (قابلیت پشتیبان بومی خود ووکامرس).
  */
 defined( 'ABSPATH' ) || exit;
 
@@ -26,80 +36,65 @@ function romanino_force_non_ajax_checkout(): void {
 }
 
 /* ==========================================================================
-   ۲. تشخیص مرحله‌ی جاری
+   ۲. جدا کردن «جمع سفارش» از «انتخاب درگاه»
+   ─────────────────────────────────────────────────────────────────────────
+   ووکامرس به‌صورت پیش‌فرض هر دو را به یک هوک وصل کرده است:
+       woocommerce_checkout_order_review → woocommerce_order_review    (۱۰)
+       woocommerce_checkout_order_review → woocommerce_checkout_payment (۲۰)
+
+   تمپلیت قبلی قالب، هم آن هوک را صدا می‌زد و هم جداگانه
+   woocommerce_checkout_payment را — یعنی بخش درگاه‌ها و دکمه‌ی ثبت سفارش
+   «دو بار» رندر می‌شد. در اسکرین‌شات کاربر هم دقیقاً همین دیده می‌شد: یک
+   دکمه‌ی «ثبت سفارش» داخل باکس خلاصه سفارش و یک باکس «روش پرداخت» جدا.
+
+   با برداشتن اتصال پیش‌فرض، هوک فقط جدول مبالغ را می‌سازد و تمپلیت خودش
+   تصمیم می‌گیرد بخش درگاه کجا بنشیند — بدون تکرار.
    ========================================================================== */
 
-function romanino_get_checkout_step(): string {
-	$step = isset( $_GET['step'] ) ? sanitize_key( wp_unslash( $_GET['step'] ) ) : 'info';
-	return in_array( $step, array( 'info', 'payment' ), true ) ? $step : 'info';
+add_action( 'init', 'romanino_unhook_default_checkout_payment', 20 );
+function romanino_unhook_default_checkout_payment(): void {
+	if ( function_exists( 'WC' ) ) {
+		remove_action( 'woocommerce_checkout_order_review', 'woocommerce_checkout_payment', 20 );
+	}
 }
 
 /* ==========================================================================
-   ۳. پردازش فرم مرحله‌ی «اطلاعات تماس»
-   منطق دیتا: مقادیر روی WC()->customer ذخیره می‌شوند (خودِ ووکامرس این
-   شیء را در سشن نگه می‌دارد)، بنابراین در مرحله‌ی پرداخت همچنان در دسترس‌اند.
+   ۳. حذف آیتم از سبد، بدون خروج از صفحه‌ی چک‌اوت
+   ─────────────────────────────────────────────────────────────────────────
+   ووکامرس پارامتر remove_item را فقط روی صفحه‌ی سبد خرید پردازش می‌کند
+   (WC_Form_Handler::update_cart_action). چون حالا سبد داخل خود چک‌اوت نمایش
+   داده می‌شود، همان قابلیت باید اینجا هم کار کند — با همان nonce و همان
+   سطح اعتبارسنجی.
    ========================================================================== */
 
-add_action( 'template_redirect', 'romanino_handle_checkout_info_step' );
-function romanino_handle_checkout_info_step(): void {
-	if ( ! function_exists( 'is_checkout' ) || ! is_checkout() ) {
+add_action( 'template_redirect', 'romanino_handle_checkout_remove_item', 6 );
+function romanino_handle_checkout_remove_item(): void {
+	if ( ! function_exists( 'is_checkout' ) || ! is_checkout() || is_order_received_page() ) {
 		return;
 	}
-	if ( empty( $_POST['romanino_checkout_step'] ) || $_POST['romanino_checkout_step'] !== 'info' ) {
+	if ( empty( $_GET['remove_item'] ) || ! WC()->cart ) {
 		return;
 	}
-	if ( ! isset( $_POST['romanino_checkout_info_nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['romanino_checkout_info_nonce'] ), 'romanino_checkout_info' ) ) {
-		wc_add_notice( 'نشست شما منقضی شده است، لطفاً دوباره تلاش کنید.', 'error' );
-		return;
+	if ( ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_GET['_wpnonce'] ) ), 'woocommerce-cart' ) ) {
+		wc_add_notice( 'درخواست معتبر نبود. لطفاً دوباره تلاش کنید.', 'error' );
+		wp_safe_redirect( wc_get_checkout_url() );
+		exit;
 	}
 
-	$first_name = sanitize_text_field( wp_unslash( $_POST['billing_first_name'] ?? '' ) );
-	$last_name  = sanitize_text_field( wp_unslash( $_POST['billing_last_name'] ?? '' ) );
-	$email_raw  = sanitize_email( wp_unslash( $_POST['billing_email'] ?? '' ) );
-	$phone_raw  = sanitize_text_field( wp_unslash( $_POST['billing_phone'] ?? '' ) );
-	$phone      = function_exists( 'romanino_normalize_phone' ) ? romanino_normalize_phone( $phone_raw ) : false;
+	$cart_item_key = sanitize_text_field( wp_unslash( $_GET['remove_item'] ) );
+	$cart_item     = WC()->cart->get_cart_item( $cart_item_key );
 
-	// FIX: طبق سیاست جدید فقط نام/نام‌خانوادگی/موبایل الزامی‌اند. ایمیل اختیاری است؛
-	// اگر خالی بماند یا نامعتبر باشد، یک ایمیل جایگزین یکتا از روی شماره موبایل ساخته می‌شود.
-	$errors = array();
-	if ( '' === $first_name ) $errors[] = 'لطفاً نام خود را وارد کنید.';
-	if ( '' === $last_name )  $errors[] = 'لطفاً نام خانوادگی خود را وارد کنید.';
-	if ( ! $phone )           $errors[] = 'شماره موبایل واردشده معتبر نیست.';
-
-	if ( '' !== $email_raw && ! is_email( $email_raw ) ) {
-		$errors[] = 'ایمیل واردشده معتبر نیست. اگر ایمیل ندارید، این فیلد را خالی بگذارید.';
+	if ( $cart_item ) {
+		WC()->cart->remove_cart_item( $cart_item_key );
+		$product = wc_get_product( $cart_item['product_id'] );
+		wc_add_notice(
+			sprintf( '«%s» از سبد خرید حذف شد.', $product ? $product->get_name() : 'رمان' ),
+			'success'
+		);
 	}
 
-	if ( $errors ) {
-		foreach ( $errors as $error ) {
-			wc_add_notice( $error, 'error' );
-		}
-		return; // در همین مرحله (info) با پیام خطا رندر می‌شود.
-	}
-
-	$email = ( '' !== $email_raw ) ? $email_raw : romanino_build_placeholder_email( $phone );
-
-	WC()->customer->set_billing_first_name( $first_name );
-	WC()->customer->set_billing_last_name( $last_name );
-	WC()->customer->set_billing_email( $email );
-	WC()->customer->set_billing_phone( $phone );
-	// فیلدهای ثابت موردنیاز ووکامرس برای محصولات دیجیتال (کشور/شهر لازم است، آدرس واقعی نه):
-	WC()->customer->set_billing_country( 'IR' );
-	WC()->customer->set_billing_city( 'تهران' );
-	WC()->customer->set_billing_address_1( '-' );
-	WC()->customer->set_billing_postcode( '0000000000' );
-	WC()->customer->save();
-
-	// اگر کاربر لاگین است و ایمیل واقعی وارد کرد، همان را روی خود حساب کاربری هم به‌روز کن
-	// تا دیگر ایمیل جایگزین/ناقص روی حساب نماند.
-	if ( is_user_logged_in() && '' !== $email_raw ) {
-		$current_user = wp_get_current_user();
-		if ( ! is_email( $current_user->user_email ) || romanino_is_placeholder_email( $current_user->user_email ) ) {
-			wp_update_user( array( 'ID' => $current_user->ID, 'user_email' => $email_raw ) );
-		}
-	}
-
-	wp_safe_redirect( add_query_arg( 'step', 'payment', wc_get_checkout_url() ) );
+	// Post/Redirect/Get تا رفرش صفحه دوباره همان حذف را انجام ندهد.
+	wp_safe_redirect( wc_get_checkout_url() );
 	exit;
 }
 
@@ -168,24 +163,6 @@ function romanino_backfill_billing_from_account(): void {
 
 	if ( $changed ) {
 		WC()->customer->save();
-	}
-}
-
-/* ==========================================================================
-   ۵. جلوگیری از رسیدن مستقیم به مرحله‌ی پرداخت بدون تکمیل اطلاعات
-   ========================================================================== */
-
-add_action( 'template_redirect', 'romanino_guard_checkout_payment_step' );
-function romanino_guard_checkout_payment_step(): void {
-	if ( ! function_exists( 'is_checkout' ) || ! is_checkout() || is_order_received_page() ) {
-		return;
-	}
-	if ( 'payment' !== romanino_get_checkout_step() ) {
-		return;
-	}
-	if ( ! WC()->customer->get_billing_email() ) {
-		wp_safe_redirect( remove_query_arg( 'step', wc_get_checkout_url() ) );
-		exit;
 	}
 }
 

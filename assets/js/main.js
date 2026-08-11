@@ -248,6 +248,68 @@
   }
 
   // ارسال مجدد OTP
+  /* ── ۵ب. ارسال خودکار (بدون نیاز به زدن دکمه) ──────────────────────────
+     طبق درخواست: کاربر نباید بعد از تایپ شماره یا کد، دنبال دکمه بگردد.
+
+     دو محافظ لازم است وگرنه بیشتر از فایده ضرر دارد:
+       ۱. جلوگیری از ارسال تکراری — بدون آن، هر بار که کاربر یک رقم را پاک و
+          دوباره تایپ می‌کند یک درخواست تازه (و یک پیامک تازه) می‌رفت.
+       ۲. احترام به وضعیت دکمه — اگر درخواست قبلی هنوز در جریان است (دکمه
+          disabled شده)، ارسال خودکار نباید روی آن سوار شود.
+     همچنان دکمه‌ها سر جایشان هستند تا کاربری که با کیبورد یا صفحه‌خوان کار
+     می‌کند مسیر دستی داشته باشد. */
+
+  // شماره موبایل: به‌محض کامل و معتبر شدن، خودکار ادامه می‌دهد
+  const phoneInput = document.getElementById('phone-input');
+  if (phoneInput && btnCheckPhone) {
+    let lastAutoPhone = '';
+    let phoneTimer = null;
+
+    phoneInput.addEventListener('input', () => {
+      // فقط رقم بپذیرد (کاربر ممکن است شماره را با فاصله یا خط تیره بچسباند)
+      phoneInput.value = phoneInput.value.replace(/[^0-9]/g, '');
+      const phone = phoneInput.value.trim();
+
+      clearTimeout(phoneTimer);
+      if (!/^09\d{9}$/.test(phone) || phone === lastAutoPhone || btnCheckPhone.disabled) return;
+
+      /* تأخیر کوتاه: اگر کاربر در حال تایپ رقم یازدهم باشد و بلافاصله بفرستیم،
+         فرصت اصلاح یک اشتباه تایپی را از او می‌گیریم. */
+      phoneTimer = setTimeout(() => {
+        if (btnCheckPhone.disabled) return;
+        lastAutoPhone = phone;
+        btnCheckPhone.click();
+      }, 350);
+    });
+  }
+
+  // کد تأیید: به‌محض پر شدن هر پنج رقم، خودکار تأیید می‌کند
+  if (otpDigits.length && btnVerifyOtp) {
+    let lastAutoCode = '';
+
+    const maybeAutoVerify = () => {
+      const code = [...otpDigits].map(i => i.value).join('');
+      if (code.length !== otpDigits.length || code === lastAutoCode || btnVerifyOtp.disabled) return;
+      lastAutoCode = code;
+      btnVerifyOtp.click();
+    };
+
+    otpDigits.forEach(input => {
+      input.addEventListener('input', maybeAutoVerify);
+    });
+
+    /* چسباندن کل کد در خانه‌ی اول (رفتار رایج در اندروید و پیشنهاد خودکار
+       کد پیامکی): رقم‌ها بین خانه‌ها پخش می‌شوند و بعد تأیید می‌شود. */
+    otpDigits[0].addEventListener('paste', (e) => {
+      const digits = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+      if (!digits) return;
+      e.preventDefault();
+      otpDigits.forEach((inp, i) => { inp.value = digits[i] || ''; });
+      otpDigits[Math.min(digits.length, otpDigits.length) - 1]?.focus();
+      maybeAutoVerify();
+    });
+  }
+
   const btnResend = document.getElementById('btn-resend-otp');
   if (btnResend) {
     btnResend.addEventListener('click', async () => {
