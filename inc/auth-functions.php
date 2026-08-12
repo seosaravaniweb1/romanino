@@ -402,9 +402,35 @@ function romanino_ajax_login_password(): void {
         wp_send_json_error( [ 'message' => 'مشخصات ورود یا رمز عبور اشتباه است.' ] );
     }
 
-    // بررسی وضعیت کاربر
-    if ( $user->user_status !== 0 ) {
+    /* FIX (بحرانی — «حساب کاربری شما غیرفعال است» برای همه‌ی کاربران)
+       ─────────────────────────────────────────────────────────────────────
+       شرط قبلی این بود:  if ( $user->user_status !== 0 )
+
+       ستون user_status در جدول wp_users یک ستون قدیمی است که وردپرس از
+       نسخه‌ی ۳٫۰ به بعد در سایت تک‌سایتی اصلاً استفاده نمی‌کند و مقدارش
+       همیشه صفر می‌ماند. اما وردپرس نتایج دیتابیس را به‌صورت «رشته»
+       برمی‌گرداند، نه عدد صحیح — یعنی مقدار واقعی '0' است نه 0.
+
+       و !== یک مقایسه‌ی «سخت‌گیرانه» است که نوع را هم می‌سنجد:
+             '0' !== 0   →   true
+
+       نتیجه: این شرط برای «هر» کاربری برقرار می‌شد و ورود با نام کاربری و
+       رمز عبور همیشه با پیام «حساب کاربری شما غیرفعال است» رد می‌شد —
+       دقیقاً همان چیزی که بعد از ثبت‌نام دیده می‌شد.
+
+       اصلاح: تبدیل صریح به عدد. (این ستون در چندسایتی برای کاربران اسپم
+       مقدار ۱ می‌گیرد، پس خودِ بررسی بی‌فایده نیست و حفظ می‌شود.) */
+    if ( (int) $user->user_status !== 0 ) {
         wp_send_json_error( [ 'message' => 'حساب کاربری شما غیرفعال است.' ] );
+    }
+
+    /* راه استاندارد و امروزیِ «آیا این کاربر اجازه‌ی ورود دارد؟».
+       افزونه‌های مسدودسازی کاربر به همین فیلتر وصل می‌شوند و WP_Error
+       برمی‌گردانند. با این کار، منطق ورودِ اختصاصی قالب هم همان قواعدی را
+       رعایت می‌کند که فرم ورود پیش‌فرض وردپرس رعایت می‌کند. */
+    $romanino_auth_check = apply_filters( 'wp_authenticate_user', $user, $password );
+    if ( is_wp_error( $romanino_auth_check ) ) {
+        wp_send_json_error( [ 'message' => wp_strip_all_tags( $romanino_auth_check->get_error_message() ) ] );
     }
 
     romanino_clear_rate_limit_v2( 'login_pass_u', $identifier );
@@ -512,6 +538,65 @@ function romanino_ajax_register_manual(): void {
     do_action( 'wp_login', $user->user_login, $user );
 
     $redirect = apply_filters( 'romanino_after_login_redirect', wc_get_page_permalink( 'myaccount' ), $user );
+    wp_send_json_success( [
+        'redirect' => esc_url_raw( $redirect ),
+        'nonce'    => romanino_fresh_auth_nonce(),
+    ] );
+}
+
+
+/* ─── ۵ب. تعیین رمز عبور تازه (بازیابی رمز فراموش‌شده) ────────────────────
+   جریان: کاربر روی «رمز عبور خود را فراموش کرده‌ام» می‌زند → شماره‌اش را
+   وارد می‌کند → کد پیامکی را تأیید می‌کند (که همان‌جا واردش می‌کند) → و بعد
+   اینجا رمز تازه را ذخیره می‌کند.
+
+   چرا بازیابی با پیامک و نه ایمیل: اکثر کاربران این فروشگاه با کد پیامکی
+   ثبت‌نام می‌کنند و ایمیل واقعی ندارند؛ سیستم برایشان یک ایمیل ساختگی از
+   روی شماره می‌سازد. لینک بازیابیِ ایمیلیِ استاندارد وردپرس برای آن‌ها به
+   هیچ صندوق پستی‌ای نمی‌رسد. شماره‌ی موبایل تنها چیزی است که قطعاً در
+   دسترسشان است.
+
+   امنیت: این اکشن فقط برای کاربر «لاگین‌شده» ثبت شده است. یعنی رسیدن به آن
+   حتماً از مسیر تأیید کد پیامکی گذشته — همان چیزی که مالکیت شماره را ثابت
+   می‌کند. هیچ مسیر مهمانی به آن وجود ندارد.
+   ────────────────────────────────────────────────────────────────────── */
+
+add_action( 'wp_ajax_romanino_set_password', 'romanino_ajax_set_password' );
+function romanino_ajax_set_password(): void {
+    if ( ! check_ajax_referer( 'romanino_auth_nonce', 'nonce', false ) ) {
+        wp_send_json_error( [ 'message' => 'نشست شما منقضی شده است. لطفاً صفحه را تازه‌سازی کنید و دوباره تلاش کنید.' ], 403 );
+    }
+
+    if ( ! is_user_logged_in() ) {
+        wp_send_json_error( [ 'message' => 'ابتدا باید شماره‌ی خود را با کد پیامکی تأیید کنید.' ], 401 );
+    }
+
+    $password = (string) ( $_POST['password'] ?? '' ); // نباید sanitize شود
+    if ( mb_strlen( $password ) < 6 ) {
+        wp_send_json_error( [ 'message' => 'رمز عبور باید حداقل ۶ کاراکتر باشد.' ], 400 );
+    }
+
+    $user_id = get_current_user_id();
+
+    /* ⚠️ نکته‌ی حیاتی: wp_set_password() «همه‌ی» نشست‌های کاربر را باطل
+       می‌کند — از جمله نشست خودِ همین درخواست. اگر بعدش کوکی را دوباره
+       ست نکنیم، کاربر بلافاصله بعد از تغییر رمز از سایت بیرون می‌افتد و
+       فکر می‌کند تغییر رمز شکست خورده. */
+    wp_set_password( $password, $user_id );
+
+    $user = get_user_by( 'id', $user_id );
+    wp_set_current_user( $user_id );
+    wp_set_auth_cookie( $user_id, true );
+    do_action( 'wp_login', $user->user_login, $user );
+
+    update_user_meta( $user_id, 'has_set_password', '1' );
+
+    $redirect = apply_filters(
+        'romanino_after_login_redirect',
+        wc_get_page_permalink( 'myaccount' ),
+        $user
+    );
+
     wp_send_json_success( [
         'redirect' => esc_url_raw( $redirect ),
         'nonce'    => romanino_fresh_auth_nonce(),

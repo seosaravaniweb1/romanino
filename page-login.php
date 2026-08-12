@@ -195,6 +195,43 @@ if ( is_user_logged_in() ) {
 			<button type="button" id="btn-manual-login" class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground transition-all hover:brightness-110 active:scale-[0.98]">
 				ورود
 			</button>
+
+			<?php
+			/* بازیابی رمز عبور — عمداً با پیامک، نه با ایمیل.
+			   دلیل: اکثر کاربران این سایت با کد پیامکی ثبت‌نام می‌کنند و ایمیل
+			   واقعی ندارند (سیستم برایشان یک ایمیل ساختگی از روی شماره می‌سازد).
+			   بازیابی ایمیلیِ استاندارد وردپرس برای آن‌ها به جایی نمی‌رسد. پس
+			   مسیر بازیابی همان چیزی است که قطعاً در دسترسشان است: شماره موبایل. */
+			?>
+			<button type="button" id="link-forgot-password" class="mt-4 w-full text-center text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
+				رمز عبور خود را فراموش کرده‌ام
+			</button>
+		</div>
+
+		<!-- ═══ مرحله: تعیین رمز عبور تازه (بعد از تأیید کد پیامکی) ═══ -->
+		<div id="step-set-password" class="hidden">
+			<h1 class="text-xl font-extrabold text-foreground">رمز عبور تازه</h1>
+			<p class="mt-1 text-sm text-muted-foreground">شماره‌ی شما تأیید شد. حالا یک رمز عبور جدید انتخاب کنید.</p>
+
+			<div class="mt-6 space-y-4">
+				<div>
+					<label for="newpass-input" class="mb-1.5 block text-sm font-medium text-foreground">رمز عبور جدید *</label>
+					<input type="password" id="newpass-input" autocomplete="new-password" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+					<p class="mt-1.5 text-xs text-muted-foreground">حداقل ۶ کاراکتر.</p>
+				</div>
+				<div>
+					<label for="newpass-confirm-input" class="mb-1.5 block text-sm font-medium text-foreground">تکرار رمز عبور جدید *</label>
+					<input type="password" id="newpass-confirm-input" autocomplete="new-password" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+				</div>
+			</div>
+
+			<button type="button" id="btn-set-password" class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground transition-all hover:brightness-110 active:scale-[0.98]">
+				ذخیره‌ی رمز عبور
+			</button>
+
+			<button type="button" id="btn-skip-password" class="mt-3 w-full text-center text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
+				فعلاً نمی‌خواهم — ادامه بدون تغییر رمز
+			</button>
 		</div>
 
 		<!-- ═══ مرحله: ثبت‌نام بدون احراز پیامکی ═══ -->

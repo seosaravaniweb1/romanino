@@ -108,7 +108,7 @@
   }
 
 
-  const AUTH_STEPS = ['step-phone', 'step-password', 'step-otp', 'step-name', 'step-manual-login', 'step-register'];
+  const AUTH_STEPS = ['step-phone', 'step-password', 'step-otp', 'step-name', 'step-manual-login', 'step-register', 'step-set-password'];
 
   function showAuthStep(stepId) {
     AUTH_STEPS.forEach(id => {
@@ -131,8 +131,11 @@
     box.classList.remove('hidden');
   }
 
-  let currentPhone    = '';
-  let pendingRedirect = '';
+  let currentPhone     = '';
+  let pendingRedirect  = '';
+  /* وقتی کاربر از مسیر «رمز عبور را فراموش کرده‌ام» آمده باشد، بعد از تأیید
+     کد پیامکی به‌جای انتقال به سایت، مرحله‌ی تعیین رمز تازه نشان داده می‌شود. */
+  let passwordRecovery = false;
 
   const btnCheckPhone = document.getElementById('btn-check-phone');
   if (btnCheckPhone) {
@@ -228,7 +231,12 @@
           // کاربر همین حالا لاگین شد → nonce قدیمی (مهمان) دیگر معتبر نیست.
           refreshAuthNonce(json);
 
-          if (json.data.needs_name) {
+          if (passwordRecovery) {
+            // مسیر بازیابی رمز: مالکیت شماره ثابت شد، حالا رمز تازه
+            pendingRedirect = json.data.redirect || authAjax.homeUrl;
+            showAuthStep('step-set-password');
+            document.getElementById('newpass-input')?.focus();
+          } else if (json.data.needs_name) {
             // کاربر تازه ثبت‌نام کرده — قبل از انتقال، نام و نام‌خانوادگی را می‌پرسیم
             pendingRedirect = json.data.redirect || authAjax.homeUrl;
             showAuthStep('step-name');
@@ -455,8 +463,69 @@
   }
 
   // لینک‌های مرحله‌ی شماره موبایل: ورود دستی / ثبت‌نام دستی
-  document.getElementById('link-manual-login')?.addEventListener('click', () => showAuthStep('step-manual-login'));
-  document.getElementById('link-register-manual')?.addEventListener('click', () => showAuthStep('step-register'));
+  document.getElementById('link-manual-login')?.addEventListener('click', () => {
+    passwordRecovery = false;
+    showAuthStep('step-manual-login');
+  });
+  document.getElementById('link-register-manual')?.addEventListener('click', () => {
+    passwordRecovery = false;
+    showAuthStep('step-register');
+  });
+
+  /* ── بازیابی رمز عبور ────────────────────────────────────────────────────
+     مسیر عمداً از پیامک می‌گذرد نه ایمیل: اکثر کاربران این سایت با کد پیامکی
+     ثبت‌نام کرده‌اند و ایمیل واقعی ندارند، پس لینک بازیابیِ ایمیلی به جایی
+     نمی‌رسد. شماره‌ی موبایل تنها چیزی است که قطعاً در دسترسشان است. */
+  document.getElementById('link-forgot-password')?.addEventListener('click', () => {
+    passwordRecovery = true;
+    showAuthAlert('شماره موبایل خود را وارد کنید تا کد تأیید برایتان ارسال شود.', 'success');
+    showAuthStep('step-phone');
+    document.getElementById('phone-input')?.focus();
+  });
+
+  // ذخیره‌ی رمز تازه (بعد از تأیید کد پیامکی)
+  const btnSetPassword = document.getElementById('btn-set-password');
+  if (btnSetPassword) {
+    btnSetPassword.addEventListener('click', async () => {
+      const pass    = document.getElementById('newpass-input')?.value || '';
+      const confirm = document.getElementById('newpass-confirm-input')?.value || '';
+
+      if (pass.length < 6)   { showAuthAlert('رمز عبور باید حداقل ۶ کاراکتر باشد.'); return; }
+      if (pass !== confirm)  { showAuthAlert('رمز عبور و تکرار آن یکسان نیستند.'); return; }
+
+      btnSetPassword.disabled = true; btnSetPassword.textContent = 'در حال ذخیره...';
+
+      try {
+        const fd = new FormData();
+        fd.append('action', 'romanino_set_password');
+        fd.append('nonce', currentAuthNonce);
+        if (authRedirectTo) fd.append('redirect_to', authRedirectTo);
+        fd.append('password', pass);
+
+        const res  = await fetch(authAjax.ajaxUrl, { method: 'POST', body: fd });
+        const json = await res.json();
+
+        if (json.success) {
+          refreshAuthNonce(json);
+          showAuthAlert('رمز عبور شما تغییر کرد. در حال انتقال...', 'success');
+          setTimeout(() => { location.href = json.data.redirect || pendingRedirect || authAjax.homeUrl; }, 900);
+        } else {
+          showAuthAlert(json.data?.message || 'خطا در ذخیره‌ی رمز عبور.');
+        }
+      } catch {
+        showAuthAlert('خطا در اتصال به سرور.');
+      } finally {
+        btnSetPassword.disabled = false; btnSetPassword.textContent = 'ذخیره‌ی رمز عبور';
+      }
+    });
+  }
+
+  /* کاربر در این مرحله از قبل لاگین شده (کد پیامکی را تأیید کرده)، پس
+     «فعلاً نمی‌خواهم» فقط او را وارد سایت می‌کند و رمز قبلی دست‌نخورده
+     می‌ماند — نه اینکه ورودش را باطل کند. */
+  document.getElementById('btn-skip-password')?.addEventListener('click', () => {
+    location.href = pendingRedirect || authAjax.homeUrl;
+  });
 
   // بازگشت
   document.getElementById('btn-back')?.addEventListener('click', () => showAuthStep('step-phone'));
