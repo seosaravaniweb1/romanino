@@ -378,7 +378,19 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 								</div>
 							<?php endif; ?>
 							<div class="text-2xl font-extrabold text-gold lg:text-3xl" style="text-shadow:0 0 18px rgba(234,179,8,.35);">
-								<?php echo $is_unavailable ? 'به‌زودی' : wc_price( $product->get_price() ); ?>
+								<?php
+								/* برای محصول متغیر get_price() فقط «کمترین» قیمت را
+								   می‌دهد و بازه را پنهان می‌کند. get_price_html خودِ
+								   ووکامرس بازه («از … تا …») را درست می‌سازد و بعد
+								   از انتخاب تنوع هم با اسکریپت ووکامرس به‌روز می‌شود. */
+								if ( $is_unavailable ) {
+									echo 'به‌زودی';
+								} elseif ( $product->is_type( 'variable' ) ) {
+									echo wp_kses_post( $product->get_price_html() );
+								} else {
+									echo wp_kses_post( wc_price( $product->get_price() ) );
+								}
+								?>
 							</div>
 							<?php if ( $has_discount ) : ?>
 								<div class="mt-2 flex flex-wrap items-center gap-1.5 text-xs font-bold text-emerald-400 lg:text-sm">
@@ -404,6 +416,26 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 							class="rmn-cta flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3.5 text-sm font-bold text-white transition-colors hover:bg-emerald-600 lg:text-base">
 							📥 دانلود مستقیم و رایگان
 						</a>
+					<?php elseif ( $product->is_type( 'variable' ) ) : ?>
+						<?php
+						/* محصول متغیر (یک رمان با چند نسخه/قیمت — مثلاً PDF و صوتی).
+						   ─────────────────────────────────────────────────────────
+						   عمداً از فرم خودِ ووکامرس استفاده می‌شود، نه یک انتخابگر
+						   دست‌ساز. منطق تنوع‌ها واقعاً پیچیده است: ترکیب چند ویژگی،
+						   موجودی هر تنوع، قیمت پویا، تصویر مخصوص هر تنوع و
+						   فعال/غیرفعال شدن دکمه. پیاده‌سازی دوباره‌ی این‌ها یعنی
+						   بازتولید باگ‌هایی که ووکامرس سال‌ها پیش حلشان کرده.
+
+						   فرم واقعی است: اگر جاوااسکریپت اجرا نشود، ارسال معمولی
+						   فرم محصول را به سبد اضافه می‌کند. اگر اجرا شود،
+						   mini-cart.js آن را می‌گیرد و با همان کشوی سبد و مودال
+						   همیشگی قالب پیش می‌رود.
+						   ظاهرش با .romanino-variations در tailwind-src.css به
+						   طراحی قالب نزدیک شده. */
+						?>
+						<div class="romanino-variations scroll-mt-28" id="romanino-variations-anchor">
+							<?php woocommerce_variable_add_to_cart(); ?>
+						</div>
 					<?php else : ?>
 						<button type="button" data-product_id="<?php echo esc_attr( $product->get_id() ); ?>" data-product_name="<?php echo esc_attr( $product_title ); ?>"
 							class="romanino-buy-btn rmn-cta flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-[#0b0514] lg:text-base">
@@ -511,7 +543,15 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 			<?php if ( $has_discount ) : ?>
 				<span class="text-[10px] text-ink-muted line-through"><?php echo wc_price( $product->get_regular_price() ); ?></span>
 			<?php endif; ?>
-			<span class="text-sm font-extrabold text-gold"><?php echo $is_unavailable ? '' : wc_price( $product->get_price() ); ?></span>
+			<span class="text-sm font-extrabold text-gold">
+				<?php
+				if ( ! $is_unavailable ) {
+					echo $product->is_type( 'variable' )
+						? wp_kses_post( $product->get_price_html() )
+						: wp_kses_post( wc_price( $product->get_price() ) );
+				}
+				?>
+			</span>
 		</div>
 		<?php if ( $is_unavailable ) : ?>
 			<button type="button" disabled
@@ -522,6 +562,16 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 			<a href="<?php echo esc_url( $direct_dl_url ?: '#' ); ?>" <?php echo $direct_dl_url ? 'download' : ''; ?> rel="nofollow noopener"
 				class="rmn-cta flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-500 py-2.5 text-center text-xs font-bold text-white shadow-md">
 				📥 دانلود رایگان
+			</a>
+		<?php elseif ( $product->is_type( 'variable' ) ) : ?>
+			<?php
+			/* محصول متغیر را نمی‌شود از نوار پایین مستقیم به سبد افزود، چون
+			   هنوز معلوم نیست کاربر کدام نسخه را می‌خواهد. پس این دکمه او را
+			   به فرم انتخاب نسخه می‌برد. */
+			?>
+			<a href="#romanino-variations-anchor"
+				class="rmn-cta flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-center text-xs font-bold text-[#0b0514] shadow-md">
+				🛒 انتخاب نسخه و خرید
 			</a>
 		<?php else : ?>
 			<button type="button" data-product_id="<?php echo esc_attr( $product->get_id() ); ?>" data-product_name="<?php echo esc_attr( $product_title ); ?>"

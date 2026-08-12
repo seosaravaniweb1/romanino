@@ -100,6 +100,18 @@ $img_fetchpriority   = $romanino_loop_index < 4 ? 'high' : '';
 					class="flex w-full items-center justify-center gap-1.5 rounded-xl bg-emerald-500 py-2.5 text-[11px] font-bold text-white transition-all duration-200 hover:brightness-110 lg:text-xs">
 					📥 دانلود مستقیم و رایگان
 				</a>
+			<?php elseif ( $product->is_type( 'variable' ) ) : ?>
+				<?php
+				/* رمانی که چند نسخه دارد (مثلاً PDF و صوتی با قیمت متفاوت) را
+				   نمی‌شود از روی کارت مستقیم به سبد افزود، چون هنوز معلوم نیست
+				   کاربر کدام نسخه را می‌خواهد. پس کارت او را به صفحه‌ی رمان
+				   می‌برد تا آنجا انتخاب کند. */
+				?>
+				<a href="<?php echo esc_url( $permalink ); ?>"
+					class="flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-[11px] font-bold text-[#0f0726] transition-all duration-200 hover:brightness-110 hover:shadow-[0_0_15px_rgba(234,179,8,0.5)] lg:text-xs">
+					<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+					انتخاب نسخه و خرید
+				</a>
 			<?php else : ?>
 				<!-- دکمه خرید: افزودن به سبد + پاپ‌آپ «به سبد اضافه شد» بدون رفرش صفحه
 				     (event delegation در assets/js/mini-cart.js، کلاس romanino-buy-btn). -->

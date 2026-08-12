@@ -31,6 +31,28 @@ add_filter( 'rocket_delay_js_exclusions', 'romanino_rocket_delay_js_exclusions' 
 function romanino_rocket_delay_js_exclusions( array $excluded ): array {
 	// راکت این الگوها را داخل خودِ تگ اسکریپت (اینلاین یا src) جست‌وجو می‌کند.
 	$excluded[] = 'romaninoTheme';
+
+	/* صفحه‌ی رمانی که چند نسخه دارد (محصول متغیر) — استثنای مشروط.
+	   ─────────────────────────────────────────────────────────────────────
+	   فرم انتخاب نسخه را اسکریپت wc-add-to-cart-variation ووکامرس اداره
+	   می‌کند و آن اسکریپت به jQuery وابسته است. اگر فقط یکی از این دو از
+	   تأخیر مستثنا شود، اسکریپت تنوع قبل از jQuery اجرا می‌شود و با خطای
+	   «jQuery is not defined» کل فرم می‌میرد؛ یعنی استثنای ناقص از نبودِ
+	   استثنا بدتر است. پس یا هر دو، یا هیچ‌کدام.
+
+	   برای اینکه هزینه‌ی این کار روی کل سایت نیفتد، استثنا فقط در همان
+	   صفحه‌ی محصول متغیر اعمال می‌شود. بقیه‌ی صفحه‌ها (صفحه‌ی اصلی، آرشیو،
+	   نوشته‌ها) دست‌نخورده باقی می‌مانند و تأخیر کامل جاوااسکریپت را
+	   می‌گیرند. این کد minify/async/defer نیست؛ فقط به راکت می‌گوید چه
+	   چیزی را عقب نیندازد. */
+	if ( function_exists( 'is_product' ) && is_product() ) {
+		$romanino_product = wc_get_product( get_queried_object_id() );
+		if ( $romanino_product && $romanino_product->is_type( 'variable' ) ) {
+			$excluded[] = '/jquery(-migrate)?(\.min)?\.js';
+			$excluded[] = 'add-to-cart-variation';
+		}
+	}
+
 	return $excluded;
 }
 
@@ -73,6 +95,14 @@ function romanino_rocket_rucss_safelist( array $safelist ): array {
 
 		// متن جمع‌شونده‌ی صفحه اصلی
 		'.rmn-collapse', '.rotate-180',
+
+		/* فرم انتخاب نسخه‌ی محصول متغیر — بخش زیادی از این کلاس‌ها را اسکریپت
+		   ووکامرس در زمان اجرا اضافه می‌کند (قیمت تنوع، پیام ناموجودی، فعال/
+		   غیرفعال شدن دکمه)، پس در HTML اولیه نیستند و RUCSS حذفشان می‌کرد. */
+		'.romanino-variations',
+		'.woocommerce-variation-price', '.woocommerce-variation-availability',
+		'.woocommerce-variation-description', '.wc-no-matching-variations',
+		'.single_add_to_cart_button', '.reset_variations', '.disabled',
 
 		// تب‌های ژانر/دسته و تب‌های صفحه محصول
 		'.text-primary-foreground', '.text-muted-foreground',

@@ -12,6 +12,15 @@ if ( ! defined( 'ROMANINO_FREE_TAG_SLUG' ) ) {
 
 function romanino_product_price_field_is_empty( $product ): bool {
     if ( ! $product instanceof WC_Product ) return true;
+
+    /* محصول متغیر خودش فیلد قیمت ندارد؛ قیمت روی تنوع‌ها می‌نشیند. پس معیار
+       «ناموجود بودن» برای آن این است که هیچ تنوع قابل‌خریدی نداشته باشد.
+       بدون این شاخه، هر محصول متغیری «فعلاً قابل خرید نیست» می‌شد. */
+    if ( $product->is_type( 'variable' ) ) {
+        $prices = $product->get_variation_prices( true );
+        return empty( $prices['price'] );
+    }
+
     $regular = trim( (string) $product->get_regular_price() );
     $price   = trim( (string) $product->get_price() );
     return '' === $regular && '' === $price;
@@ -24,6 +33,18 @@ function romanino_product_has_free_tag( $product ): bool {
 
 function romanino_is_free_product( $product ): bool {
     if ( ! $product instanceof WC_Product ) return false;
+
+    /* FIX (پشتیبانی از محصول متغیر): برای محصول متغیر، get_price() «کمترین
+       قیمت بین تنوع‌ها» را برمی‌گرداند. اگر یک رمان یک تنوع رایگان (نمونه)
+       و چند تنوع پولی داشته باشد، این تابع کل محصول را «رایگان» تشخیص
+       می‌داد و به‌جای فرم انتخاب تنوع، دکمه‌ی دانلود مستقیم نشان می‌داد —
+       یعنی کاربر هیچ‌وقت نمی‌توانست نسخه‌ی پولی را بخرد.
+       تصمیم درباره‌ی رایگان بودن، در محصول متغیر باید سطح «تنوع» گرفته شود
+       نه سطح محصول. */
+    if ( $product->is_type( 'variable' ) ) {
+        return false;
+    }
+
     if ( romanino_product_price_field_is_empty( $product ) ) return false;
     if ( romanino_product_has_free_tag( $product ) ) return true;
     $price = $product->get_price();
@@ -208,12 +229,44 @@ function romanino_ajax_add_to_cart() {
         WC()->session->set_customer_session_cookie( true );
     }
 
-    $product_id = absint( $_POST['product_id'] ?? 0 );
-    $replace    = ! empty( $_POST['replace'] );
+    $product_id   = absint( $_POST['product_id'] ?? 0 );
+    $replace      = ! empty( $_POST['replace'] );
+
+    /* پشتیبانی از محصول متغیر: شناسه‌ی تنوع انتخاب‌شده و مقادیر ویژگی‌ها.
+       آرایه‌ی variation کلیدهایی مثل attribute_pa_format دارد. */
+    $variation_id = absint( $_POST['variation_id'] ?? 0 );
+    $variation    = array();
+    if ( ! empty( $_POST['variation'] ) && is_array( $_POST['variation'] ) ) {
+        foreach ( wp_unslash( $_POST['variation'] ) as $attr_key => $attr_value ) {
+            $variation[ sanitize_text_field( $attr_key ) ] = sanitize_text_field( $attr_value );
+        }
+    }
 
     $romanino_product = wc_get_product( $product_id );
     if ( ! $product_id || ! $romanino_product ) {
         wp_send_json_error( array( 'message' => 'این محصول دیگر در دسترس نیست.' ) );
+    }
+
+    /* محصول متغیر بدون انتخاب تنوع نباید به سبد برود. WooCommerce خودش هم
+       اجازه نمی‌دهد، ولی پیام خطایش عمومی است؛ اینجا پیام روشن‌تری می‌دهیم. */
+    if ( $romanino_product->is_type( 'variable' ) ) {
+        if ( ! $variation_id ) {
+            wp_send_json_error( array( 'message' => 'لطفاً ابتدا نسخه‌ی موردنظر خود را انتخاب کنید.' ) );
+        }
+
+        $romanino_variation = wc_get_product( $variation_id );
+        if ( ! $romanino_variation || $romanino_variation->get_parent_id() !== $product_id ) {
+            wp_send_json_error( array( 'message' => 'نسخه‌ی انتخاب‌شده معتبر نیست.' ) );
+        }
+        if ( ! $romanino_variation->is_purchasable() || ! $romanino_variation->is_in_stock() ) {
+            wp_send_json_error( array( 'message' => 'این نسخه در حال حاضر قابل خرید نیست.' ) );
+        }
+
+        /* بررسی‌های «رایگان / ناموجود» باید روی خودِ تنوع انجام شود، نه روی
+           محصول والد که قیمتش صرفاً کمترینِ تنوع‌هاست. */
+        if ( romanino_is_free_product( $romanino_variation ) ) {
+            wp_send_json_error( array( 'message' => 'این نسخه رایگان است و از طریق دکمه‌ی «دانلود مستقیم» قابل دریافت است.' ) );
+        }
     }
 
     if ( romanino_product_price_field_is_empty( $romanino_product ) ) {
@@ -227,7 +280,7 @@ function romanino_ajax_add_to_cart() {
         WC()->cart->empty_cart();
     }
 
-    $cart_item_key = WC()->cart->generate_cart_id( $product_id );
+    $cart_item_key = WC()->cart->generate_cart_id( $product_id, $variation_id, $variation );
     if ( WC()->cart->find_product_in_cart( $cart_item_key ) ) {
         wp_send_json_success( array(
             'count'           => WC()->cart->get_cart_contents_count(),
@@ -238,7 +291,7 @@ function romanino_ajax_add_to_cart() {
 
     wc_clear_notices();
 
-    $added = WC()->cart->add_to_cart( $product_id, 1 );
+    $added = WC()->cart->add_to_cart( $product_id, 1, $variation_id, $variation );
 
     if ( ! $added ) {
         $error_notices = wc_get_notices( 'error' );

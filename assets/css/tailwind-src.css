@@ -438,6 +438,118 @@ html.light .rmn-prose a:hover { color: var(--brand-cyan-text); }
 }
 
 /* ═════════════════════════════════════════════════════════════════════════
+   فرم انتخاب نسخه در محصول متغیر (.romanino-variations)
+   ─────────────────────────────────────────────────────────────────────────
+   مارک‌آپ این فرم را خود ووکامرس می‌سازد (جدول .variations، انتخابگرها،
+   قیمت پویا و دکمه‌ی افزودن)، پس نمی‌شود رویش کلاس Tailwind گذاشت و باید
+   از اینجا استایل بگیرد. رنگ‌ها از توکن‌های سطح می‌آیند تا در حالت روشن و
+   تیره درست باشند.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.romanino-variations .variations {
+	width: 100%;
+	border-collapse: collapse;
+	margin-bottom: 1rem;
+}
+.romanino-variations .variations tr { display: block; margin-bottom: 0.85rem; }
+.romanino-variations .variations th,
+.romanino-variations .variations td { display: block; padding: 0; text-align: right; }
+
+.romanino-variations .variations th.label label {
+	display: block;
+	margin-bottom: 0.4rem;
+	font-size: 0.8125rem;
+	font-weight: 700;
+	color: var(--on-surface-2);
+}
+
+.romanino-variations .variations select {
+	width: 100%;
+	padding: 0.7rem 0.9rem;
+	border: 1px solid var(--hairline);
+	border-radius: 0.75rem;
+	background-color: var(--surface-input);
+	color: var(--on-surface);
+	font-family: inherit;
+	font-size: 0.875rem;
+	outline: none;
+	transition: border-color 0.15s, background-color 0.15s;
+}
+.romanino-variations .variations select:focus {
+	border-color: rgb(var(--c-primary) / 0.6);
+	background-color: var(--surface-input-focus);
+}
+
+.romanino-variations .reset_variations {
+	display: inline-block;
+	margin-top: 0.35rem;
+	font-size: 0.75rem;
+	color: var(--on-surface-muted);
+	text-decoration: none;
+}
+.romanino-variations .reset_variations:hover { color: var(--brand-gold-text); }
+
+/* قیمت تنوع انتخاب‌شده (ووکامرس با جاوااسکریپت پرش می‌کند) */
+.romanino-variations .woocommerce-variation-price {
+	margin-bottom: 0.85rem;
+	font-size: 1.35rem;
+	font-weight: 800;
+	color: var(--brand-gold-text);
+}
+.romanino-variations .woocommerce-variation-availability {
+	margin-bottom: 0.7rem;
+	font-size: 0.8125rem;
+	color: var(--on-surface-muted);
+}
+.romanino-variations .woocommerce-variation-description {
+	font-size: 0.8125rem;
+	line-height: 1.9;
+	color: var(--on-surface-muted);
+}
+
+/* تعداد را پنهان می‌کنیم: هر رمان دیجیتال یک‌بار خریده می‌شود. */
+.romanino-variations .quantity { display: none; }
+
+.romanino-variations .single_add_to_cart_button {
+	display: block;
+	width: 100%;
+	padding: 0.9rem 1rem;
+	border: 0;
+	border-radius: 0.85rem;
+	background: rgb(var(--c-primary));
+	color: rgb(var(--c-primary-foreground));
+	font-family: inherit;
+	font-weight: 800;
+	font-size: 0.9375rem;
+	cursor: pointer;
+	transition: filter 0.15s, transform 0.1s;
+	box-shadow: 0 0 24px -8px rgb(var(--c-primary) / 0.6);
+}
+.romanino-variations .single_add_to_cart_button:hover { filter: brightness(1.08); }
+.romanino-variations .single_add_to_cart_button:active { transform: scale(0.99); }
+.romanino-variations .single_add_to_cart_button.disabled,
+.romanino-variations .single_add_to_cart_button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	box-shadow: none;
+}
+
+/* پیام «این ترکیب موجود نیست» */
+.romanino-variations .stock.out-of-stock,
+.romanino-variations .wc-no-matching-variations {
+	padding: 0.7rem 0.9rem;
+	border-radius: 0.65rem;
+	background: rgb(239 68 68 / 0.1);
+	color: #fca5a5;
+	font-size: 0.8125rem;
+}
+html.light .romanino-variations .stock.out-of-stock,
+html.light .romanino-variations .wc-no-matching-variations {
+	background: rgb(220 38 38 / 0.08);
+	color: #7f1d1d;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
    دکمه‌ی «خروج از حساب» (.rmn-logout-btn)
    ─────────────────────────────────────────────────────────────────────────
    FIX (گزارش‌شده: «دکمه‌ی خروج اصلاً نیست»): دکمه از قبل وجود داشت، ولی با
