@@ -88,6 +88,117 @@ function romanino_buffer_order_pay_page(): void {
 }
 
 /* ==========================================================================
+   ۱-ج. جلوگیری از اجرای دوباره‌ی هوک انتقال به درگاه
+   ─────────────────────────────────────────────────────────────────────────
+   در گزارش کاربر، صفحه‌ی order-pay دقیقاً دو بار فرم پرداخت و دو بار پیام
+   خطای یکسان را چاپ می‌کرد. ووکامرس در order-receipt.php این هوک را فقط
+   یک بار صدا می‌زند:
+
+       do_action( 'woocommerce_receipt_' . $order->get_payment_method() )
+
+   پس دوباره‌کاری یعنی «دو کال‌بک روی همان هوک» نشسته است. علت رایجش این است
+   که کلاس درگاه دو بار نمونه‌سازی می‌شود (یک‌بار در فیلتر
+   woocommerce_payment_gateways و یک‌بار مستقیم هنگام لود افزونه). چون
+   $this در دو نمونه فرق دارد، وردپرس آن‌ها را دو کال‌بک متفاوت می‌بیند و
+   حذف تکراری انجام نمی‌دهد.
+
+   پیامدش صرفاً زشتی صفحه نیست: هر اجرا یک تراکنش جدید در پنل درگاه می‌سازد و
+   دو فرم با id یکسان در صفحه می‌گذارد — که خودش می‌تواند اسکریپت انتقال
+   خودکار افزونه را گیج کند.
+
+   اینجا فقط روی صفحه‌ی order-pay، کال‌بک‌هایی که «همان کلاس و همان متد» را
+   دوباره صدا می‌زنند حذف می‌شوند. اولین کال‌بک دست‌نخورده می‌ماند، پس اگر
+   افزونه‌ای سالم باشد این تابع هیچ اثری ندارد.
+   ========================================================================== */
+
+add_action( 'template_redirect', 'romanino_dedupe_gateway_receipt_hooks', 1 );
+function romanino_dedupe_gateway_receipt_hooks(): void {
+	if ( ! function_exists( 'is_wc_endpoint_url' ) || ! is_wc_endpoint_url( 'order-pay' ) ) {
+		return;
+	}
+	if ( ! function_exists( 'WC' ) ) {
+		return;
+	}
+
+	// مطمئن شویم درگاه‌ها ساخته شده‌اند و هوک‌هایشان را ثبت کرده‌اند؛ وگرنه
+	// در این لحظه هنوز چیزی برای بررسی وجود ندارد.
+	WC()->payment_gateways();
+
+	global $wp_filter;
+	if ( empty( $wp_filter ) || ! is_array( $wp_filter ) ) {
+		return;
+	}
+
+	foreach ( $wp_filter as $tag => $hook ) {
+		if ( 0 !== strpos( (string) $tag, 'woocommerce_receipt_' ) || empty( $hook->callbacks ) ) {
+			continue;
+		}
+
+		$seen   = array();
+		$remove = array();
+
+		foreach ( $hook->callbacks as $priority => $callbacks ) {
+			foreach ( $callbacks as $idx => $callback ) {
+				$function = $callback['function'] ?? null;
+
+				if ( is_array( $function ) && isset( $function[0], $function[1] ) && is_object( $function[0] ) ) {
+					$signature = get_class( $function[0] ) . '::' . $function[1];
+				} elseif ( is_string( $function ) ) {
+					$signature = $function;
+				} else {
+					// کلوژر (تابع بی‌نام): دو کلوژر را نمی‌شود با اطمینان
+					// یکسان دانست، پس دست نمی‌زنیم.
+					continue;
+				}
+
+				if ( isset( $seen[ $signature ] ) ) {
+					$remove[] = array( $priority, $idx );
+				} else {
+					$seen[ $signature ] = true;
+				}
+			}
+		}
+
+		// حذف بعد از پایان پیمایش انجام می‌شود تا آرایه حین گردش تغییر نکند.
+		foreach ( $remove as $target ) {
+			unset( $hook->callbacks[ $target[0] ][ $target[1] ] );
+		}
+	}
+}
+
+/* ==========================================================================
+   ۱-د. پیام‌های خطای PHP نباید در صفحه‌ی پرداخت به مشتری نشان داده شوند
+   ─────────────────────────────────────────────────────────────────────────
+   پیام «Function order_total was called incorrectly» ایراد خود افزونه‌ی
+   درگاه است: به‌جای $order->get_total() از پراپرتی قدیمی $order->order_total
+   استفاده می‌کند که ووکامرس در نسخه‌ی ۳٫۰ کنار گذاشته. بی‌خطر است و خرید را
+   خراب نمی‌کند، ولی وقتی WP_DEBUG روشن باشد وسط صفحه‌ی پرداخت چاپ می‌شود.
+
+   یک مشتری هرگز نباید در لحظه‌ی پرداخت متن خطای PHP ببیند — هم اعتماد را
+   از بین می‌برد و هم مسیر فایل‌های سرور را لو می‌دهد.
+
+   این گارد فقط روی صفحه‌ی پرداخت و فقط در بخش کاربری سایت عمل می‌کند؛ در
+   پیشخوان مدیریت، درخواست‌های AJAX/REST و باقی صفحه‌ها هیچ تغییری نمی‌دهد،
+   پس هنگام توسعه همچنان همه‌ی هشدارها را می‌بینید.
+
+   راه‌حل اصلی همچنان این است که در wp-config.php مقدار WP_DEBUG را روی
+   false بگذارید؛ این فقط یک شبکه‌ی ایمنی است.
+   ========================================================================== */
+
+add_action( 'template_redirect', 'romanino_silence_notices_on_payment_page', 1 );
+function romanino_silence_notices_on_payment_page(): void {
+	if ( is_admin() || wp_doing_ajax() ) {
+		return;
+	}
+	if ( ! function_exists( 'is_wc_endpoint_url' ) || ! is_wc_endpoint_url( 'order-pay' ) ) {
+		return;
+	}
+	add_filter( 'doing_it_wrong_trigger_error', '__return_false', 99 );
+	add_filter( 'deprecated_function_trigger_error', '__return_false', 99 );
+	add_filter( 'deprecated_argument_trigger_error', '__return_false', 99 );
+}
+
+/* ==========================================================================
    ۲. جدا کردن «جمع سفارش» از «انتخاب درگاه»
    ─────────────────────────────────────────────────────────────────────────
    ووکامرس به‌صورت پیش‌فرض هر دو را به یک هوک وصل کرده است:
