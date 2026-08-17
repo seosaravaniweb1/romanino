@@ -209,6 +209,22 @@ function romanino_defer_core_scripts( array $attributes ): array {
    ۴ب. پرفورمنس — بخش تکمیلی (سازگار با WP Rocket، بدون تغییر در ظاهر/رفتار)
    ========================================================================== */
 
+/* نشانه‌ی نسخه در سورس صفحه.
+   ─────────────────────────────────────────────────────────────────────────
+   برای عیب‌یابی از راه دور: با Ctrl+U (نمایش سورس صفحه) و جست‌وجوی کلمه‌ی
+   romanino می‌توانید ببینید سایت واقعاً کدام نسخه و کدام پوشه‌ی قالب را اجرا
+   می‌کند. اگر قالب را آپلود کردید ولی این عدد عوض نشد، یعنی نسخه‌ی جدید
+   فعال نشده است. حجمش حدود ۶۰ بایت است و چون کامنت HTML است هیچ اثری روی
+   نمایش، سئو یا سرعت ندارد. */
+add_action( 'wp_head', 'romanino_version_marker', 1 );
+function romanino_version_marker(): void {
+	printf(
+		"<!-- romanino %s | %s -->\n",
+		esc_html( (string) wp_get_theme()->get( 'Version' ) ),
+		esc_html( (string) get_stylesheet() )
+	);
+}
+
 // حذف لینک shortlink و REST API discovery از <head> — فقط بایت کم می‌کند،
 // خودِ REST API و پرمالینک‌ها غیرفعال نمی‌شوند.
 remove_action( 'wp_head', 'wp_shortlink_wp_head' );

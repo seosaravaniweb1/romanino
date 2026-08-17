@@ -185,17 +185,66 @@ function romanino_dedupe_gateway_receipt_hooks(): void {
    false بگذارید؛ این فقط یک شبکه‌ی ایمنی است.
    ========================================================================== */
 
-add_action( 'template_redirect', 'romanino_silence_notices_on_payment_page', 1 );
-function romanino_silence_notices_on_payment_page(): void {
-	if ( is_admin() || wp_doing_ajax() ) {
+add_action( 'init', 'romanino_register_frontend_notice_guard', 0 );
+function romanino_register_frontend_notice_guard(): void {
+	if ( is_admin() || wp_doing_ajax() || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
 		return;
 	}
-	if ( ! function_exists( 'is_wc_endpoint_url' ) || ! is_wc_endpoint_url( 'order-pay' ) ) {
-		return;
+
+	/* فیلترها همین‌جا و زود ثبت می‌شوند، ولی «تصمیم» داخل خود کال‌بک و در
+	   لحظه‌ی وقوع خطا گرفته می‌شود. علتش مهم است: نسخه‌ی قبلی این گارد روی
+	   template_redirect می‌نشست و همان‌جا is_wc_endpoint_url('order-pay') را
+	   چک می‌کرد؛ اگر آن تشخیص به هر دلیلی (ساختار پیوند یکتا، افزونه‌ی
+	   شخصی‌سازی endpoint، ترتیب هوک‌ها) جواب نمی‌داد، گارد اصلاً ثبت نمی‌شد.
+	   حالا ثبت بی‌قیدوشرط است و شرط‌ها موقع فراخوانی سنجیده می‌شوند. */
+	foreach ( array(
+		'doing_it_wrong_trigger_error',
+		'deprecated_function_trigger_error',
+		'deprecated_argument_trigger_error',
+		'deprecated_hook_trigger_error',
+		'deprecated_file_trigger_error',
+		'deprecated_class_trigger_error',
+	) as $romanino_filter ) {
+		add_filter( $romanino_filter, 'romanino_should_display_php_notice', 99, 4 );
 	}
-	add_filter( 'doing_it_wrong_trigger_error', '__return_false', 99 );
-	add_filter( 'deprecated_function_trigger_error', '__return_false', 99 );
-	add_filter( 'deprecated_argument_trigger_error', '__return_false', 99 );
+}
+
+/**
+ * آیا این پیام خطای PHP باید وسط صفحه به کاربر نشان داده شود؟
+ *
+ * دو قانون:
+ *   ۱. در کل مسیر پرداخت هیچ‌کس — حتی مدیر سایت — نباید متن خطا ببیند. غیر از
+ *      بی‌اعتمادی مشتری، این خروجی اضافه می‌تواند انتقال به درگاه را هم خراب
+ *      کند.
+ *   ۲. در بقیه‌ی صفحه‌ها فقط مدیر سایت خطاها را می‌بیند. مشتری عادی هیچ‌وقت
+ *      نباید مسیر فایل‌های سرور و جزئیات داخلی افزونه‌ها را ببیند.
+ *
+ * توجه: این فقط جلوی «نمایش» را می‌گیرد. اگر WP_DEBUG_LOG روشن باشد پیام در
+ * فایل لاگ ثبت می‌شود تا هیچ اطلاعاتی گم نشود.
+ */
+function romanino_should_display_php_notice( $trigger, $function_name = '', $message = '', $version = '' ) {
+	$suppress = false;
+
+	if ( did_action( 'template_redirect' ) && function_exists( 'is_checkout' ) && is_checkout() ) {
+		$suppress = true;
+	} elseif ( ! current_user_can( 'manage_options' ) ) {
+		$suppress = true;
+	}
+
+	if ( ! $suppress ) {
+		return $trigger;
+	}
+
+	if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG && $function_name ) {
+		error_log( sprintf(
+			'[romanino] پیام خطای پنهان‌شده در بخش کاربری: %s — %s (%s)',
+			(string) $function_name,
+			wp_strip_all_tags( (string) $message ),
+			(string) $version
+		) );
+	}
+
+	return false;
 }
 
 /* ==========================================================================
