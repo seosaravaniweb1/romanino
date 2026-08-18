@@ -144,6 +144,13 @@ function romanino_rocket_rucss_safelist( array $safelist ): array {
 		'.woocommerce-variation-description', '.wc-no-matching-variations',
 		'.single_add_to_cart_button', '.reset_variations', '.disabled',
 
+		/* چک‌اوت: بخش انتخاب درگاه را ووکامرس با AJAX جایگزین می‌کند، پس
+		   کلاس‌هایش در HTML اولیه‌ی کش‌شده ممکن است نباشند. */
+		'.woocommerce-checkout-payment', '.wc_payment_methods', '.wc_payment_method',
+		'.payment_box', '.woocommerce-checkout-review-order',
+		'.romanino-order-review', '.blockUI', '.blockOverlay',
+		'.woocommerce-error', '.woocommerce-message', '.woocommerce-info',
+
 		// تب‌های ژانر/دسته و تب‌های صفحه محصول
 		'.text-primary-foreground', '.text-muted-foreground',
 		'.bg-primary', '.hover\\:bg-secondary',

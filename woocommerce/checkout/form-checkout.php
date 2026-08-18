@@ -7,13 +7,22 @@
  *      ۲. اطلاعات کاربر (از قبل پر شده، همان‌جا قابل ویرایش)
  *      ۳. پرداخت        (جمع کل + انتخاب درگاه + دکمه‌ی نهایی)
  *
- * FIX دوم (باگ قابل‌مشاهده در همان اسکرین‌شات): نسخه‌ی قبلی هم
- * do_action('woocommerce_checkout_order_review') را صدا می‌زد و هم جداگانه
- * do_action('woocommerce_checkout_payment'). ووکامرس تابع دومی را از قبل با
- * اولویت ۲۰ به همان هوک اول وصل کرده؛ یعنی بخش «روش پرداخت» عملاً دو بار
- * رندر می‌شد و کاربر دو تا دکمه‌ی پرداخت می‌دید. حالا آن اتصال پیش‌فرض در
- * inc/checkout-functions.php برداشته شده و هر بخش دقیقاً یک بار و در جای
- * خودش چاپ می‌شود.
+ * ⚠️ اصل حاکم بر این تمپلیت:
+ *   «چیدمان» مال قالب است، «موتور» مال ووکامرس.
+ *
+ *   یک‌صفحه‌ای بودن خرید فقط یک تصمیم ظاهری است. هر جا برای رسیدن به آن ظاهر،
+ *   ساختار استاندارد ووکامرس شکسته شد، هزینه‌اش را درگاه پرداخت داد. بنابراین
+ *   این تمپلیت دقیقاً همان اسکلت تمپلیت اصلی را دارد — همان نام فرم، همان
+ *   کلاس‌ها، همان id ناحیه‌ی #order_review و همان زنجیره‌ی هوک‌ها — و فقط
+ *   ظاهرشان با کلاس‌های Tailwind عوض شده.
+ *
+ * تاریخچه‌ی یک اشتباه (که دیگر تکرار نشود):
+ *   یک بار تصور شد بخش «روش پرداخت» دو بار رندر می‌شود، چون تمپلیت قدیمی هم
+ *   do_action('woocommerce_checkout_order_review') داشت و هم
+ *   do_action('woocommerce_checkout_payment'). ولی هیچ کال‌بکی روی اکشنِ
+ *   'woocommerce_checkout_payment' ثبت نیست — آن خط کاملاً بی‌اثر بود و هیچ
+ *   دوباره‌کاری‌ای در کار نبود. بر اساس آن برداشت اشتباه، اتصال پیش‌فرضِ
+ *   بخش درگاه به #order_review حذف شده بود؛ حالا برگردانده شده است.
  */
 defined( 'ABSPATH' ) || exit;
 
@@ -168,6 +177,13 @@ $romanino_customer = WC()->customer;
 			</div>
 
 			<?php
+			/* هوک‌های استانداردِ «جزئیات مشتری». افزونه‌ها (فاکتور رسمی، کد
+			   تخفیف اختصاصی، فیلد سفارشی و…) دقیقاً به همین‌ها وصل می‌شوند.
+			   نبودشان در نسخه‌ی قبلی یعنی آن افزونه‌ها بی‌صدا کار نمی‌کردند. */
+			do_action( 'woocommerce_checkout_before_customer_details' );
+			?>
+
+			<?php
 			/* FIX (گزارش‌شده — «جزئیات صورتحساب» تکراری):
 			   اینجا قبلاً do_action('woocommerce_checkout_billing') بود، به این
 			   تصور که فقط یک نقطه‌ی اتصال برای افزونه‌هاست. اما ووکامرس خودش
@@ -184,6 +200,8 @@ $romanino_customer = WC()->customer;
 			   کار می‌کنند و فرم تکراری هم نمی‌آید. */
 			do_action( 'woocommerce_before_checkout_billing_form', $checkout );
 			do_action( 'woocommerce_after_checkout_billing_form', $checkout );
+
+			do_action( 'woocommerce_checkout_after_customer_details' );
 			?>
 		</section>
 
@@ -195,31 +213,41 @@ $romanino_customer = WC()->customer;
 			</div>
 
 			<?php
-			/* جدول جمع کل. اتصال پیش‌فرضِ woocommerce_checkout_payment به این
-			   هوک در inc/checkout-functions.php برداشته شده، پس اینجا فقط
-			   جدول مبالغ چاپ می‌شود و بخش درگاه‌ها پایین‌تر و جدا می‌آید. */
+			/* FIX (رگرسیون پرداخت):
+			   ─────────────────────────────────────────────────────────────
+			   اینجا قبلاً جدول مبالغ و بخش درگاه‌ها از هم جدا شده بودند: هوک
+			   استاندارد فقط جدول را چاپ می‌کرد و woocommerce_checkout_payment()
+			   جداگانه و بیرونِ #order_review صدا زده می‌شد.
+
+			   حالا ساختار دقیقاً همان ساختار استاندارد ووکامرس است: هوک
+			   woocommerce_checkout_order_review هر دو را داخل #order_review
+			   چاپ می‌کند (جدول با اولویت ۱۰، درگاه‌ها با اولویت ۲۰).
+
+			   چرا مهم است: اسکریپت wc-checkout هنگام هر به‌روزرسانی، محتوای
+			   این ناحیه را با قطعه‌ی تازه‌ای که سرور می‌فرستد جایگزین می‌کند.
+			   وقتی بخش درگاه بیرون از این ناحیه باشد، از جریان به‌روزرسانی جا
+			   می‌ماند و می‌تواند با وضعیت واقعی سبد ناهماهنگ شود.
+
+			   ترتیب نمایش برای کاربر عوض نمی‌شود: اول جمع مبالغ، بعد
+			   انتخاب درگاه و دکمه‌ی پرداخت — دقیقاً مثل قبل. */
 			?>
 			<div id="order_review" class="romanino-order-review woocommerce-checkout-review-order">
-				<?php do_action( 'woocommerce_checkout_order_review' ); ?>
-			</div>
-
-			<div class="romanino-payment-box mt-5">
-				<?php woocommerce_checkout_payment(); ?>
+				<?php
+				do_action( 'woocommerce_checkout_before_order_review' );
+				do_action( 'woocommerce_checkout_order_review' );
+				do_action( 'woocommerce_checkout_after_order_review' );
+				?>
 			</div>
 		</section>
-
-		<?php
-		/* nonce ثبت سفارش. تمپلیت payment.php خود ووکامرس هم همین را چاپ
-		   می‌کند؛ ولی اگر سفارش نیازی به پرداخت نداشته باشد (مثلاً کل سبد
-		   رایگان شود) آن تمپلیت اصلاً رندر نمی‌شود و بدون این خط، ثبت سفارش
-		   با خطای nonce شکست می‌خورد. */
-		wp_nonce_field( 'woocommerce-process_checkout', 'woocommerce-process-checkout-nonce' );
-		?>
 	</form>
 
+	<?php
+	/* متن «سیاست حریم خصوصی» را خود ووکامرس داخل باکس پرداخت چاپ می‌کند
+	   (hook: woocommerce_checkout_terms_and_conditions)، پس اینجا تکرار
+	   نمی‌شود. فقط نکته‌ای که مخصوص فروشگاه فایل است باقی می‌ماند. */
+	?>
 	<p class="mt-4 text-center text-[11px] leading-relaxed text-ink-muted">
-		با تکمیل خرید، <a href="<?php echo esc_url( get_privacy_policy_url() ?: home_url( '/' ) ); ?>" class="text-gold hover:underline">سیاست حفظ حریم خصوصی</a>
-		را می‌پذیرید. فایل‌ها بلافاصله پس از پرداخت در دسترس شما قرار می‌گیرند.
+		فایل‌ها بلافاصله پس از پرداخت موفق، در «پیشخوان کاربری ← دانلودها» در دسترس شما قرار می‌گیرند.
 	</p>
 </div>
 

@@ -635,7 +635,7 @@ html.light .rmn-logout-btn:hover {
 .romanino-order-review .woocommerce-Price-amount { white-space: nowrap; }
 
 /* ── لیست درگاه‌های پرداخت ───────────────────────────────────────────────── */
-.romanino-payment-box ul.wc_payment_methods {
+.romanino-order-review #payment ul.wc_payment_methods {
 	list-style: none;
 	margin: 0 0 1rem;
 	padding: 0;
@@ -644,18 +644,18 @@ html.light .rmn-logout-btn:hover {
 	gap: 0.6rem;
 }
 
-.romanino-payment-box li.wc_payment_method {
+.romanino-order-review #payment li.wc_payment_method {
 	border: 1px solid var(--hairline);
 	border-radius: 0.85rem;
 	background: var(--tint-1);
 	padding: 0.9rem 1rem;
 	transition: border-color 0.15s, background-color 0.15s;
 }
-.romanino-payment-box li.wc_payment_method:hover {
+.romanino-order-review #payment li.wc_payment_method:hover {
 	border-color: rgb(var(--c-primary) / 0.4);
 }
 
-.romanino-payment-box li.wc_payment_method label {
+.romanino-order-review #payment li.wc_payment_method label {
 	display: flex;
 	align-items: center;
 	gap: 0.6rem;
@@ -664,20 +664,20 @@ html.light .rmn-logout-btn:hover {
 	color: var(--on-surface);
 	margin: 0;
 }
-.romanino-payment-box li.wc_payment_method input[type='radio'] {
+.romanino-order-review #payment li.wc_payment_method input[type='radio'] {
 	accent-color: rgb(var(--c-primary));
 	width: 1.05rem;
 	height: 1.05rem;
 	flex-shrink: 0;
 }
-.romanino-payment-box li.wc_payment_method label img {
+.romanino-order-review #payment li.wc_payment_method label img {
 	max-height: 28px;
 	width: auto;
 	margin-right: auto;   /* لوگوی درگاه به لبه‌ی مقابل می‌چسبد */
 }
 
 /* توضیح هر درگاه */
-.romanino-payment-box .payment_box {
+.romanino-order-review #payment .payment_box {
 	margin: 0.7rem 0 0;
 	padding: 0.7rem 0.9rem;
 	border-radius: 0.65rem;
@@ -686,19 +686,19 @@ html.light .rmn-logout-btn:hover {
 	line-height: 1.9;
 	color: var(--on-surface-muted);
 }
-.romanino-payment-box .payment_box p:last-child { margin-bottom: 0; }
+.romanino-order-review #payment .payment_box p:last-child { margin-bottom: 0; }
 
 /* متن حریم خصوصی ووکامرس */
-.romanino-payment-box .woocommerce-privacy-policy-text {
+.romanino-order-review #payment .woocommerce-privacy-policy-text {
 	font-size: 0.75rem;
 	line-height: 1.9;
 	color: var(--on-surface-muted);
 	margin-bottom: 1rem;
 }
-.romanino-payment-box .woocommerce-privacy-policy-text a { color: var(--brand-gold-text); }
+.romanino-order-review #payment .woocommerce-privacy-policy-text a { color: var(--brand-gold-text); }
 
 /* ── دکمه‌ی پرداخت نهایی ─────────────────────────────────────────────────── */
-.romanino-payment-box #place_order {
+.romanino-order-review #payment #place_order {
 	display: block;
 	width: 100%;
 	padding: 0.95rem 1rem;
@@ -712,9 +712,9 @@ html.light .rmn-logout-btn:hover {
 	transition: filter 0.15s, transform 0.1s;
 	box-shadow: 0 0 24px -8px rgb(var(--c-primary) / 0.6);
 }
-.romanino-payment-box #place_order:hover { filter: brightness(1.08); }
-.romanino-payment-box #place_order:active { transform: scale(0.99); }
-.romanino-payment-box #place_order:disabled { opacity: 0.6; cursor: not-allowed; }
+.romanino-order-review #payment #place_order:hover { filter: brightness(1.08); }
+.romanino-order-review #payment #place_order:active { transform: scale(0.99); }
+.romanino-order-review #payment #place_order:disabled { opacity: 0.6; cursor: not-allowed; }
 
 /* ═════════════════════════════════════════════════════════════════════════
    باکس هشدار قرمز (.rmn-danger-note) — مثل «درخواست حذف اثر»
