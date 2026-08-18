@@ -184,6 +184,87 @@ function romanino_show_zibal_failure( $order_id, $fault = '' ): void {
 }
 
 /* ==========================================================================
+   ۲-ب. ثبت دقیقِ آنچه به درگاه فرستاده شد (فقط هنگام خطا)
+   ─────────────────────────────────────────────────────────────────────────
+   وقتی درگاه کدی برمی‌گرداند که در مستندات نیست، تنها راه پیش رفتن این است
+   که بدانیم «دقیقاً چه چیزی فرستاده شده». افزونه‌ی زیبال آخرین حلقه‌ی
+   زنجیره‌ی فیلترهای مبلغ را در اختیار می‌گذارد، پس می‌شود مقدار نهایی را
+   همان‌جا برداشت و کنار بقیه‌ی ورودی‌ها در «یادداشت‌های سفارش» ثبت کرد.
+
+   این کار هیچ چیزی را تغییر نمی‌دهد — فقط ضبط می‌کند. و جزئیات فنی روی صفحه
+   فقط به مدیر سایت نشان داده می‌شود، نه به مشتری.
+   ========================================================================== */
+
+add_filter( 'woocommerce_order_amount_total_Zibal_gateway', 'romanino_capture_gateway_amount', 999, 2 );
+function romanino_capture_gateway_amount( $amount, $currency = '' ) {
+	$GLOBALS['romanino_gateway_amount']   = $amount;
+	$GLOBALS['romanino_gateway_currency'] = $currency;
+	return $amount; // بدون هیچ تغییری
+}
+
+/**
+ * گزارش کامل ورودی‌های درگاه — برای یادداشت سفارش و نمایش به مدیر.
+ */
+function romanino_gateway_debug_lines( $order, string $fault = '' ): array {
+	$amount   = $GLOBALS['romanino_gateway_amount'] ?? null;
+	$currency = $GLOBALS['romanino_gateway_currency'] ?? ( $order ? $order->get_currency() : '' );
+	$total    = $order ? $order->get_total() : '';
+	$phone    = $order ? (string) $order->get_billing_phone() : '';
+
+	$lines = array(
+		'کد خطای زیبال'      => $fault !== '' ? $fault : 'نامشخص',
+		'واحد پول فروشگاه'   => $currency !== '' ? $currency : '(خالی)',
+		'جمع سفارش'          => $total,
+		'مبلغ ارسالی به زیبال' => null === $amount ? '(ثبت نشد)' : $amount . ' ریال',
+	);
+
+	/* مهم‌ترین سطر: آیا تبدیل تومان→ریال انجام شده؟ افزونه فقط وقتی ×۱۰
+	   می‌کند که کد واحد پول را بشناسد. اگر فروشگاه روی تومان باشد ولی با کدی
+	   که افزونه نمی‌شناسد، مبلغ یک‌دهمِ واقعی به بانک می‌رود. */
+	if ( null !== $amount && '' !== $total && (float) $total > 0 ) {
+		$ratio = round( (float) $amount / (float) $total, 4 );
+		$lines['نسبت مبلغ به جمع سفارش'] = $ratio . ( 10.0 === $ratio ? ' (تومان→ریال انجام شد ✔)' : ' (⚠ تبدیل انجام نشد)' );
+	}
+
+	$lines['موبایل روی سفارش'] = '' === $phone ? '(خالی)' : $phone . ' ← به‌صورت ' . intval( $phone ) . ' ارسال می‌شود';
+	$lines['ایمیل روی سفارش']  = $order && $order->get_billing_email() ? $order->get_billing_email() : '(خالی)';
+
+	if ( function_exists( 'WC' ) ) {
+		$lines['آدرس بازگشت'] = WC()->api_request_url( 'WC_Gateway_Zibal' );
+	}
+
+	return $lines;
+}
+
+add_action( 'WC_Gateway_Zibal_Send_to_Gateway_Failed', 'romanino_log_gateway_failure', 5, 2 );
+function romanino_log_gateway_failure( $order_id, $fault = '' ): void {
+	$order = function_exists( 'wc_get_order' ) ? wc_get_order( $order_id ) : null;
+	if ( ! $order ) {
+		return;
+	}
+
+	$lines = romanino_gateway_debug_lines( $order, (string) $fault );
+
+	$note = "گزارش فنی رمانینو — ورودی‌های ارسالی به درگاه:\n";
+	foreach ( $lines as $label => $value ) {
+		$note .= sprintf( "• %s: %s\n", $label, $value );
+	}
+	$order->add_order_note( $note );
+
+	// نمایش روی صفحه فقط برای مدیر سایت.
+	if ( ! current_user_can( 'manage_woocommerce' ) ) {
+		return;
+	}
+	echo '<div class="romanino-gateway-error" style="max-width:44rem;margin:1rem auto;padding:1rem 1.25rem;border-radius:.9rem;border:1px dashed rgba(148,163,184,.5);background:rgba(148,163,184,.08);font-size:.8rem;line-height:2.1;">';
+	echo '<strong style="display:block;margin-bottom:.5rem;">گزارش فنی (فقط مدیر سایت این را می‌بیند)</strong>';
+	foreach ( $lines as $label => $value ) {
+		printf( '<div>• %s: <code style="direction:ltr;display:inline-block;">%s</code></div>', esc_html( $label ), esc_html( (string) $value ) );
+	}
+	echo '<div style="margin-top:.6rem;opacity:.75;">همین گزارش در «یادداشت‌های سفارش» هم ثبت شد.</div>';
+	echo '</div>';
+}
+
+/* ==========================================================================
    ۳. ارسال خودکار فرمِ درگاه‌هایی که سمت کلاینت منتقل می‌کنند
    ─────────────────────────────────────────────────────────────────────────
    زیبال سمت سرور ریدایرکت می‌کند، پس این بخش برای آن اجرا نمی‌شود و کاملاً
