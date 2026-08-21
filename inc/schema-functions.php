@@ -69,7 +69,14 @@ function romanino_extend_rankmath_product_schema( $entity ) {
     $post_id     = get_the_ID();
     $author      = wp_strip_all_tags( romanino_get_book_author( $post_id ) );
     $translator  = wp_strip_all_tags( (string) get_post_meta( $post_id, 'translator', true ) );
-    $page_count  = absint( get_post_meta( $post_id, 'page_count', true ) );
+    /* برای محصول چندجلدی، «تعداد صفحات» واقعی مجموع صفحات همه‌ی جلدهاست.
+       اگر فهرست جلدها پر شده باشد همان مبنا قرار می‌گیرد، وگرنه فیلد
+       تک‌عددیِ page_count. این‌طوری numberOfPages در نتایج گوگل با چیزی که
+       در صفحه نوشته شده یکی می‌ماند. */
+    $page_count = romanino_get_volumes_total_pages( $post_id );
+    if ( ! $page_count ) {
+        $page_count = absint( get_post_meta( $post_id, 'page_count', true ) );
+    }
     $file_size   = trim( (string) get_post_meta( $post_id, 'file_size', true ) );
     $sample_url  = esc_url( get_post_meta( $post_id, 'sample_download_url', true ) );
 

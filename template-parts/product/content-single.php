@@ -73,6 +73,12 @@ $nationality    = $romanino_nat['label'];
 // FIX (Task 3.3): شماره جلد + سایر جلدهای همین مجموعه (برای لینک‌سازی داخلی)
 $romanino_vol         = romanino_get_volume_info( get_the_ID() );
 $romanino_volume_text = romanino_get_volume_display_text( $romanino_vol['volume_number'] );
+// جلدهایی که «داخل همین محصول» ارائه می‌شوند (فهرست تکرارشونده‌ی متاباکس)
+$romanino_volumes       = romanino_get_volumes( get_the_ID() );
+$romanino_volumes_total = romanino_get_volumes_total_pages( get_the_ID() );
+// فایل صوتی تحلیل و بررسی
+$romanino_audio_url   = (string) get_post_meta( get_the_ID(), 'romanino_review_audio_url', true );
+$romanino_audio_title = trim( (string) get_post_meta( get_the_ID(), 'romanino_review_audio_title', true ) ) ?: 'تحلیل و بررسی صوتی رمان';
 $sample_url     = $romanino_product_meta['sample_download_url'];
 $has_discount   = $product->is_on_sale() && (float) $product->get_regular_price() > 0;
 $discount_pct   = $has_discount ? round( ( ( $product->get_regular_price() - $product->get_sale_price() ) / $product->get_regular_price() ) * 100 ) : 0;
@@ -263,14 +269,58 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 							<div class="flex items-center justify-between py-3"><dt class="text-sm text-ink-muted">مترجم اثر</dt><dd class="text-sm font-semibold text-ink"><?php echo esc_html( $translator ); ?></dd></div>
 							<?php endif; ?>
 							<div class="flex items-center justify-between py-3"><dt class="text-sm text-ink-muted">شماره جلد</dt><dd class="text-sm font-semibold text-ink"><?php echo esc_html( $romanino_volume_text ); ?></dd></div>
-							<?php if ( $page_count ) : ?>
-							<div class="flex items-center justify-between py-3"><dt class="text-sm text-ink-muted">تعداد صفحات</dt><dd class="text-sm font-semibold text-ink"><?php echo esc_html( $page_count ); ?> صفحه</dd></div>
+							<?php
+							/* اگر محصول چند جلد دارد، مجموع صفحات همه‌ی جلدها نشان داده
+							   می‌شود (و ریز هر جلد در جدول پایین می‌آید). وگرنه همان
+							   «تعداد صفحات» تک‌عددی. */
+							$romanino_pages_total = $romanino_volumes_total ?: absint( $page_count );
+							?>
+							<?php if ( $romanino_pages_total ) : ?>
+							<div class="flex items-center justify-between py-3">
+								<dt class="text-sm text-ink-muted">تعداد صفحات<?php echo $romanino_volumes_total ? ' (مجموع جلدها)' : ''; ?></dt>
+								<dd class="text-sm font-semibold text-ink"><?php echo esc_html( number_format_i18n( $romanino_pages_total ) ); ?> صفحه</dd>
+							</div>
+							<?php endif; ?>
+							<?php if ( $romanino_volumes ) : ?>
+							<div class="flex items-center justify-between py-3"><dt class="text-sm text-ink-muted">تعداد جلدها</dt><dd class="text-sm font-semibold text-ink"><?php echo esc_html( number_format_i18n( count( $romanino_volumes ) ) ); ?> جلد</dd></div>
 							<?php endif; ?>
 							<div class="flex items-center justify-between py-3"><dt class="text-sm text-ink-muted">فرمت فایل</dt><dd class="text-sm font-semibold text-ink"><?php echo esc_html( $format_label ); ?></dd></div>
 							<?php if ( $file_size ) : ?>
 							<div class="flex items-center justify-between py-3"><dt class="text-sm text-ink-muted">حجم فایل</dt><dd class="text-sm font-semibold text-ink" dir="ltr"><?php echo esc_html( $file_size ); ?></dd></div>
 							<?php endif; ?>
 						</dl>
+
+						<?php if ( $romanino_volumes ) : ?>
+						<?php
+						/* فهرست جلدهای داخل همین محصول.
+						   ─────────────────────────────────────────────────────
+						   هر ردیف می‌تواند لینک داشته باشد یا نداشته باشد، پس
+						   عنصرِ هر ردیف بر همان اساس بین <a> و <div> عوض می‌شود؛
+						   لینکِ خالی هرگز به‌صورت لینکِ مرده رندر نمی‌شود. */
+						?>
+						<div class="mt-6 border-t border-ink/10 pt-5">
+							<h3 class="mb-3 text-sm font-bold text-ink">جلدهای این رمان</h3>
+							<ol class="romanino-volume-list">
+								<?php foreach ( $romanino_volumes as $romanino_i => $romanino_volume ) :
+									$romanino_has_link = '' !== $romanino_volume['url'];
+									$romanino_tag      = $romanino_has_link ? 'a' : 'div';
+									?>
+									<<?php echo $romanino_tag; ?>
+										class="romanino-volume-item<?php echo $romanino_has_link ? ' is-linked' : ''; ?>"
+										<?php if ( $romanino_has_link ) : ?>href="<?php echo esc_url( $romanino_volume['url'] ); ?>"<?php endif; ?>>
+										<span class="romanino-volume-num"><?php echo esc_html( number_format_i18n( $romanino_i + 1 ) ); ?></span>
+										<span class="romanino-volume-title"><?php echo esc_html( $romanino_volume['title'] ); ?></span>
+										<?php if ( $romanino_volume['pages'] ) : ?>
+											<span class="romanino-volume-pages"><?php echo esc_html( number_format_i18n( $romanino_volume['pages'] ) ); ?> صفحه</span>
+										<?php endif; ?>
+										<?php if ( $romanino_has_link ) : ?>
+											<span class="romanino-volume-cta">مشاهده</span>
+										<?php endif; ?>
+									</<?php echo $romanino_tag; ?>>
+								<?php endforeach; ?>
+							</ol>
+						</div>
+						<?php endif; ?>
 
 						<?php if ( ! empty( $romanino_vol['siblings'] ) ) : ?>
 						<!-- FIX (Task 3.3 — لینک‌سازی داخلی): سایر جلدهای همین مجموعه، با تصویر کاور -->
@@ -293,8 +343,58 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 					</div>
 
 					<div id="ppanel-desc" class="product-panel hidden space-y-4 text-sm leading-loose text-ink-3 lg:text-base">
-						<h2 class="mb-4 text-base font-bold text-ink lg:text-lg">توضیحات کامل و خلاصه داستان</h2>
-						<?php the_content(); ?>
+						<?php
+						/* FIX (سئو — گزارش‌شده):
+						   ─────────────────────────────────────────────────────
+						   اینجا قبلاً یک <h2> ثابت با متن «توضیحات کامل و خلاصه
+						   داستان» بود که روی «همه‌ی» محصولات سایت تکرار می‌شد.
+						   مشکلش این بود که همیشه اولین H2 صفحه می‌شد و ساختار
+						   عنوان‌بندی را می‌دزدید: تیترهای واقعیِ خود متن — که
+						   کلمات کلیدی رمان در آن‌هاست — به رده‌ی دوم می‌افتادند و
+						   در همه‌ی صفحات هم یک H2 کاملاً یکسان تکرار می‌شد.
+
+						   حالا همان متن با همان ظاهر می‌ماند ولی به‌عنوان یک
+						   برچسب معمولی (بدون معنای «عنوان») چاپ می‌شود. پس:
+						     • طراحی هیچ تغییری نمی‌کند،
+						     • و اولین H2 هر صفحه، تیتر واقعی خودِ نویسنده است.
+
+						   از نظر دسترس‌پذیری هم چیزی از دست نمی‌رود: این ناحیه
+						   یک تبِ دارای برچسب است و دکمه‌ی تب خودش نقش عنوان را
+						   بازی می‌کند. */
+						?>
+						<div class="mb-4 text-base font-bold text-ink lg:text-lg">توضیحات کامل و خلاصه داستان</div>
+
+						<?php
+						/* FIX (گزارش‌شده): این ناحیه کلاس rmn-prose نداشت، برای همین
+						   تگ‌های h2/h3 داخل توضیحات محصول دقیقاً مثل متن معمولی دیده
+						   می‌شدند. همین کلاس از قبل در وبلاگ و برگه‌ها استفاده می‌شود
+						   و اندازه/وزن/فاصله‌ی تیترها، فهرست‌ها، نقل‌قول و لینک‌ها را
+						   استاندارد می‌کند. */
+						?>
+						<div class="rmn-prose text-justify">
+							<?php the_content(); ?>
+						</div>
+
+						<?php if ( $romanino_audio_url ) : ?>
+						<?php
+						/* پخش‌کننده‌ی «تحلیل و بررسی صوتی».
+						   preload="none" عمدی است: تا وقتی کاربر دکمه‌ی پخش را
+						   نزند حتی یک بایت از فایل دانلود نمی‌شود، پس روی سرعت
+						   صفحه و سنجه‌های Core Web Vitals هیچ اثری ندارد. */
+						?>
+						<div class="romanino-audio-review mt-6">
+							<div class="romanino-audio-head">
+								<span class="romanino-audio-icon" aria-hidden="true">
+									<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+								</span>
+								<span class="romanino-audio-title"><?php echo esc_html( $romanino_audio_title ); ?></span>
+							</div>
+							<audio class="romanino-audio-player" controls preload="none" src="<?php echo esc_url( $romanino_audio_url ); ?>">
+								مرورگر شما از پخش فایل صوتی پشتیبانی نمی‌کند.
+								<a href="<?php echo esc_url( $romanino_audio_url ); ?>">دانلود فایل صوتی</a>
+							</audio>
+						</div>
+						<?php endif; ?>
 					</div>
 
 					<div id="ppanel-reviews" class="product-panel hidden space-y-6">

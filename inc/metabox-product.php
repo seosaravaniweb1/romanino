@@ -49,6 +49,9 @@ function romanino_product_specs_metabox_content( WP_Post $post ): void {
         'volume_number'       => absint( get_post_meta( $post->ID, 'romanino_volume_number', true ) ),
         'series_key'          => get_post_meta( $post->ID, 'romanino_series_key', true ),
         'file_size'           => get_post_meta( $post->ID, 'file_size', true ),
+        'volumes'             => romanino_get_volumes( $post->ID ),
+        'review_audio_url'    => get_post_meta( $post->ID, 'romanino_review_audio_url', true ),
+        'review_audio_title'  => get_post_meta( $post->ID, 'romanino_review_audio_title', true ),
     ];
     ?>
     <div style="padding:12px; font-family: Tahoma, sans-serif;">
@@ -99,6 +102,86 @@ function romanino_product_specs_metabox_content( WP_Post $post ): void {
             <input type="url" name="sample_download_url" value="<?php echo esc_url( $fields['sample_download_url'] ); ?>" placeholder="https://..." dir="ltr" style="width:100%; max-width:600px;" />
             <br/><small style="color:#666;">این لینک در اسکیمای Schema.org و دکمه «دانلود نمونه» نمایش داده می‌شود.</small>
         </div>
+
+        <?php
+        /* ══════════════════════════════════════════════════════════════════
+           جلدهای این رمان — فهرست تکرارشونده
+           ──────────────────────────────────────────────────────────────────
+           این بخش با «شماره جلد + کلید مجموعه»ی بالا فرق دارد و مکملِ آن است:
+
+             • «شماره جلد + کلید مجموعه» برای وقتی است که هر جلد یک محصول
+               جداگانه است و می‌خواهیم خودکار به هم لینک شوند.
+
+             • این فهرست برای وقتی است که چند جلد داخل «یک محصول» فروخته
+               می‌شود و باید مشخصات هر جلد جدا نوشته شود.
+
+           چون هر ردیف سه فیلد مستقل دارد (عنوان، تعداد صفحات، لینک اختیاری)،
+           هر دو حالتی که مدیر سایت با آن روبه‌روست را پوشش می‌دهد:
+
+             ۱) عنوان‌ها یکسان‌اند:  «عشوه‌گر جلد اول»، «عشوه‌گر جلد دوم» …
+             ۲) عنوان‌ها متفاوت‌اند: «ناتوان جلد اول»، «بی‌باک جلد دوم» …
+
+           لینک هم اختیاری است: اگر بعداً همان جلد را جداگانه فروختید، آدرسش
+           را اینجا بگذارید تا در صفحه‌ی محصول قابل کلیک شود؛ خالی بگذارید،
+           فقط به‌عنوان مشخصات نمایش داده می‌شود. تعداد ردیف‌ها محدودیتی ندارد.
+           ══════════════════════════════════════════════════════════════════ */
+        ?>
+        <div style="border-top:1px solid #ddd; padding-top:12px; margin-top:12px;">
+            <label style="font-weight:bold; display:block; margin-bottom:5px;">جلدهای این رمان</label>
+            <p style="color:#666; margin:0 0 8px;">
+                اگر این محصول چند جلد را با هم ارائه می‌کند، هر جلد را یک ردیف اضافه کنید.
+                «لینک» اختیاری است — اگر آن جلد را جداگانه هم می‌فروشید، آدرسش را بگذارید تا قابل کلیک شود.
+            </p>
+
+            <table class="widefat striped" id="romanino-volumes-table" style="max-width:820px;">
+                <thead>
+                    <tr>
+                        <th style="width:44%;">عنوان جلد</th>
+                        <th style="width:16%;">تعداد صفحات</th>
+                        <th style="width:34%;">لینک (اختیاری)</th>
+                        <th style="width:6%;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    $romanino_rows = $fields['volumes'];
+                    if ( empty( $romanino_rows ) ) {
+                        $romanino_rows = array( array( 'title' => '', 'pages' => '', 'url' => '' ) );
+                    }
+                    foreach ( $romanino_rows as $romanino_row ) :
+                        ?>
+                        <tr>
+                            <td><input type="text" name="romanino_volume_title[]" value="<?php echo esc_attr( $romanino_row['title'] ); ?>" placeholder="مثال: ناتوان جلد اول" style="width:100%;" /></td>
+                            <td><input type="number" min="1" max="99999" name="romanino_volume_pages[]" value="<?php echo esc_attr( $romanino_row['pages'] ); ?>" placeholder="۱۰۰" style="width:100%;" /></td>
+                            <td><input type="url" name="romanino_volume_url[]" value="<?php echo esc_url( $romanino_row['url'] ); ?>" placeholder="https://..." dir="ltr" style="width:100%;" /></td>
+                            <td><button type="button" class="button romanino-remove-volume" title="حذف این ردیف">✕</button></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+            <p><button type="button" class="button button-secondary" id="romanino-add-volume">+ افزودن جلد</button></p>
+        </div>
+
+        <?php
+        /* ══════════════════════════════════════════════════════════════════
+           فایل صوتی تحلیل و بررسی رمان
+           ──────────────────────────────────────────────────────────────────
+           فقط آدرس فایل روی هاست وارد می‌شود (مثلاً dl.luxu.ir/voice.mp3).
+           پخش‌کننده در صفحه‌ی محصول با preload="none" ساخته می‌شود، یعنی تا
+           وقتی کاربر دکمه‌ی پخش را نزند حتی یک بایت هم دانلود نمی‌شود و روی
+           سرعت صفحه اثری ندارد.
+           ══════════════════════════════════════════════════════════════════ */
+        ?>
+        <div style="border-top:1px solid #ddd; padding-top:12px; margin-top:12px;">
+            <label style="font-weight:bold; display:block; margin-bottom:5px;">لینک فایل صوتی «تحلیل و بررسی رمان»</label>
+            <input type="url" name="romanino_review_audio_url" value="<?php echo esc_url( $fields['review_audio_url'] ); ?>" placeholder="https://dl.luxu.ir/voice-roman.mp3" dir="ltr" style="width:100%; max-width:600px;" />
+            <br/><small style="color:#666;">فرمت mp3، m4a، mp4، ogg یا wav. خالی بگذارید تا این بخش در صفحه‌ی محصول اصلاً نمایش داده نشود.</small>
+
+            <div style="margin-top:8px;">
+                <label style="font-weight:bold; display:block; margin-bottom:5px;">عنوان بخش صوتی (اختیاری)</label>
+                <input type="text" name="romanino_review_audio_title" value="<?php echo esc_attr( $fields['review_audio_title'] ); ?>" placeholder="تحلیل و بررسی صوتی رمان" style="width:100%; max-width:400px;" />
+            </div>
+        </div>
     </div>
 
     <script>
@@ -110,6 +193,38 @@ function romanino_product_specs_metabox_content( WP_Post $post ): void {
         const volSelect = document.querySelector('select[name="romanino_volume_number"]');
         if (volSelect) {
             volSelect.addEventListener('change', e => toggle($('romanino_series_key_wrapper'), parseInt(e.target.value, 10) > 0));
+        }
+
+        /* ── فهرست تکرارشونده‌ی جلدها ──────────────────────────────────────
+           ردیف جدید با کلون کردن ردیف اول ساخته می‌شود، نه با رشته‌ی HTML.
+           این‌طوری اگر بعداً ستونی به جدول اضافه شد، این کد خودبه‌خود درست
+           می‌ماند و جای دیگری لازم نیست عوض شود. */
+        const table = $('romanino-volumes-table');
+        const addBtn = $('romanino-add-volume');
+
+        if (table && addBtn) {
+            const tbody = table.querySelector('tbody');
+
+            addBtn.addEventListener('click', function () {
+                const row = tbody.rows[0].cloneNode(true);
+                row.querySelectorAll('input').forEach(input => { input.value = ''; });
+                tbody.appendChild(row);
+                const first = row.querySelector('input');
+                if (first) first.focus();
+            });
+
+            // حذف با واگذاری رویداد، تا برای ردیف‌های تازه‌ساخته هم کار کند.
+            tbody.addEventListener('click', function (e) {
+                const btn = e.target.closest('.romanino-remove-volume');
+                if (!btn) return;
+                // آخرین ردیف حذف نمی‌شود، فقط خالی می‌شود؛ وگرنه دکمه‌ی
+                // «افزودن» چیزی برای کلون کردن نداشت.
+                if (tbody.rows.length === 1) {
+                    tbody.rows[0].querySelectorAll('input').forEach(i => { i.value = ''; });
+                    return;
+                }
+                btn.closest('tr').remove();
+            });
         }
     });
     </script>
@@ -140,6 +255,37 @@ function romanino_save_product_specs_meta( int $post_id ): void {
     update_post_meta( $post_id, 'page_count',             $page_count > 0 ? $page_count : '' );
     update_post_meta( $post_id, 'sample_download_url',    esc_url_raw( wp_unslash( $_POST['sample_download_url'] ?? '' ) ) );
     update_post_meta( $post_id, 'file_size',              sanitize_text_field( wp_unslash( $_POST['file_size'] ?? '' ) ) );
+
+    /* ── جلدها ─────────────────────────────────────────────────────────────
+       سه آرایه‌ی موازی از فرم می‌آیند و اینجا به یک آرایه‌ی ردیفی تبدیل
+       می‌شوند. ردیفی که عنوانش خالی است کاملاً نادیده گرفته می‌شود، پس
+       ردیف خالیِ پیش‌فرض یا ردیف نیمه‌کاره چیزی در دیتابیس ذخیره نمی‌کند. */
+    $romanino_titles = (array) ( $_POST['romanino_volume_title'] ?? array() );
+    $romanino_pages  = (array) ( $_POST['romanino_volume_pages'] ?? array() );
+    $romanino_urls   = (array) ( $_POST['romanino_volume_url'] ?? array() );
+
+    $romanino_volumes = array();
+    foreach ( $romanino_titles as $i => $romanino_title ) {
+        $romanino_title = sanitize_text_field( wp_unslash( $romanino_title ) );
+        if ( '' === trim( $romanino_title ) ) {
+            continue;
+        }
+        $romanino_page = absint( $romanino_pages[ $i ] ?? 0 );
+        $romanino_volumes[] = array(
+            'title' => $romanino_title,
+            'pages' => $romanino_page > 0 ? $romanino_page : '',
+            'url'   => esc_url_raw( wp_unslash( $romanino_urls[ $i ] ?? '' ) ),
+        );
+    }
+
+    if ( $romanino_volumes ) {
+        update_post_meta( $post_id, 'romanino_volumes', $romanino_volumes );
+    } else {
+        delete_post_meta( $post_id, 'romanino_volumes' );
+    }
+
+    update_post_meta( $post_id, 'romanino_review_audio_url',   esc_url_raw( wp_unslash( $_POST['romanino_review_audio_url'] ?? '' ) ) );
+    update_post_meta( $post_id, 'romanino_review_audio_title', sanitize_text_field( wp_unslash( $_POST['romanino_review_audio_title'] ?? '' ) ) );
     // FIX: «نام نویسنده»، «ناشر»، «زبان کتاب» و «فرمت فایل» دیگر از این فرم
     // ذخیره نمی‌شوند (حذف شدند طبق درخواست) — مقادیر قدیمی این متاها اگر
     // قبلاً برای محصولی ثبت شده بود دست‌نخورده در دیتابیس می‌ماند، فقط

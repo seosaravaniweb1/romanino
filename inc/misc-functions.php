@@ -1031,3 +1031,55 @@ function romanino_get_author_archive_link( string $author_name ): string {
     $shop_url = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/shop/' );
     return add_query_arg( 'romanino_author', rawurlencode( $author_name ), $shop_url );
 }
+
+/* ==========================================================================
+   جلدهای یک رمان (فهرست تکرارشونده‌ی داخل خودِ محصول)
+   ─────────────────────────────────────────────────────────────────────────
+   این با «شماره جلد + کلید مجموعه» فرق دارد و مکمل آن است:
+
+     • romanino_get_volume_info()  → وقتی هر جلد یک «محصول جدا» است و
+       می‌خواهیم محصول‌ها خودکار به هم لینک شوند.
+     • romanino_get_volumes()      → وقتی چند جلد داخل «یک محصول» فروخته
+       می‌شود و مشخصات هر جلد باید جدا نوشته شود.
+
+   خروجی همیشه آرایه‌ای از ردیف‌های نرمال‌شده با کلیدهای title/pages/url
+   است، حتی اگر متای ذخیره‌شده ناقص یا از نسخه‌ی قدیمی‌تری باشد. هر تمپلیتی
+   می‌تواند بدون بررسی اضافه روی خروجی حلقه بزند.
+   ========================================================================== */
+
+function romanino_get_volumes( int $product_id ): array {
+    $raw = get_post_meta( $product_id, 'romanino_volumes', true );
+    if ( ! is_array( $raw ) ) {
+        return array();
+    }
+
+    $volumes = array();
+    foreach ( $raw as $row ) {
+        if ( ! is_array( $row ) ) {
+            continue;
+        }
+        $title = isset( $row['title'] ) ? trim( (string) $row['title'] ) : '';
+        if ( '' === $title ) {
+            continue;
+        }
+        $volumes[] = array(
+            'title' => $title,
+            'pages' => isset( $row['pages'] ) ? absint( $row['pages'] ) : 0,
+            'url'   => isset( $row['url'] ) ? (string) $row['url'] : '',
+        );
+    }
+
+    return $volumes;
+}
+
+/**
+ * جمع صفحات همه‌ی جلدها. صفر یعنی هیچ جلدی تعداد صفحه ندارد.
+ * برای اسکیمای Schema.org و ردیف «تعداد صفحات» در جدول مشخصات استفاده می‌شود.
+ */
+function romanino_get_volumes_total_pages( int $product_id ): int {
+    $total = 0;
+    foreach ( romanino_get_volumes( $product_id ) as $volume ) {
+        $total += $volume['pages'];
+    }
+    return $total;
+}
