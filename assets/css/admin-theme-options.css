@@ -31,6 +31,11 @@
 .saro-repeater-row-faq { align-items: flex-start; }
 .saro-repeater-row-faq input[type="text"] { flex: 1 1 220px; }
 .saro-repeater-row-faq textarea { flex: 2 1 320px; min-height: 40px; }
+.saro-repeater-row-quicklink input[type="text"] { flex: 2 1 220px; }
+.saro-repeater-row-quicklink input[type="url"] { flex: 2 1 240px; min-width: 160px; }
+.saro-repeater-row-quicklink select { flex: 0 1 170px; }
+.saro-repeater-row-badge { flex-wrap: wrap; }
+.saro-repeater-row-badge input[type="text"] { flex: 1 1 180px; }
 
 .saro-media-field {
     display: flex;

@@ -139,7 +139,9 @@ $saro_hero_bg = $saro_hero['hero_image'] ?: get_template_directory_uri() . '/ass
     $saro_home_cats = saro_get_top_level_product_categories( 10 );
     if ( ! empty( $saro_home_cats ) ) :
         $saro_cat_boxes = array_slice( $saro_home_cats, 0, 5 );
-        $saro_gold_index = (int) floor( count( $saro_cat_boxes ) / 2 ); // قاب میانی، طلایی
+        // طبق درخواست: همیشه «اولین دسته از سمت راست» (یعنی اولین آیتم در
+        // چیدمان RTL) قاب طلاییِ متمایز را می‌گیرد، نه قاب میانی.
+        $saro_gold_index = 0;
     ?>
     <!-- ═══════════ ۲) دسته‌بندی محصولات ═══════════ -->
     <section class="bg-cream py-11">
@@ -206,23 +208,58 @@ $saro_hero_bg = $saro_hero['hero_image'] ?: get_template_directory_uri() . '/ass
     </section>
     <?php endif; ?>
 
-    <?php if ( ! empty( $saro_home_cats ) ) : ?>
-    <!-- ═══════════ ۴) دسترسی سریع به دسته‌ها ═══════════ -->
+    <?php
+    /**
+     * ۴) «مشکل‌گشای شما اینجاست» — دسترسی‌های سریع.
+     * منبع داده: پیشخوان → هدر و فوتر انتشارات سرو → تب «صفحه اصلی (مشکل‌گشا)».
+     * اگر مدیر سایت هنوز آیتمی وارد نکرده باشد، به‌صورت خودکار روی
+     * دسته‌بندی‌های اصلی محصولات برمی‌گردد تا این بخش خالی نماند.
+     */
+    $saro_ql        = saro_get_quicklinks_options();
+    $saro_ql_icons  = saro_quicklink_icon_map();
+    $saro_ql_items  = array();
+
+    if ( ! empty( $saro_ql['items'] ) ) {
+        foreach ( $saro_ql['items'] as $saro_ql_item ) {
+            if ( empty( $saro_ql_item['title'] ) ) {
+                continue;
+            }
+            $saro_ql_items[] = array(
+                'title' => $saro_ql_item['title'],
+                'url'   => $saro_ql_item['url'] ?: home_url( '/' ),
+                'icon'  => $saro_ql_icons[ $saro_ql_item['icon'] ?? 'book' ]['path'] ?? $saro_ql_icons['book']['path'],
+                'gold'  => ! empty( $saro_ql_item['gold'] ),
+            );
+        }
+    } else {
+        foreach ( $saro_home_cats as $saro_qi => $saro_qcat ) {
+            $saro_qlink = get_term_link( $saro_qcat );
+            if ( is_wp_error( $saro_qlink ) ) {
+                continue;
+            }
+            $saro_ql_items[] = array(
+                'title' => $saro_qcat->name,
+                'url'   => $saro_qlink,
+                'icon'  => $saro_ql_icons['book']['path'],
+                'gold'  => ( 0 === $saro_qi ),
+            );
+        }
+    }
+
+    if ( ! empty( $saro_ql_items ) ) :
+    ?>
     <section class="bg-cream pb-3 pt-11">
         <div class="mx-auto max-w-saro px-6">
-            <h2 class="saro-heading mb-6 font-naskh text-[27px] font-bold text-teal">مشکل‌گشای شما اینجاست</h2>
+            <?php if ( ! empty( $saro_ql['title'] ) ) : ?>
+                <h2 class="saro-heading mb-6 font-naskh text-[27px] font-bold text-teal"><?php echo esc_html( $saro_ql['title'] ); ?></h2>
+            <?php endif; ?>
             <div class="flex flex-wrap justify-center gap-3">
-                <?php foreach ( $saro_home_cats as $saro_qi => $saro_qcat ) :
-                    $saro_qlink = get_term_link( $saro_qcat );
-                    if ( is_wp_error( $saro_qlink ) ) {
-                        continue;
-                    }
-                    $saro_q_is_gold = ( 2 === $saro_qi );
-                    ?>
-                    <a href="<?php echo esc_url( $saro_qlink ); ?>" class="flex items-center gap-2.5 px-6 py-2.5 text-[13.5px] font-bold transition-colors <?php echo $saro_q_is_gold ? 'text-[#fffaf0] hover:text-white' : 'bg-teal text-gold-soft hover:bg-teal-deep hover:text-white'; ?>"
-                        style="clip-path: polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%);<?php echo $saro_q_is_gold ? ' background: linear-gradient(180deg, #d8b56a, var(--gold));' : ''; ?>">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-                        <?php echo esc_html( $saro_qcat->name ); ?>
+                <?php foreach ( $saro_ql_items as $saro_ql_row ) : ?>
+                    <a href="<?php echo esc_url( $saro_ql_row['url'] ); ?>"
+                        class="flex items-center gap-2.5 px-6 py-2.5 text-[13.5px] font-bold transition-colors <?php echo $saro_ql_row['gold'] ? 'text-[#fffaf0] hover:text-white' : 'bg-teal text-gold-soft hover:bg-teal-deep hover:text-white'; ?>"
+                        style="clip-path: polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%);<?php echo $saro_ql_row['gold'] ? ' background: linear-gradient(180deg, #d8b56a, var(--gold));' : ''; ?>">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><?php echo $saro_ql_row['icon']; // phpcs:ignore WordPress.Security.EscapeOutput — مسیر SVG از فهرست ثابت و درون‌کدیِ قالب می‌آید ?></svg>
+                        <?php echo esc_html( $saro_ql_row['title'] ); ?>
                     </a>
                 <?php endforeach; ?>
             </div>

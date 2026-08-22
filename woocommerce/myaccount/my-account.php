@@ -1,9 +1,10 @@
 <?php
 /**
- * My Account — انتشارات سرو (بازطراحی گرافیکی، دارک گلس‌مورفیسم)
- * توجه: منطق PHP دقیقاً همان فایل قبلی است (همان hookها، همان nonce،
- * همان متغیرها) — فقط کلاس‌ها و مارک‌آپ بازطراحی شده تا با پالت رنگی
- * واقعی سایت (که در header.php تعریف شده) یکدست شود.
+ * پنل کاربری — انتشارات سرو
+ * ─────────────────────────────────────────────────────────────────────────
+ * ساختار و منطق دقیقاً همان پنل رمانینو است (همان hookهای ووکامرس، همان
+ * nonce، همان فرم تکمیل سریع پروفایل و همان کارت‌های آمار)؛ فقط پالت رنگی
+ * به تم روشن سرو تبدیل شده است.
  */
 defined( 'ABSPATH' ) || exit;
 
@@ -28,7 +29,7 @@ do_action( 'woocommerce_before_account_navigation' );
 		<div class="pointer-events-none absolute -top-16 -left-16 h-56 w-56 rounded-full bg-gold/10 blur-3xl"></div>
 
 		<div class="relative flex items-center gap-4">
-			<div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gold text-background text-2xl font-black shadow-[0_0_20px_-4px_rgba(234,179,8,0.6)] ring-1 ring-gold/40">
+			<div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gold text-white text-2xl font-black ring-1 ring-gold/40">
 				<?php echo esc_html( mb_substr( $first_name ?: $current_user->display_name, 0, 1 ) ); ?>
 			</div>
 			<div>
@@ -43,7 +44,7 @@ do_action( 'woocommerce_before_account_navigation' );
 		</div>
 
 		<a href="<?php echo esc_url( wc_logout_url() ); ?>"
-			class="relative shrink-0 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-xs font-bold text-red-400 transition-colors hover:bg-red-500/20">
+			class="relative shrink-0 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-2 text-xs font-bold text-destructive transition-colors hover:bg-destructive/20">
 			خروج از حساب
 		</a>
 	</div>
@@ -60,19 +61,27 @@ do_action( 'woocommerce_before_account_navigation' );
 		</div>
 	</div>
 
-	<!-- بنر تخفیف -->
-	<div class="border border-gold-line bg-card relative overflow-hidden rounded-2xl p-4 mb-6 flex items-center gap-3">
-		<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold/15 text-xl ring-1 ring-gold/30">🎁</span>
-		<div class="text-xs leading-relaxed text-muted-foreground">
-			<strong class="text-foreground">جشنواره تخفیف انتشارات سرو:</strong> با کد
-			<code class="rounded bg-gold/15 px-2 py-0.5 font-mono font-black text-gold">ROMAN20</code>
-			از ۲۰٪ تخفیف بهره‌مند شوید!
+	<!-- بنر پیام/تخفیف — متن و کد از پیشخوان → تنظیمات قالب سرو → تب «پیشخوان مشتری» -->
+	<?php
+	$saro_myacc = function_exists( 'saro_get_myaccount_options' ) ? saro_get_myaccount_options() : array();
+	if ( ! empty( $saro_myacc['dashboard_enabled'] ) && ( ! empty( $saro_myacc['dashboard_text'] ) || ! empty( $saro_myacc['dashboard_coupon'] ) ) ) :
+	?>
+	<div class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gold-line bg-cream-2 p-4">
+		<div class="flex items-center gap-3">
+			<span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gold/15 text-gold ring-1 ring-gold/30">
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="2"></rect><path d="M12 8v13M3 12h18"></path><path d="M12 8S9 2 6.5 4 9 8 12 8zM12 8s3-6 5.5-4S15 8 12 8z"></path></svg>
+			</span>
+			<div class="text-xs leading-relaxed text-ink"><?php echo wp_kses_post( $saro_myacc['dashboard_text'] ); ?></div>
 		</div>
+		<?php if ( ! empty( $saro_myacc['dashboard_coupon'] ) ) : ?>
+			<code class="rounded-lg border border-dashed border-gold bg-card px-3 py-1.5 text-sm font-bold text-teal" dir="ltr"><?php echo esc_html( $saro_myacc['dashboard_coupon'] ); ?></code>
+		<?php endif; ?>
 	</div>
+	<?php endif; ?>
 
 	<!-- فرم تکمیل پروفایل -->
 	<?php if ( $needs_profile_update ) : ?>
-	<div class="border border-gold-line bg-card rounded-3xl p-6 mb-6" style="border-color: rgba(16,185,129,0.25);">
+	<div class="border border-gold-line bg-card rounded-3xl p-6 mb-6">
 		<div class="mb-2 flex items-center gap-2">
 			<span class="text-lg">📝</span>
 			<h3 class="text-xs font-black text-gold">تکمیل سریع پروفایل کاربری</h3>
@@ -100,7 +109,7 @@ do_action( 'woocommerce_before_account_navigation' );
 			</select>
 
 			<button type="submit"
-				class=" w-full rounded-xl bg-gold py-2.5 text-xs font-bold text-background transition-all hover:brightness-110">
+				class="saro-btn-gold w-full py-2.5 text-xs">
 				ثبت و ذخیره
 			</button>
 		</form>
@@ -112,7 +121,7 @@ do_action( 'woocommerce_before_account_navigation' );
 		<div class="woocommerce-MyAccount-navigation">
 			<?php do_action( 'woocommerce_account_navigation' ); ?>
 		</div>
-		<div class="woocommerce-MyAccount-content glass rounded-2xl p-5 md:p-6">
+		<div class="woocommerce-MyAccount-content rounded-2xl border border-gold-line bg-card p-5 md:p-6">
 			<?php do_action( 'woocommerce_account_content' ); ?>
 		</div>
 	</div>

@@ -39,7 +39,7 @@ $has_downloads = ! empty( $downloads );
 				بعد از خرید هر کتاب، فایل پی‌دی‌اف یا نسخه‌ی صوتی آن همین‌جا در دسترس شما قرار می‌گیرد.
 			</p>
 			<a href="<?php echo esc_url( get_post_type_archive_link( 'product' ) ); ?>"
-				class=" mt-2 rounded-xl bg-gold px-6 py-2.5 text-sm font-bold text-background transition-all hover:brightness-110">
+				class="saro-btn-gold mt-2 px-6 py-2.5 text-sm">
 				مرور محصولات
 			</a>
 		</div>
@@ -71,7 +71,7 @@ $has_downloads = ! empty( $downloads );
 					</div>
 
 					<a href="<?php echo esc_url( $download['download_url'] ); ?>"
-						class="flex items-center justify-center gap-2 rounded-xl bg-gold py-2.5 text-xs font-bold text-background transition-all hover:brightness-110">
+						class="saro-btn-gold w-full py-2.5 text-xs">
 						<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
 						دانلود فایل
 					</a>

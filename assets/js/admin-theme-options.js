@@ -104,6 +104,45 @@
         $wrap.append(row);
     });
 
+    /* ---------- ردیف نماد اعتماد فوتر ---------- */
+    $('#saro-add-badge').on('click', function () {
+        var $wrap = $('#saro-repeater-badges');
+        // ایندکس یکتا بر اساس تعداد ردیف‌های فعلی؛ چون نام فیلدها آرایه‌ای با
+        // کلید صریح‌اند، حتی با حذف ردیف‌های میانی هم تداخلی پیش نمی‌آید.
+        var i = $wrap.children('.saro-repeater-row').length;
+        var row = '<div class="saro-repeater-row saro-repeater-row-badge">' +
+            '<div class="saro-media-field">' +
+                '<input type="text" class="saro-media-url" name="trust_badges[' + i + '][image]" placeholder="آدرس تصویر نماد" readonly>' +
+                '<img class="saro-media-preview" src="" style="display:none;">' +
+                '<button type="button" class="button saro-upload-logo">انتخاب تصویر</button>' +
+            '</div>' +
+            '<input type="text" name="trust_badges[' + i + '][title]" placeholder="عنوان، مثلاً: نماد اعتماد الکترونیکی">' +
+            '<input type="text" name="trust_badges[' + i + '][subtitle]" placeholder="زیرعنوان">' +
+            '<input type="text" name="trust_badges[' + i + '][url]" placeholder="لینک (اختیاری)" dir="ltr">' +
+            '<button type="button" class="button saro-remove-row">حذف</button>' +
+            '</div>';
+        $wrap.append(row);
+    });
+
+    /* ---------- ردیف «مشکل‌گشا» ----------
+       گزینه‌های <select> آیکون از روی همان ردیف اول صفحه کپی می‌شوند تا اگر
+       روزی آیکون تازه‌ای به قالب اضافه شد، لازم نباشد این فایل هم دستکاری شود. */
+    $('#saro-add-quicklink').on('click', function () {
+        var $wrap = $('#saro-repeater-quicklinks');
+        var iconOptions = $wrap.find('select[name="ql_icon[]"]').first().html() || '';
+        var row = '<div class="saro-repeater-row saro-repeater-row-quicklink">' +
+            '<input type="text" name="ql_title[]" placeholder="عنوان، مثلاً: ادعیه و زیارات">' +
+            '<input type="url" name="ql_url[]" placeholder="لینک (https://...)" dir="ltr">' +
+            '<select name="ql_icon[]">' + iconOptions + '</select>' +
+            '<select name="ql_gold[]" title="رنگ دکمه">' +
+                '<option value="0">عادی (سبزآبی)</option>' +
+                '<option value="1">متمایز (طلایی)</option>' +
+            '</select>' +
+            '<button type="button" class="button saro-remove-row">حذف</button>' +
+            '</div>';
+        $wrap.append(row);
+    });
+
     /* ---------- حذف هر ردیفی ---------- */
     $(document).on('click', '.saro-remove-row', function () {
         $(this).closest('.saro-repeater-row').remove();

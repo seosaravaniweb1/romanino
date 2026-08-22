@@ -47,7 +47,7 @@ if ( is_user_logged_in() ) {
 		<div class="mb-6 flex items-center justify-between">
 			<a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="flex items-center gap-2.5" aria-label="صفحه اصلی">
 				<?php if ( has_custom_logo() ) : ?>
-					<span class="saro-site-logo"><?php the_custom_logo(); ?></span>
+					<span class="saro-logo-slot"><?php the_custom_logo(); ?></span>
 				<?php else : ?>
 					<span class="grid h-9 w-9 place-items-center rounded-[50%/58%_58%_42%_42%] border border-gold text-gold">
 						<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"><path d="M12 3c2.6 2.2 4 4.9 4 7.8 0 3.4-1.7 6.3-4 8.2-2.3-1.9-4-4.8-4-8.2C8 7.9 9.4 5.2 12 3z"></path><path d="M12 21v-8"></path></svg>

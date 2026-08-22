@@ -29,16 +29,30 @@ function saro_footer_defaults() {
         'contact_email'    => '',
         'contact_telegram' => '',
         'contact_address'  => '',
+        // ستون راستِ فوتر: «لینک‌های سایت»
         'about_links'      => array(
-            array( 'title' => 'درباره ما',        'url' => '' ),
-            array( 'title' => 'قوانین و مقررات',  'url' => '' ),
-            array( 'title' => 'شرایط عودت وجه',    'url' => '' ),
+            array( 'title' => 'درباره ما', 'url' => '' ),
+            array( 'title' => 'فروشگاه',   'url' => '' ),
+            array( 'title' => 'وبلاگ',     'url' => '' ),
+            array( 'title' => 'تماس با ما', 'url' => '' ),
         ),
+        // ستون راستِ فوتر: «لینک‌های کاربری»
         'guide_links'      => array(
-            array( 'title' => 'راهنمای خرید',   'url' => '' ),
-            array( 'title' => 'راهنمای دانلود', 'url' => '' ),
-            array( 'title' => 'پیگیری سفارش',   'url' => '' ),
+            array( 'title' => 'ورود / ثبت نام',  'url' => '' ),
+            array( 'title' => 'حساب کاربری',     'url' => '' ),
+            array( 'title' => 'سفارشات من',      'url' => '' ),
+            array( 'title' => 'پیگیری سفارش',    'url' => '' ),
         ),
+        // پس‌زمینهٔ قاب فوتر (خالی = قاب تذهیب پیش‌فرض قالب)
+        'footer_bg'        => '',
+        'footer_bg_slice'  => 140,
+        // نمادهای اعتماد ستون چپ فوتر
+        'trust_badges'     => array(
+            array( 'image' => '', 'title' => 'نماد اعتماد الکترونیکی', 'subtitle' => 'www.eNAMAD.ir', 'url' => '' ),
+            array( 'image' => '', 'title' => 'ستاد ساماندهی',          'subtitle' => 'پایگاه‌های اینترنتی', 'url' => '' ),
+            array( 'image' => '', 'title' => 'درگاه پرداخت امن',       'subtitle' => 'درگاه پرداخت بانکی', 'url' => '' ),
+        ),
+        'footer_credit'    => 'طراحی و توسعه با عشق در مسیر معرفت',
         'app_google'  => '',
         'app_bazaar'  => '',
         'app_myket'   => '',
@@ -116,6 +130,50 @@ function saro_get_faq_options() {
         $opts = wp_parse_args( get_option( 'saro_faq_options', array() ), saro_faq_defaults() );
     }
     return $opts;
+}
+
+/**
+ * بخش «مشکل‌گشای شما اینجاست» صفحهٔ اصلی — دسترسی‌های سریع.
+ * ─────────────────────────────────────────────────────────────────────────
+ * هر آیتم یک عنوان، یک لینک دلخواه و یک آیکون از مجموعهٔ آیکون‌های قالب
+ * دارد؛ با تیک «متمایز» هم می‌توان یک (یا چند) آیتم را طلایی کرد.
+ * اگر مدیر سایت هیچ آیتمی وارد نکند، صفحهٔ اصلی به‌صورت خودکار روی
+ * دسته‌بندی‌های اصلی محصولات برمی‌گردد تا این بخش هیچ‌وقت خالی نماند.
+ */
+function saro_quicklinks_defaults() {
+    return array(
+        'title' => 'مشکل‌گشای شما اینجاست',
+        'items' => array(),
+    );
+}
+function saro_get_quicklinks_options() {
+    static $opts = null;
+    if ( null === $opts ) {
+        $opts = wp_parse_args( get_option( 'saro_quicklinks_options', array() ), saro_quicklinks_defaults() );
+    }
+    return $opts;
+}
+
+/**
+ * آیکون‌های قابل انتخاب برای آیتم‌های «مشکل‌گشا».
+ * کلید = مقداری که در دیتابیس ذخیره می‌شود، path = مسیر SVG با viewBox 24×24.
+ * (آیکون‌ها عمداً درون‌کدی‌اند تا هیچ درخواست اضافه‌ای به سرور زده نشود.)
+ */
+function saro_quicklink_icon_map() {
+    return array(
+        'book'     => array( 'label' => 'کتاب', 'path' => '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>' ),
+        'quran'    => array( 'label' => 'قرآن (کتاب باز)', 'path' => '<path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path>' ),
+        'dua'      => array( 'label' => 'دعا (تسبیح)', 'path' => '<circle cx="12" cy="13" r="7"></circle><path d="M12 6V2.5"></path><circle cx="12" cy="13" r="3.4"></circle>' ),
+        'candle'   => array( 'label' => 'شمع', 'path' => '<path d="M12 22V9"></path><path d="M12 9c-3 0-5-2-5-4.5C7 3 8 2 9.5 2 11 2 12 3.4 12 5c0-1.6 1-3 2.5-3C16 2 17 3 17 4.5 17 7 15 9 12 9z"></path><path d="M6 22h12"></path>' ),
+        'star'     => array( 'label' => 'ستاره', 'path' => '<path d="m12 3 2.6 5.6 6.1.8-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.4l6.1-.8z"></path>' ),
+        'audio'    => array( 'label' => 'فایل صوتی', 'path' => '<path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>' ),
+        'download' => array( 'label' => 'دانلود', 'path' => '<path d="M21 15v3a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-3"></path><path d="M8 11l4 4 4-4M12 3v12"></path>' ),
+        'mosque'   => array( 'label' => 'گنبد و مسجد', 'path' => '<path d="M12 2c2.5 2.2 4 4.4 4 6.5V10H8V8.5C8 6.4 9.5 4.2 12 2z"></path><path d="M4 22V12a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10"></path><path d="M9 22v-5a3 3 0 0 1 6 0v5"></path>' ),
+        'heart'    => array( 'label' => 'قلب', 'path' => '<path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1L12 21.5l8.8-8.8a5 5 0 0 0 0-7.1z"></path>' ),
+        'shield'   => array( 'label' => 'سپر (حرز)', 'path' => '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 11.5 2 2 4-4"></path>' ),
+        'scale'    => array( 'label' => 'ترازو (فقه)', 'path' => '<path d="M12 3v18M7 21h10M4 7h16M6.5 7 3 14h7zM17.5 7 14 14h7z"></path>' ),
+        'compass'  => array( 'label' => 'قبله‌نما', 'path' => '<circle cx="12" cy="12" r="9"></circle><path d="m16 8-2 6-6 2 2-6z"></path>' ),
+    );
 }
 
 /** متن/کد تخفیف قابل نمایش در پیشخوان مشتری (My Account → Dashboard) */
@@ -286,6 +344,22 @@ add_action( 'admin_init', function () {
             $banks[] = array( 'name' => $name, 'logo' => $logo );
         }
 
+        $badges_input = isset( $_POST['trust_badges'] ) ? (array) $_POST['trust_badges'] : array();
+        $trust_badges = array();
+        foreach ( $badges_input as $badge ) {
+            $badge_title = sanitize_text_field( wp_unslash( $badge['title'] ?? '' ) );
+            $badge_image = esc_url_raw( trim( wp_unslash( $badge['image'] ?? '' ) ) );
+            if ( '' === $badge_title && '' === $badge_image ) {
+                continue;
+            }
+            $trust_badges[] = array(
+                'image'    => $badge_image,
+                'title'    => $badge_title,
+                'subtitle' => sanitize_text_field( wp_unslash( $badge['subtitle'] ?? '' ) ),
+                'url'      => esc_url_raw( trim( wp_unslash( $badge['url'] ?? '' ) ) ),
+            );
+        }
+
         $data = array(
             'sub_title'           => sanitize_text_field( wp_unslash( $_POST['sub_title'] ?? $defaults['sub_title'] ) ),
             'sub_subtitle'        => sanitize_textarea_field( wp_unslash( $_POST['sub_subtitle'] ?? $defaults['sub_subtitle'] ) ),
@@ -297,6 +371,12 @@ add_action( 'admin_init', function () {
             'contact_email'      => sanitize_email( wp_unslash( $_POST['contact_email'] ?? '' ) ),
             'contact_telegram'   => sanitize_text_field( wp_unslash( $_POST['contact_telegram'] ?? '' ) ),
             'contact_address'    => sanitize_text_field( wp_unslash( $_POST['contact_address'] ?? '' ) ),
+            'footer_bg'          => esc_url_raw( trim( wp_unslash( $_POST['footer_bg'] ?? '' ) ) ),
+            // بازهٔ منطقی برای اسلایس: کمتر از ۲۰ یعنی گوشه‌ای دیده نمی‌شود و
+            // بیشتر از نصفِ ابعاد تصویر، خروجی border-image را نامعتبر می‌کند.
+            'footer_bg_slice'    => max( 20, min( 400, absint( $_POST['footer_bg_slice'] ?? 140 ) ) ),
+            'footer_credit'      => sanitize_text_field( wp_unslash( $_POST['footer_credit'] ?? '' ) ),
+            'trust_badges'       => $trust_badges,
             'about_links'        => saro_sanitize_link_repeater( $_POST['about_links'] ?? array() ),
             'guide_links'        => saro_sanitize_link_repeater( $_POST['guide_links'] ?? array(), 5 ),
             'app_google'         => esc_url_raw( trim( wp_unslash( $_POST['app_google'] ?? '' ) ) ),
@@ -377,6 +457,42 @@ add_action( 'admin_init', function () {
         } );
     }
 
+    // ذخیره بخش «مشکل‌گشای شما اینجاست»
+    if ( isset( $_POST['saro_save_quicklinks'] ) && check_admin_referer( 'saro_quicklinks_nonce', 'saro_quicklinks_nonce_field' ) ) {
+        $icon_keys = array_keys( saro_quicklink_icon_map() );
+        $titles    = (array) ( $_POST['ql_title'] ?? array() );
+        $urls      = (array) ( $_POST['ql_url'] ?? array() );
+        $icons     = (array) ( $_POST['ql_icon'] ?? array() );
+        $golds     = (array) ( $_POST['ql_gold'] ?? array() );
+
+        $items = array();
+        foreach ( $titles as $i => $title ) {
+            $title = sanitize_text_field( wp_unslash( $title ) );
+            if ( '' === $title ) {
+                continue; // ردیف بدون عنوان اصلاً ذخیره نمی‌شود
+            }
+            $icon = sanitize_key( wp_unslash( $icons[ $i ] ?? '' ) );
+            $items[] = array(
+                'title' => $title,
+                'url'   => esc_url_raw( trim( wp_unslash( $urls[ $i ] ?? '' ) ) ),
+                'icon'  => in_array( $icon, $icon_keys, true ) ? $icon : 'book',
+                // «متمایز» عمداً select است نه چک‌باکس: چک‌باکسِ تیک‌نخورده اصلاً
+                // ارسال نمی‌شود و با حذف یک ردیفِ میانی، ایندکس‌ها جابه‌جا و
+                // تیک به آیتم اشتباه منتقل می‌شد. select همیشه یک مقدار به‌ازای
+                // هر ردیف می‌فرستد، پس هر چهار آرایه دقیقاً هم‌تراز می‌مانند.
+                'gold'  => ! empty( $golds[ $i ] ) ? 1 : 0,
+            );
+        }
+
+        update_option( 'saro_quicklinks_options', array(
+            'title' => sanitize_text_field( wp_unslash( $_POST['ql_section_title'] ?? '' ) ),
+            'items' => $items,
+        ) );
+        add_action( 'admin_notices', function () {
+            echo '<div class="notice notice-success is-dismissible"><p>بخش «مشکل‌گشای شما اینجاست» ذخیره شد.</p></div>';
+        } );
+    }
+
     // ذخیره تنظیمات پیشخوان مشتری
     if ( isset( $_POST['saro_save_myaccount'] ) && check_admin_referer( 'saro_myaccount_nonce', 'saro_myaccount_nonce_field' ) ) {
         $data = array(
@@ -412,7 +528,7 @@ add_action( 'admin_init', function () {
 function saro_render_options_page() {
     if ( ! current_user_can( 'manage_options' ) ) return;
 
-    $valid_tabs = array( 'header', 'sidebar', 'faq', 'myaccount', 'sms' );
+    $valid_tabs = array( 'header', 'sidebar', 'faq', 'quicklinks', 'myaccount', 'sms' );
     $tab      = isset( $_GET['tab'] ) && in_array( $_GET['tab'], $valid_tabs, true ) ? $_GET['tab'] : 'footer';
     $footer   = saro_get_footer_options();
     $header   = saro_get_header_options();
@@ -432,6 +548,7 @@ function saro_render_options_page() {
             <?php // FIX (Task 1.5 + 2.1): تب‌های «هدر (کتاب‌های ویژه)» و «صفحه اصلی (کتاب‌های پرطرفدار)» طبق درخواست حذف شدند. ?>
             <a href="?page=saro-theme-options&tab=sidebar" class="nav-tab <?php echo $tab === 'sidebar' ? 'nav-tab-active' : ''; ?>">صفحه محصول (باکس اعتماد)</a>
             <a href="?page=saro-theme-options&tab=faq" class="nav-tab <?php echo $tab === 'faq' ? 'nav-tab-active' : ''; ?>">صفحه اصلی (سوالات متداول)</a>
+            <a href="?page=saro-theme-options&tab=quicklinks" class="nav-tab <?php echo $tab === 'quicklinks' ? 'nav-tab-active' : ''; ?>">صفحه اصلی (مشکل‌گشا)</a>
             <a href="?page=saro-theme-options&tab=myaccount" class="nav-tab <?php echo $tab === 'myaccount' ? 'nav-tab-active' : ''; ?>">پیشخوان مشتری</a>
             <a href="?page=saro-theme-options&tab=sms" class="nav-tab <?php echo $tab === 'sms' ? 'nav-tab-active' : ''; ?>">پیامک (OTP)</a>
         </h2>
@@ -511,7 +628,7 @@ function saro_render_options_page() {
             </div>
 
             <div class="saro-box">
-                <h2>۳. ستون «درباره انتشارات سرو»</h2>
+                <h2>۳. ستون «لینک‌های سایت» <span class="description">(بخش «لینک های مهم» فوتر)</span></h2>
                 <p class="description">عنوان و لینک دلخواه اضافه یا حذف کنید (بدون محدودیت تعداد).</p>
                 <div id="saro-repeater-about" class="saro-repeater">
                     <?php foreach ( $footer['about_links'] as $i => $link ) : ?>
@@ -526,8 +643,8 @@ function saro_render_options_page() {
             </div>
 
             <div class="saro-box">
-                <h2>۴. ستون «راهنمای مشتریان»</h2>
-                <p class="description">حداکثر ۵ لینک قابل افزودن است.</p>
+                <h2>۴. ستون «لینک‌های کاربری» <span class="description">(بخش «لینک های مهم» فوتر)</span></h2>
+                <p class="description">مثل «ورود / ثبت نام»، «حساب کاربری»، «سفارشات من». حداکثر ۵ لینک.</p>
                 <div id="saro-repeater-guide" class="saro-repeater" data-max="5">
                     <?php foreach ( $footer['guide_links'] as $i => $link ) : ?>
                         <div class="saro-repeater-row saro-repeater-row-link">
@@ -554,6 +671,64 @@ function saro_render_options_page() {
                     <tr>
                         <th><label for="app_myket">لینک مایکت</label></th>
                         <td><input type="text" id="app_myket" name="app_myket" class="large-text" value="<?php echo esc_attr( $footer['app_myket'] ); ?>"></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="saro-box">
+                <h2>۵-ب. نمادهای اعتماد فوتر <span class="description">(ستون «نمادهای اعتماد»)</span></h2>
+                <p class="description">
+                    سه نماد ستون چپ فوتر. برای هر کدام تصویر، عنوان، زیرعنوان و لینک بگذارید.
+                    اگر تصویری انتخاب نکنید، آیکون پیش‌فرض قالب نمایش داده می‌شود. ردیف‌های خالی ذخیره نمی‌شوند.
+                </p>
+                <div id="saro-repeater-badges" class="saro-repeater">
+                    <?php
+                    $saro_badge_rows = ! empty( $footer['trust_badges'] ) ? $footer['trust_badges'] : array( array( 'image' => '', 'title' => '', 'subtitle' => '', 'url' => '' ) );
+                    foreach ( $saro_badge_rows as $i => $badge ) :
+                    ?>
+                        <div class="saro-repeater-row saro-repeater-row-badge">
+                            <div class="saro-media-field">
+                                <input type="text" class="saro-media-url" name="trust_badges[<?php echo (int) $i; ?>][image]" placeholder="آدرس تصویر نماد" value="<?php echo esc_attr( $badge['image'] ?? '' ); ?>" readonly>
+                                <img class="saro-media-preview" src="<?php echo esc_url( $badge['image'] ?? '' ); ?>" style="<?php echo ! empty( $badge['image'] ) ? '' : 'display:none;'; ?>">
+                                <button type="button" class="button saro-upload-logo">انتخاب تصویر</button>
+                            </div>
+                            <input type="text" name="trust_badges[<?php echo (int) $i; ?>][title]" placeholder="عنوان، مثلاً: نماد اعتماد الکترونیکی" value="<?php echo esc_attr( $badge['title'] ?? '' ); ?>">
+                            <input type="text" name="trust_badges[<?php echo (int) $i; ?>][subtitle]" placeholder="زیرعنوان" value="<?php echo esc_attr( $badge['subtitle'] ?? '' ); ?>">
+                            <input type="text" name="trust_badges[<?php echo (int) $i; ?>][url]" placeholder="لینک (اختیاری)" dir="ltr" value="<?php echo esc_attr( $badge['url'] ?? '' ); ?>">
+                            <button type="button" class="button saro-remove-row">حذف</button>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <button type="button" class="button button-secondary" id="saro-add-badge">+ افزودن نماد</button>
+            </div>
+
+            <div class="saro-box">
+                <h2>۵-ج. قاب و پس‌زمینهٔ فوتر</h2>
+                <p class="description">
+                    فوتر روی یک «قاب تذهیب» رسم می‌شود. اگر جای خالی بگذارید، قاب پیش‌فرض قالب
+                    (فایل برداری، بدون افت کیفیت در هر اندازه) استفاده می‌شود.
+                    <br>اگر تصویر قاب اختصاصی خودتان را آپلود می‌کنید، «اندازهٔ گوشه» را هم تنظیم کنید:
+                    این عدد یعنی چند پیکسل از هر طرفِ تصویر «گوشهٔ نگاره‌دار» است و نباید کشیده شود؛
+                    بقیهٔ تصویر برای پرکردن عرض کشیده می‌شود. (پیش‌فرض: ۱۴۰)
+                </p>
+                <table class="form-table">
+                    <tr>
+                        <th>تصویر قاب فوتر</th>
+                        <td>
+                            <div class="saro-media-field">
+                                <img class="saro-media-preview" src="<?php echo esc_url( $footer['footer_bg'] ); ?>" style="max-width:260px; <?php echo $footer['footer_bg'] ? '' : 'display:none;'; ?>">
+                                <input type="text" class="saro-media-url" name="footer_bg" value="<?php echo esc_attr( $footer['footer_bg'] ); ?>" readonly style="width:100%; max-width:420px;">
+                                <button type="button" class="button saro-upload-logo">انتخاب تصویر</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="footer_bg_slice">اندازهٔ گوشه (پیکسل)</label></th>
+                        <td><input type="number" id="footer_bg_slice" name="footer_bg_slice" min="20" max="400" value="<?php echo esc_attr( $footer['footer_bg_slice'] ); ?>" style="width:120px;"></td>
+                    </tr>
+                    <tr>
+                        <th><label for="footer_credit">متن پایین فوتر</label></th>
+                        <td><input type="text" id="footer_credit" name="footer_credit" class="large-text" value="<?php echo esc_attr( $footer['footer_credit'] ); ?>" placeholder="طراحی و توسعه با عشق در مسیر معرفت"></td>
                     </tr>
                 </table>
             </div>
@@ -711,6 +886,53 @@ function saro_render_options_page() {
                 <button type="button" class="button button-secondary" id="saro-add-faq">+ افزودن سوال جدید</button>
             </div>
             <p><button type="submit" name="saro_save_faq" value="1" class="button button-primary button-hero">ذخیره سوالات متداول</button></p>
+        </form>
+
+        <?php elseif ( $tab === 'quicklinks' ) : ?>
+
+        <?php
+        $saro_ql       = saro_get_quicklinks_options();
+        $saro_ql_icons = saro_quicklink_icon_map();
+        $saro_ql_rows  = ! empty( $saro_ql['items'] ) ? $saro_ql['items'] : array( array( 'title' => '', 'url' => '', 'icon' => 'book', 'gold' => 0 ) );
+        ?>
+        <form method="post" class="saro-admin-form">
+            <?php wp_nonce_field( 'saro_quicklinks_nonce', 'saro_quicklinks_nonce_field' ); ?>
+            <div class="saro-box">
+                <h2>مشکل‌گشای شما اینجاست <span class="description">(بخش: صفحه اصلی)</span></h2>
+                <p class="description">
+                    ردیف دکمه‌های دسترسی سریع در صفحهٔ اصلی. برای هر آیتم عنوان، لینک دلخواه و آیکون انتخاب کنید؛
+                    با تیک «متمایز» آن آیتم طلایی می‌شود. ردیف‌های بدون عنوان ذخیره نمی‌شوند.
+                    <br><strong>اگر هیچ آیتمی وارد نکنید</strong>، این بخش به‌صورت خودکار دسته‌بندی‌های اصلی محصولات را نشان می‌دهد.
+                </p>
+
+                <table class="form-table">
+                    <tr>
+                        <th><label for="ql_section_title">عنوان بخش</label></th>
+                        <td><input type="text" id="ql_section_title" name="ql_section_title" class="large-text" value="<?php echo esc_attr( $saro_ql['title'] ); ?>" placeholder="مشکل‌گشای شما اینجاست"></td>
+                    </tr>
+                </table>
+
+                <div id="saro-repeater-quicklinks" class="saro-repeater">
+                    <?php foreach ( $saro_ql_rows as $saro_qrow ) : ?>
+                        <div class="saro-repeater-row saro-repeater-row-quicklink">
+                            <input type="text" name="ql_title[]" placeholder="عنوان، مثلاً: ادعیه و زیارات" value="<?php echo esc_attr( $saro_qrow['title'] ?? '' ); ?>">
+                            <input type="url" name="ql_url[]" placeholder="لینک (https://...)" dir="ltr" value="<?php echo esc_attr( $saro_qrow['url'] ?? '' ); ?>">
+                            <select name="ql_icon[]">
+                                <?php foreach ( $saro_ql_icons as $saro_icon_key => $saro_icon ) : ?>
+                                    <option value="<?php echo esc_attr( $saro_icon_key ); ?>" <?php selected( $saro_qrow['icon'] ?? 'book', $saro_icon_key ); ?>><?php echo esc_html( $saro_icon['label'] ); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <select name="ql_gold[]" title="رنگ دکمه">
+                                <option value="0" <?php selected( empty( $saro_qrow['gold'] ) ); ?>>عادی (سبزآبی)</option>
+                                <option value="1" <?php selected( ! empty( $saro_qrow['gold'] ) ); ?>>متمایز (طلایی)</option>
+                            </select>
+                            <button type="button" class="button saro-remove-row">حذف</button>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <button type="button" class="button button-secondary" id="saro-add-quicklink">+ افزودن آیتم</button>
+            </div>
+            <p><button type="submit" name="saro_save_quicklinks" value="1" class="button button-primary button-hero">ذخیره بخش مشکل‌گشا</button></p>
         </form>
 
         <?php elseif ( $tab === 'myaccount' ) : ?>

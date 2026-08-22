@@ -493,20 +493,106 @@ details[open] .saro-plus {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   سقف تدافعی ارتفاع لوگو — مستقل از ابعاد فایلی که مدیر سایت آپلود می‌کند،
-   لوگو هرگز نباید ارتفاع ردیف هدر را بشکند.
+   قاب تذهیبِ فوتر
+   ─────────────────────────────────────────────────────────────────────────
+   با border-image به شکل «۹ تکه» رسم می‌شود: چهار گوشهٔ نگاره‌دار هیچ‌وقت
+   کشیده یا تغییرشکل نمی‌دهند و فقط ضلع‌ها و وسط کش می‌آیند. برای همین قاب
+   در هر عرضی — از موبایل تا مانیتور فوق‌عریض — دقیقاً درست می‌نشیند.
+
+   دو متغیر از پیشخوان تزریق می‌شوند (footer.php آن‌ها را روی همین عنصر ست
+   می‌کند): --saro-frame تصویر قاب و --saro-frame-slice اندازهٔ گوشه.
    ───────────────────────────────────────────────────────────────────────── */
-.saro-site-logo {
+.saro-footer-frame {
+	position: relative;
+	border-style: solid;
+	border-width: 30px;
+	border-image-source: var(--saro-frame);
+	border-image-slice: var(--saro-frame-slice, 140) fill;
+	border-image-width: 1;
+	border-image-repeat: stretch;
+}
+
+@media (min-width: 640px) {
+	.saro-footer-frame { border-width: 46px; }
+}
+@media (min-width: 1024px) {
+	.saro-footer-frame { border-width: 64px; }
+}
+
+/* گل شاه‌عباسی وسط ضلع راست و چپ قاب.
+   چون در حالت ۹ تکه ضلع‌ها کشیده می‌شوند، این دو نگاره جدا و دقیقاً در
+   میانهٔ ارتفاع قرار می‌گیرند تا همیشه در مرکز بمانند. روی موبایل پنهان
+   می‌شوند تا فضای باریک را شلوغ نکنند. */
+.saro-frame-rosette {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	display: none;
+	color: var(--gold);
+	pointer-events: none;
+}
+.saro-frame-rosette-start { right: -13px; }
+.saro-frame-rosette-end { left: -13px; }
+@media (min-width: 1024px) {
+	.saro-frame-rosette { display: block; }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   لوگوی سایت — «اسلات با ارتفاع ثابت»
+   ─────────────────────────────────────────────────────────────────────────
+   خواستهٔ پروژه: اگر مدیر سایت لوگوی بزرگی آپلود کرد، هدر (و فوتر) نباید
+   کشیده یا بلند شود؛ به‌جای آن خودِ لوگو باید از کادر بیرون بزند.
+
+   راه‌حل: اسلات ارتفاع ثابت و از پیش‌معلوم دارد و تصویر داخلش
+   position:absolute است. عنصر absolute اصلاً در محاسبهٔ ارتفاع والد شرکت
+   نمی‌کند، پس هر ابعادی هم که فایل لوگو داشته باشد، ارتفاع ردیف هدر همان
+   عددِ ثابت می‌ماند و تصویر (در صورت بزرگ‌بودن) بیرون‌زدگی پیدا می‌کند.
+   overflow روی هدر هم visible است تا بیرون‌زدگی بریده نشود.
+   ───────────────────────────────────────────────────────────────────────── */
+.saro-logo-plaque {
+	display: block;
+	position: relative;
+	overflow: visible;
+}
+
+.saro-logo-slot {
+	display: block;
+	position: relative;
+	width: clamp(120px, 22vw, 190px);
+	height: 44px; /* ارتفاع ثابتِ مرجع؛ هرگز با اندازهٔ فایل لوگو تغییر نمی‌کند */
 	display: flex;
 	align-items: center;
-	max-height: 2.75rem;
 }
-.saro-site-logo img,
-.saro-site-logo .custom-logo {
-	max-height: 2.75rem;
-	width: auto;
+.saro-logo-slot img,
+.saro-logo-slot .custom-logo {
+	position: absolute;
+	/* بالای تصویر به بالای اسلات قفل است تا بیرون‌زدگیِ لوگوی بزرگ همیشه
+	   «به سمت پایین» باشد (مثل کتیبه‌ای که از هدر آویزان می‌شود) و هیچ‌وقت
+	   از بالای صفحه بیرون نزند. لوگوهای کوچک‌تر از ارتفاع اسلات هم با
+	   align-items وسط‌چین می‌مانند. */
+	top: 0;
+	right: 50%;
+	transform: translateX(50%);
+	/* هیچ سقفی روی ارتفاع گذاشته نشده: لوگوی بزرگ عمداً از هدر بیرون می‌زند */
+	max-height: none;
+	max-width: none;
+	width: 100%;
 	height: auto;
 	object-fit: contain;
+	pointer-events: none;
+}
+
+@media (min-width: 1024px) {
+	.saro-logo-slot {
+		width: clamp(150px, 16vw, 230px);
+		height: 52px;
+	}
+}
+
+/* نسخهٔ فوتر: کمی بزرگ‌تر، چون فضای بیشتری در اختیار دارد */
+.saro-logo-slot-footer {
+	width: clamp(150px, 40vw, 220px);
+	height: 56px;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────

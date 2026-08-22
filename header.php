@@ -27,29 +27,30 @@ $saro_account_url = function_exists( 'wc_get_page_permalink' ) ? $saro_account_u
 <header class="sticky top-0 z-[70] w-full bg-cream-3 px-3 pt-2.5 md:px-5">
     <div class="relative mx-auto grid max-w-saro grid-cols-[auto_1fr_auto] items-center gap-2.5 rounded-t-2xl border border-b-0 border-gold-line bg-[#fffdf7] px-4 py-2.5 shadow-[0_1px_6px_rgba(43,36,23,0.04)] lg:min-h-[62px] lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:px-7 lg:py-0">
 
-        <!-- ═══ ناوبری اصلی (دسکتاپ) ═══ -->
+        <!-- ═══ ناوبری اصلی (دسکتاپ) ═══
+             ترتیب طبق درخواست: اول مگامنوی دسته‌بندی محصولات، بعد آیتم‌های
+             منوی «اصلی (هدر)» که مدیر سایت از پیشخوان → نمایش → فهرست‌ها
+             می‌سازد. -->
         <nav class="col-start-1 hidden min-w-0 flex-wrap items-center justify-start gap-0.5 lg:flex" aria-label="منوی اصلی">
-            <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="whitespace-nowrap px-2.5 py-1.5 text-sm font-bold <?php echo is_front_page() ? 'border-b-2 border-gold text-teal' : 'text-ink hover:text-teal'; ?>">خانه</a>
-
-            <?php if ( function_exists( 'wc_get_page_permalink' ) ) : ?>
-            <a href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>" class="whitespace-nowrap px-2.5 py-1.5 text-[13.5px] text-ink hover:text-teal">فروشگاه</a>
-            <?php endif; ?>
 
             <!-- مگامنوی دسته‌بندی‌ها — کاملاً با CSS باز می‌شود (بدون جاوااسکریپت) -->
             <div class="saro-mega-wrap static">
-                <button type="button" class="flex cursor-pointer items-center gap-1.5 whitespace-nowrap border-0 bg-transparent px-2.5 py-1.5 font-sans text-sm text-ink hover:text-teal" aria-haspopup="true">
-                    دسته‌بندی آثار
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="text-gold"><path d="m6 9 6 6 6-6"></path></svg>
+                <button type="button" class="flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-lg border-0 bg-cream-2 px-3 py-1.5 font-sans text-sm font-bold text-teal hover:bg-gold hover:text-white" aria-haspopup="true">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    دسته‌بندی محصولات
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"></path></svg>
                 </button>
                 <div class="saro-mega absolute right-7 left-7 top-full z-50 rounded-2xl border border-gold-line bg-card p-6 shadow-[0_14px_40px_rgba(43,36,23,0.14)]">
                     <?php saro_render_product_menu( 'mega' ); ?>
                 </div>
             </div>
 
+            <span class="mx-1.5 h-5 w-px bg-gold-hair"></span>
+
             <?php
-            /* منوی «اصلی (هدر)» پیشخوان: اگر مدیر سایت منویی ساخته باشد اینجا
-               کنار آیتم‌های ثابت بالا رندر می‌شود؛ در غیر این صورت چند لینک
-               پیش‌فرض معنادار برای یک ناشر نمایش داده می‌شود. */
+            /* منوی «اصلی (هدر)» پیشخوان. اگر مدیر سایت هنوز منویی نساخته باشد،
+               چند لینک پیش‌فرض معنادار برای یک ناشر نمایش داده می‌شود تا هدر
+               هیچ‌وقت خالی نماند. */
             if ( has_nav_menu( 'primary' ) ) :
                 wp_nav_menu( array(
                     'theme_location' => 'primary',
@@ -57,20 +58,26 @@ $saro_account_url = function_exists( 'wc_get_page_permalink' ) ? $saro_account_u
                     'items_wrap'     => '%3$s',
                     'walker'         => new class extends Walker_Nav_Menu {
                         function start_el( &$output, $item, $depth = 0, $args = null, $id = 0 ) {
-                            $output .= '<a href="' . esc_url( $item->url ) . '" class="whitespace-nowrap px-2.5 py-1.5 text-[13.5px] text-ink hover:text-teal">' . esc_html( $item->title ) . '</a>';
+                            $current = in_array( 'current-menu-item', (array) $item->classes, true );
+                            $output .= '<a href="' . esc_url( $item->url ) . '" class="whitespace-nowrap px-2.5 py-1.5 text-[13.5px] ' . ( $current ? 'border-b-2 border-gold font-bold text-teal' : 'text-ink hover:text-teal' ) . '">' . esc_html( $item->title ) . '</a>';
                         }
                     },
                     'fallback_cb'    => false,
                 ) );
             else :
-                foreach ( array(
-                    'وبلاگ'      => home_url( '/blog/' ),
-                    'دربارهٔ ما' => home_url( '/about/' ),
-                    'تماس با ما' => home_url( '/contact/' ),
-                ) as $saro_label => $saro_url ) {
+                $saro_default_menu = array( 'خانه' => home_url( '/' ) );
+                if ( function_exists( 'wc_get_page_permalink' ) ) {
+                    $saro_default_menu['فروشگاه'] = wc_get_page_permalink( 'shop' );
+                }
+                $saro_default_menu['وبلاگ']      = home_url( '/blog/' );
+                $saro_default_menu['دربارهٔ ما'] = home_url( '/about/' );
+                $saro_default_menu['تماس با ما'] = home_url( '/contact/' );
+
+                foreach ( $saro_default_menu as $saro_label => $saro_url ) {
                     printf(
-                        '<a href="%s" class="whitespace-nowrap px-2.5 py-1.5 text-[13.5px] text-ink hover:text-teal">%s</a>',
+                        '<a href="%s" class="whitespace-nowrap px-2.5 py-1.5 text-[13.5px] %s">%s</a>',
                         esc_url( $saro_url ),
+                        ( 'خانه' === $saro_label && is_front_page() ) ? 'border-b-2 border-gold font-bold text-teal' : 'text-ink hover:text-teal',
                         esc_html( $saro_label )
                     );
                 }
@@ -85,19 +92,26 @@ $saro_account_url = function_exists( 'wc_get_page_permalink' ) ? $saro_account_u
             <svg id="icon-close" class="hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 18 18 6M6 6l12 12"></path></svg>
         </button>
 
-        <!-- ═══ لوگو/نام سایت — روی دسکتاپ مثل «کتیبه»ای از هدر بیرون می‌زند ═══ -->
-        <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="col-start-2 flex flex-col items-center gap-1 justify-self-center rounded-b-[26px] px-4 py-1.5 lg:relative lg:z-[2] lg:-mb-[52px] lg:self-start lg:border lg:border-t-0 lg:border-gold-line lg:bg-[#fffdf7] lg:px-6 lg:pb-3.5 lg:pt-2" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?> — صفحه اصلی">
+        <!-- ═══ لوگو/نام سایت ═══
+             «اسلات» لوگو ارتفاع ثابت دارد و خودِ لوگو داخل آن position:absolute
+             است؛ یعنی هر اندازه‌ای که مدیر سایت آپلود کند، ارتفاع هدر هرگز
+             کشیده نمی‌شود و لوگو در صورت بزرگ‌بودن از کادر هدر بیرون می‌زند
+             (دقیقاً همان رفتار خواسته‌شده). قوانین اندازه در tailwind-src.css
+             زیر کلاس .saro-logo-slot تعریف شده‌اند. -->
+        <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="saro-logo-plaque col-start-2 justify-self-center px-4 py-1.5 lg:relative lg:z-[2] lg:-mb-[46px] lg:self-start lg:rounded-b-[26px] lg:border lg:border-t-0 lg:border-gold-line lg:bg-[#fffdf7] lg:px-6 lg:pb-3 lg:pt-2" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?> — صفحه اصلی">
             <?php if ( has_custom_logo() ) : ?>
-                <span class="saro-site-logo"><?php the_custom_logo(); ?></span>
+                <span class="saro-logo-slot"><?php the_custom_logo(); ?></span>
             <?php else : ?>
-                <span class="grid h-10 w-10 place-items-center rounded-[50%/58%_58%_42%_42%] border border-gold bg-[#fffdf7] text-gold">
-                    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"><path d="M12 3c2.6 2.2 4 4.9 4 7.8 0 3.4-1.7 6.3-4 8.2-2.3-1.9-4-4.8-4-8.2C8 7.9 9.4 5.2 12 3z"></path><path d="M12 21v-8"></path></svg>
-                </span>
-                <span class="flex flex-col items-center leading-tight">
-                    <span class="whitespace-nowrap font-naskh text-[17px] font-bold text-teal lg:text-[19px]"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></span>
-                    <?php if ( get_bloginfo( 'description' ) ) : ?>
-                        <span class="hidden whitespace-nowrap text-[10.5px] text-muted-foreground sm:block"><?php echo esc_html( get_bloginfo( 'description' ) ); ?></span>
-                    <?php endif; ?>
+                <span class="flex flex-col items-center gap-1">
+                    <span class="grid h-10 w-10 place-items-center rounded-[50%/58%_58%_42%_42%] border border-gold bg-[#fffdf7] text-gold">
+                        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"><path d="M12 3c2.6 2.2 4 4.9 4 7.8 0 3.4-1.7 6.3-4 8.2-2.3-1.9-4-4.8-4-8.2C8 7.9 9.4 5.2 12 3z"></path><path d="M12 21v-8"></path></svg>
+                    </span>
+                    <span class="flex flex-col items-center leading-tight">
+                        <span class="whitespace-nowrap font-naskh text-[17px] font-bold text-teal lg:text-[19px]"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></span>
+                        <?php if ( get_bloginfo( 'description' ) ) : ?>
+                            <span class="hidden whitespace-nowrap text-[10.5px] text-muted-foreground sm:block"><?php echo esc_html( get_bloginfo( 'description' ) ); ?></span>
+                        <?php endif; ?>
+                    </span>
                 </span>
             <?php endif; ?>
         </a>
