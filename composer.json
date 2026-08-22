@@ -1,6 +1,6 @@
 {
-    "name": "romanino/theme",
-    "description": "وابستگی‌های بک‌اند قالب رمانینو (فعلاً فقط SDK پیامک ippanel)",
+    "name": "saro/theme",
+    "description": "وابستگی‌های بک‌اند قالب انتشارات سرو (فعلاً فقط SDK پیامک ippanel)",
     "require": {
         "ippanel/php-rest-sdk": "^2.0"
     },
