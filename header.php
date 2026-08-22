@@ -98,7 +98,7 @@ $saro_account_url = function_exists( 'wc_get_page_permalink' ) ? $saro_account_u
              کشیده نمی‌شود و لوگو در صورت بزرگ‌بودن از کادر هدر بیرون می‌زند
              (دقیقاً همان رفتار خواسته‌شده). قوانین اندازه در tailwind-src.css
              زیر کلاس .saro-logo-slot تعریف شده‌اند. -->
-        <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="saro-logo-plaque col-start-2 justify-self-center px-4 py-1.5 lg:relative lg:z-[2] lg:-mb-[46px] lg:self-start lg:rounded-b-[26px] lg:border lg:border-t-0 lg:border-gold-line lg:bg-[#fffdf7] lg:px-6 lg:pb-3 lg:pt-2" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?> — صفحه اصلی">
+        <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="saro-logo-plaque col-start-2 justify-self-center px-4 py-1.5" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?> — صفحه اصلی">
             <?php if ( has_custom_logo() ) : ?>
                 <span class="saro-logo-slot"><?php the_custom_logo(); ?></span>
             <?php else : ?>
@@ -157,6 +157,19 @@ $saro_account_url = function_exists( 'wc_get_page_permalink' ) ? $saro_account_u
                 class="grid h-9 w-9 place-items-center rounded-lg text-ink hover:bg-cream-2 hover:text-teal">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
             </button>
+
+            <!-- پشتیبانی — فقط اگر شمارهٔ تماس در تنظیمات فوتر وارد شده باشد -->
+            <?php
+            $saro_support_phone = saro_get_footer_options()['contact_phone'] ?? '';
+            if ( $saro_support_phone ) :
+            ?>
+            <a href="tel:<?php echo esc_attr( preg_replace( '/[^0-9+]/', '', $saro_support_phone ) ); ?>"
+                title="<?php echo esc_attr( 'پشتیبانی: ' . $saro_support_phone ); ?>"
+                class="grid h-9 w-9 place-items-center rounded-lg text-ink hover:bg-cream-2 hover:text-teal">
+                <span class="sr-only">تماس با پشتیبانی</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
+            </a>
+            <?php endif; ?>
 
             <!-- زنگولهٔ اطلاع‌رسانی — متن آن از پیشخوان → تنظیمات قالب سرو → تب «هدر» -->
             <?php if ( ! empty( $saro_header_opts['notification_enabled'] ) && ! empty( $saro_header_opts['notification_text'] ) ) : ?>

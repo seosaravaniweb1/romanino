@@ -57,7 +57,7 @@ $saro_hero_bg = $saro_hero['hero_image'] ?: get_template_directory_uri() . '/ass
         <div class="relative">
             <img src="<?php echo esc_url( $saro_hero_bg ); ?>" alt="" aria-hidden="true" class="block h-[420px] w-full object-cover md:h-auto" fetchpriority="high" decoding="async" width="1920" height="720" />
 
-            <div class="absolute inset-0 flex flex-col items-center justify-start gap-3 px-6 pt-16 text-center md:px-[18%] md:pt-[10%]">
+            <div class="saro-hero-content absolute inset-0 flex flex-col items-center justify-start gap-3 px-6 pt-16 text-center md:px-[18%]">
                 <h1 class="m-0 font-naskh text-[clamp(22px,3.3vw,44px)] font-bold leading-snug text-gold-soft" style="text-shadow: 0 2px 14px rgba(4,26,29,.35);">
                     <?php echo esc_html( $saro_hero['hero_title'] ); ?>
                 </h1>

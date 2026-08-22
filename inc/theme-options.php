@@ -75,6 +75,10 @@ function saro_header_defaults() {
         'hero_title'            => 'به حریم معنا خوش آمدید',
         'hero_subtitle'         => 'مجموعه‌ای از اصیل‌ترین متون دینی، ادعیه و آثار معنوی برای تقرب به خدا و آرامش دل',
         'hero_image'            => '', // خالی = تصویر پیش‌فرض قالب (assets/img/mihrab-2.jpg)
+        // چقدر «کتیبهٔ لوگو» از هدر به سمت پایین (روی تصویر هرو) آویزان شود.
+        // چون قله و گودیِ قوسِ هر تصویر محرابی جای متفاوتی است، این عدد باید
+        // قابل تنظیم باشد تا لوگو دقیقاً وسط گودیِ بین دو شاخ قوس بنشیند.
+        'logo_drop'             => 46,
     );
 }
 
@@ -402,6 +406,7 @@ add_action( 'admin_init', function () {
             'hero_title'          => sanitize_text_field( wp_unslash( $_POST['hero_title'] ?? '' ) ),
             'hero_subtitle'       => sanitize_textarea_field( wp_unslash( $_POST['hero_subtitle'] ?? '' ) ),
             'hero_image'          => esc_url_raw( trim( wp_unslash( $_POST['hero_image'] ?? '' ) ) ),
+            'logo_drop'           => max( 0, min( 220, absint( $_POST['logo_drop'] ?? 46 ) ) ),
             'notification_enabled' => isset( $_POST['notification_enabled'] ) ? 1 : 0,
             'notification_text'    => wp_kses_post( wp_unslash( $_POST['notification_text'] ?? '' ) ),
         );
@@ -808,6 +813,18 @@ function saro_render_options_page() {
                                 <button type="button" class="button saro-upload-logo">انتخاب تصویر</button>
                             </div>
                             <p class="description">اگر خالی بماند، تصویر پیش‌فرض قالب (محراب) استفاده می‌شود. نسبت پیشنهادی: تصویر عریض با ارتفاع کم (مثلاً ۱۹۲۰×۷۲۰).</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="logo_drop">آویز لوگو روی تصویر (پیکسل)</label></th>
+                        <td>
+                            <input type="number" id="logo_drop" name="logo_drop" min="0" max="220" value="<?php echo esc_attr( $header['logo_drop'] ); ?>" style="width:120px;">
+                            <p class="description">
+                                لوگو مثل یک «کتیبه» از هدر آویزان می‌شود و روی تصویر هرو می‌نشیند. این عدد یعنی چند پیکسل
+                                پایین‌تر بیاید تا دقیقاً وسط گودیِ بین دو شاخ قوسِ محراب قرار بگیرد.
+                                چون قوسِ هر تصویری جای متفاوتی دارد، بعد از آپلود تصویر خودتان این عدد را کم/زیاد کنید تا جفت شود.
+                                (۰ = بدون آویز؛ پیش‌فرض: ۴۶). فقط روی دسکتاپ اعمال می‌شود؛ در موبایل لوگو داخل هدر می‌ماند.
+                            </p>
                         </td>
                     </tr>
                 </table>
