@@ -1,9 +1,10 @@
 /* ─────────────────────────────────────────────────────────────────────────
-   منبع اصلی استایل رمانینو — تنها منبعِ حقیقتِ رنگ‌ها و کلاس‌های سفارشی.
-   قبلاً این متغیرها و کلاس‌ها به‌طور تکراری هم در header.php و هم در
-   page-login.php کپی شده بودند (با مقادیر کمی متفاوت!). از این به بعد
-   فقط همین‌جا تعریف می‌شوند و همه‌ی صفحات (چه معمولی چه مستقل مثل
-   page-login.php) از طریق یک فایل CSS کامپایل‌شده به آن‌ها دسترسی دارند.
+   منبع اصلی استایل «انتشارات سرو» — تنها منبعِ حقیقتِ رنگ‌ها و کلاس‌های
+   سفارشی. همه‌ی صفحات (چه معمولی چه مستقل مثل page-login.php) از طریق یک
+   فایل CSS کامپایل‌شده (tailwind-build.css) به آن دسترسی دارند.
+
+   بعد از هر تغییر در این فایل یا اضافه‌کردن کلاس Tailwind تازه به تمپلیت‌ها،
+   در ریشه‌ی قالب اجرا کنید:  npm install && npm run build:css
    ───────────────────────────────────────────────────────────────────────── */
 
 @tailwind base;
@@ -11,9 +12,11 @@
 @tailwind utilities;
 
 /* ─────────────────────────────────────────────────────────────────────────
-   فونت اختصاصی قالب — ایران‌سنس (self-hosted، بدون وابستگی به CDN گوگل)
-   ۴ وزن: Regular(400) / Medium(500) / Bold(700) / Black(900)
-   فایل‌ها از قبل woff2 هستند (سبک‌ترین فرمت وب)، پس فقط همین یک src کافیست.
+   فونت‌های قالب — هر دو self-hosted (بدون وابستگی به fonts.googleapis.com،
+   که برای بازدیدکننده‌های داخل ایران اغلب کند یا مسدود است).
+   ۱) IRANSansWeb  → متن جاری سایت (۴ وزن)
+   ۲) NotoNaskhArabic → تیترها؛ فایل variable است، پس یک فایل هر وزن
+      ۴۰۰ تا ۷۰۰ را پوشش می‌دهد.
    ───────────────────────────────────────────────────────────────────────── */
 @font-face {
 	font-family: 'IRANSansWeb';
@@ -43,44 +46,126 @@
 	font-style: normal;
 	font-display: swap;
 }
-
-:root {
-	color-scheme: dark;
-	--background: #0b0514;
-	--foreground: #f8fafc;
-	--card: rgba(15, 7, 38, 0.75);
-	--popover: #0f0726;
-	--primary: #eab308;
-	--primary-foreground: #1a1206;
-	--gold: #eab308;
-	--cyan-glow: #06b6d4;
-	--emerald-glow: #10b981;
-	--secondary: rgba(255, 255, 255, 0.06);
-	--secondary-foreground: #f8fafc;
-	--muted: rgba(255, 255, 255, 0.05);
-	--muted-foreground: #94a3b8;
-	--accent: rgba(255, 255, 255, 0.08);
-	--accent-foreground: #f8fafc;
-	--border: rgba(255, 255, 255, 0.1);
-	--input: rgba(255, 255, 255, 0.08);
-	--ring: #eab308;
-	--destructive: #ef4444;
-	--destructive-foreground: #fef2f2;
-	--radius: 1rem;
+@font-face {
+	font-family: 'NotoNaskhArabic';
+	src: url('../fonts/NotoNaskhArabic-Variable.woff2') format('woff2-variations'),
+	     url('../fonts/NotoNaskhArabic-Variable.woff2') format('woff2');
+	font-weight: 400 700;
+	font-style: normal;
+	font-display: swap;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   پالت سرو — کِرِم کاغذی / سبزآبی عمیق / طلایی مینیاتوری
+   ───────────────────────────────────────────────────────────────────────── */
+:root {
+	color-scheme: light;
+
+	/* ── رنگ‌های پایه‌ی طرح ──
+	   هر رنگ دو شکل دارد:
+	   ۱) شکل خوانا (مثل --teal) که در CSS دست‌نویسِ همین فایل استفاده می‌شود.
+	   ۲) شکل «کانالی» (مثل --teal-rgb: 17 75 82) که Tailwind از آن استفاده
+	      می‌کند. بدون شکل کانالی، مادیفایرهای شفافیت (مثل bg-teal-ink/40)
+	      اصلاً CSS تولید نمی‌کنند و آن کلاس بی‌اثر می‌ماند. */
+	--teal: #114b52;
+	--teal-rgb: 17 75 82;
+	--teal-deep: #0c383e;
+	--teal-deep-rgb: 12 56 62;
+	--teal-ink: #0a2c31;
+	--teal-ink-rgb: 10 44 49;
+
+	--gold: #c9a24b;
+	--gold-rgb: 201 162 75;
+	--gold-soft: #e6d0a0;
+	--gold-soft-rgb: 230 208 160;
+	--gold-line: rgba(201, 162, 75, 0.38);
+	--gold-hair: rgba(201, 162, 75, 0.2);
+
+	--cream: #f9f3e6;
+	--cream-rgb: 249 243 230;
+	--cream-2: #f3e9d6;
+	--cream-2-rgb: 243 233 214;
+	--cream-3: #fbf6ec;
+	--cream-3-rgb: 251 246 236;
+
+	--ink: #2b2417;
+	--ink-rgb: 43 36 23;
+
+	/* ── توکن‌های عمومی (bg-card / text-muted-foreground / …) ── */
+	--background: #f9f3e6;
+	--background-rgb: 249 243 230;
+	--foreground: #2b2417;
+	--foreground-rgb: 43 36 23;
+	--card: #fdfbf5;
+	--card-rgb: 253 251 245;
+	--popover: #fdfbf5;
+	--popover-rgb: 253 251 245;
+	--primary: #114b52;
+	--primary-rgb: 17 75 82;
+	--primary-foreground: #e6d0a0;
+	--primary-foreground-rgb: 230 208 160;
+	--secondary: #f3e9d6;
+	--secondary-rgb: 243 233 214;
+	--secondary-foreground: #2b2417;
+	--secondary-foreground-rgb: 43 36 23;
+	--muted: #f3e9d6;
+	--muted-rgb: 243 233 214;
+	--muted-foreground: #857a63;
+	--muted-foreground-rgb: 133 122 99;
+	--accent: #f6efdf;
+	--accent-rgb: 246 239 223;
+	--accent-foreground: #114b52;
+	--accent-foreground-rgb: 17 75 82;
+	--border: rgba(201, 162, 75, 0.38);
+	--input: #fffdf7;
+	--ring: #c9a24b;
+	--destructive: #b3261e;
+	--destructive-rgb: 179 38 30;
+	--destructive-foreground: #fff5f4;
+	--destructive-foreground-rgb: 255 245 244;
+	--radius: 0.875rem;
+}
+
 
 body {
 	background-color: var(--background);
 	color: var(--foreground);
-	font-family: 'IRANSansWeb', Tahoma, system-ui, sans-serif;
+	font-family: 'IRANSansWeb', 'Vazirmatn', Tahoma, system-ui, sans-serif;
+	font-size: 15px;
+	line-height: 1.9;
 	margin: 0;
 	padding: 0;
 }
 
-/* استفاده‌شده در چند تمپلیت (مثل content-single.php) برای اطمینان از فونت،
-   حتی اگر عنصر بیرون از جریان طبیعی وراثت فونت body قرار گرفته باشد. */
-.rmn-font {
-	font-family: 'IRANSansWeb', Tahoma, system-ui, sans-serif;
+h1, h2, h3, h4, h5 {
+	font-family: 'NotoNaskhArabic', 'IRANSansWeb', Tahoma, serif;
+	letter-spacing: 0;
+}
+
+a {
+	color: var(--teal);
+	text-decoration: none;
+}
+a:hover {
+	color: var(--gold);
+}
+
+:focus-visible {
+	outline: 2px solid var(--gold);
+	outline-offset: 2px;
+}
+::selection {
+	background: rgba(201, 162, 75, 0.3);
+}
+
+/* استفاده‌شده در چند تمپلیت برای اطمینان از فونت، حتی اگر عنصر بیرون از
+   جریان طبیعی وراثت فونت body قرار گرفته باشد. */
+.rmn-font,
+.saro-font {
+	font-family: 'IRANSansWeb', 'Vazirmatn', Tahoma, system-ui, sans-serif;
+}
+.saro-naskh {
+	font-family: 'NotoNaskhArabic', 'IRANSansWeb', Tahoma, serif;
 }
 
 /* جلوگیری از استایل‌های پیش‌فرض مرورگر برای سرچ */
@@ -89,79 +174,305 @@ input[type="search"]::-webkit-search-cancel-button {
 	display: none;
 }
 
-.glass {
-	background-color: rgba(15, 7, 38, 0.6);
-	border: 1px solid rgba(255, 255, 255, 0.1);
-	backdrop-filter: blur(12px);
-	-webkit-backdrop-filter: blur(12px);
+/* ─────────────────────────────────────────────────────────────────────────
+   کامپوننت‌های پایه‌ی سرو
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* کارت کاغذی با حاشیه‌ی طلایی — پرکاربردترین ظرف کل قالب */
+.saro-card {
+	background: var(--card);
+	border: 1px solid var(--gold-line);
+	border-radius: 14px;
+}
+.saro-card-soft {
+	background: var(--card);
+	border: 1px solid var(--gold-hair);
+	border-radius: 12px;
 }
 
-.glow-gold {
-	box-shadow: 0 0 24px -6px rgba(234, 179, 8, 0.45);
+/* دکمه‌ی اصلی (سبزآبی با متن طلایی روشن) */
+.saro-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	background: var(--teal);
+	color: var(--gold-soft);
+	border: 0;
+	border-radius: 10px;
+	padding: 11px 20px;
+	font-family: inherit;
+	font-size: 13px;
+	font-weight: 700;
+	cursor: pointer;
+	transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
 }
-.hover\:glow-gold:hover {
-	box-shadow: 0 0 25px -2px rgba(234, 179, 8, 0.5);
-	border-color: rgba(234, 179, 8, 0.4);
+.saro-btn:hover {
+	background: var(--teal-deep);
+	color: #fff;
 }
-
-.glow-cyan {
-	box-shadow: 0 0 24px -6px rgba(6, 182, 212, 0.45);
-}
-.hover\:glow-cyan:hover {
-	box-shadow: 0 0 20px -4px rgba(6, 182, 212, 0.5);
-	border-color: rgba(6, 182, 212, 0.3);
-}
-
-.glow-emerald {
-	box-shadow: 0 0 24px -6px rgba(16, 185, 129, 0.5);
-}
-
-/* پیش‌تر این چند کلاس در ۴ فایل جدا (index.php، footer.php،
-   content-desktop.php، content-mobile.php) کپی‌شده و هرکدام کمی متفاوت
-   بودند — الان فقط همین‌جا تعریف می‌شوند. */
-
-.glass-box {
-	background-color: rgba(15, 7, 38, 0.6);
-	border: 1px solid rgba(255, 255, 255, 0.1);
-	backdrop-filter: blur(12px);
-	-webkit-backdrop-filter: blur(12px);
+.saro-btn:disabled {
+	background: #d9d2c2;
+	color: #8b8676;
+	cursor: not-allowed;
 }
 
-@keyframes rmn-glow {
-	0%, 100% { box-shadow: 0 0 18px 0 rgba(234, 179, 8, 0.35); }
-	50% { box-shadow: 0 0 32px 4px rgba(234, 179, 8, 0.55); }
+/* دکمه‌ی طلایی (اقدام‌های ثانویه‌ی شاخص مثل «عضویت ویژه») */
+.saro-btn-gold {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	background: linear-gradient(180deg, #d8b56a, var(--gold));
+	color: #fffaf0;
+	border: 0;
+	border-radius: 10px;
+	padding: 11px 20px;
+	font-family: inherit;
+	font-size: 13px;
+	font-weight: 700;
+	cursor: pointer;
+	transition: filter 0.18s ease;
 }
-.rmn-cta {
-	animation: rmn-glow 2.6s ease-in-out infinite;
-	transition: transform 0.2s, filter 0.2s;
-}
-.rmn-cta:hover {
-	transform: translateY(-2px);
-	filter: brightness(1.08);
+.saro-btn-gold:hover {
+	filter: brightness(1.06);
+	color: #fff;
 }
 
-@keyframes rmn-float {
-	0%, 100% { transform: translateY(0); }
-	50% { transform: translateY(-6px); }
+/* دکمه‌ی توخالی */
+.saro-btn-ghost {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	background: transparent;
+	color: var(--teal);
+	border: 1px solid var(--gold-line);
+	border-radius: 10px;
+	padding: 10px 20px;
+	font-family: inherit;
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: border-color 0.18s ease, color 0.18s ease;
 }
-.rmn-badge-float {
-	animation: rmn-float 3.2s ease-in-out infinite;
+.saro-btn-ghost:hover {
+	border-color: var(--gold);
+	color: var(--gold);
 }
 
+/* چیپ/برچسب کوچک */
+.saro-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	border: 1px solid var(--gold-line);
+	border-radius: 999px;
+	padding: 7px 16px;
+	font-size: 12.5px;
+	color: var(--ink);
+	white-space: nowrap;
+}
+.saro-chip-solid {
+	background: var(--cream-2);
+	border-radius: 5px;
+	padding: 3px 8px;
+	font-size: 10px;
+	color: var(--teal);
+	white-space: nowrap;
+}
+
+/* فیلد ورودی فرم‌ها */
+.saro-input {
+	width: 100%;
+	background: var(--input);
+	border: 1px solid var(--gold-line);
+	border-radius: 10px;
+	padding: 11px 14px;
+	font-family: inherit;
+	font-size: 13.5px;
+	color: var(--ink);
+	outline: none;
+	transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.saro-input::placeholder {
+	color: #a79c85;
+}
+.saro-input:focus {
+	border-color: var(--gold);
+	box-shadow: 0 0 0 3px rgba(201, 162, 75, 0.16);
+}
+
+/* عنوان بخش‌ها با دو ستاره‌ی طلایی دو طرف (✦ … ✦) */
+.saro-heading {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 14px;
+}
+.saro-heading::before,
+.saro-heading::after {
+	content: '✦';
+	color: var(--gold);
+	font-size: 14px;
+	line-height: 1;
+}
+
+/* «کاسه»ی تصویر — پس‌زمینه‌ی کاغذیِ زیر جلد کتاب‌ها تا جای خالی زشت نباشد */
+.saro-plate {
+	position: relative;
+	overflow: hidden;
+	background: var(--cream-3);
+	border: 1px solid var(--cream-2);
+	display: grid;
+	place-items: center;
+}
+.saro-plate img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+/* ریل اسکرول افقی با اسکرول‌بار نازک طلایی */
+.saro-rail {
+	scrollbar-width: thin;
+	scrollbar-color: var(--gold-line) transparent;
+}
+.saro-rail::-webkit-scrollbar {
+	height: 6px;
+}
+.saro-rail::-webkit-scrollbar-thumb {
+	background: var(--gold-line);
+	border-radius: 99px;
+}
+
+.no-scrollbar {
+	scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+	display: none;
+}
+
+/* بلند شدن ملایم کارت روی هاور */
+.saro-hover-lift,
 .rmn-hover-lift {
 	transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
 }
+.saro-hover-lift:hover,
 .rmn-hover-lift:hover {
-	transform: translateY(-4px);
-	border-color: rgba(234, 179, 8, 0.4) !important;
+	transform: translateY(-3px);
+	box-shadow: 0 10px 26px rgba(43, 36, 23, 0.12);
+	border-color: var(--gold) !important;
+}
+
+/* دکمه‌ی خرید — به‌جای درخشش نئونی قالب قبلی، یک برجستگی آرام کاغذی */
+.saro-cta,
+.rmn-cta {
+	transition: transform 0.2s, filter 0.2s, box-shadow 0.2s;
+}
+.saro-cta:hover,
+.rmn-cta:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 8px 20px rgba(17, 75, 82, 0.22);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   مگامنوی هدر — با hover/focus باز می‌شود (بدون جاوااسکریپت)
+   ───────────────────────────────────────────────────────────────────────── */
+.saro-mega {
+	opacity: 0;
+	visibility: hidden;
+	transform: translateY(6px);
+	transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+	pointer-events: none;
+}
+.saro-mega-wrap:hover .saro-mega,
+.saro-mega-wrap:focus-within .saro-mega {
+	opacity: 1;
+	visibility: visible;
+	transform: translateY(0);
+	pointer-events: auto;
+}
+
+/* آکاردئون <details> — علامت «+» که با باز شدن می‌چرخد و × می‌شود */
+details > summary {
+	list-style: none;
+	cursor: pointer;
+}
+details > summary::-webkit-details-marker {
+	display: none;
+}
+details[open] .saro-plus {
+	transform: rotate(45deg);
+}
+.saro-plus {
+	transition: transform 0.18s ease;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   قندیل‌های هرو (چراغ‌های آویز) و بافت اسلیمی — همان انیمیشن طرح تأییدشده
+   ───────────────────────────────────────────────────────────────────────── */
+@keyframes saroSway {
+	0%, 100% { transform: rotate(-1.7deg); }
+	50% { transform: rotate(1.7deg); }
+}
+@keyframes saroGlow {
+	0%, 100% { opacity: 0.5; }
+	50% { opacity: 0.95; }
+}
+.saro-lamp {
+	transform-origin: top center;
+	animation: saroSway 6s ease-in-out infinite;
+	z-index: 4;
+}
+.saro-lamp-2 {
+	animation-duration: 7.4s;
+	animation-delay: -1.2s;
+	opacity: 0.88;
+}
+.saro-glow {
+	animation: saroGlow 4.5s ease-in-out infinite;
+}
+.saro-arabesque {
+	background-image:
+		radial-gradient(circle at 50% 50%, rgba(201, 162, 75, 0.2) 0 2px, transparent 2px),
+		repeating-conic-gradient(from 0deg at 50% 50%, rgba(201, 162, 75, 0.14) 0 7deg, transparent 7deg 45deg);
+	background-size: 28px 28px, 84px 84px;
+}
+
+/* احترام به تنظیم «کاهش حرکت» سیستم‌عامل کاربر */
+@media (prefers-reduced-motion: reduce) {
+	.saro-lamp,
+	.saro-lamp-2,
+	.saro-glow,
+	.animate-marquee {
+		animation: none !important;
+	}
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   کلاس‌های قدیمی که هنوز در چند تمپلیت/اسکریپت صدا زده می‌شوند — به‌جای
+   حذف (که باعث بی‌استایل شدن آن نقاط می‌شد) با پالت روشن سرو بازتعریف
+   شده‌اند تا در همه‌جا یکدست بماند.
+   ───────────────────────────────────────────────────────────────────────── */
+.glass,
+.glass-box {
+	background-color: var(--card);
+	border: 1px solid var(--gold-line);
+	border-radius: 14px;
+}
+.glow-gold,
+.hover\:glow-gold:hover {
+	box-shadow: 0 8px 22px rgba(43, 36, 23, 0.12);
+	border-color: var(--gold);
 }
 
 .footer-tab-btn {
-	color: #94a3b8;
+	color: var(--muted-foreground);
 }
 .footer-tab-btn.is-active {
-	background: #eab308;
-	color: #0f0726;
+	background: var(--teal);
+	color: var(--gold-soft);
 }
 
 @keyframes marquee-rtl {
@@ -181,65 +492,160 @@ input[type="search"]::-webkit-search-cancel-button {
 	-webkit-mask-image: linear-gradient(to left, transparent, black 8%, black 92%, transparent);
 }
 
-.no-scrollbar {
-	scrollbar-width: none;
-}
-.no-scrollbar::-webkit-scrollbar {
-	display: none;
-}
-
-/* FIX (Task 1.3 — سوییچ روشن/تاریک): نسخه‌ی منبع همان قانون‌های اضافه‌شده
-   به tailwind-build.css؛ اگر روزی build دوباره اجرا شود، این بخش هم باید
-   با آن هماهنگ باشد (این فایل توسط فرآیند build بازتولید می‌شود، پس این
-   بلوک را عیناً هم به‌عنوان مرجع نگه می‌داریم). */
-html.light #romanino-theme-toggle,
-html.light #cart-open-btn {
-	color: #b45309;
-	background-color: rgba(234, 179, 8, 0.12);
-}
-html.light #romanino-theme-toggle:hover,
-html.light #cart-open-btn:hover {
-	color: #92400e;
-	background-color: rgba(234, 179, 8, 0.22);
-}
-html.light #cart-open-btn .cart-count-badge {
-	background-color: #f59e0b;
-	color: #1c1917;
-}
-
 /* ─────────────────────────────────────────────────────────────────────────
-   FIX (لوگوی بزرگ روی هدر): علاوه بر تنظیم height/width در
-   add_theme_support('custom-logo') (که سایز پیش‌فرض خروجی وردپرس را کنترل
-   می‌کند)، این قانون یک سقف مطلق و تدافعی هم اضافه می‌کند تا صرف‌نظر از
-   ابعاد واقعی فایل آپلودشده توسط مدیر سایت، لوگو هرگز نتواند ارتفاع ردیف
-   هدر (که ~۴rem/64px است) را بشکند یا از هدر بیرون بزند.
+   سقف تدافعی ارتفاع لوگو — مستقل از ابعاد فایلی که مدیر سایت آپلود می‌کند،
+   لوگو هرگز نباید ارتفاع ردیف هدر را بشکند.
    ───────────────────────────────────────────────────────────────────────── */
-.romanino-site-logo {
+.saro-site-logo {
 	display: flex;
 	align-items: center;
-	max-height: 2.5rem; /* هم‌راستا با h-9/h-10 المان‌های دیگر همین ردیف هدر */
+	max-height: 2.75rem;
 }
-.romanino-site-logo img,
-.romanino-site-logo .custom-logo {
-	max-height: 2.5rem;
+.saro-site-logo img,
+.saro-site-logo .custom-logo {
+	max-height: 2.75rem;
 	width: auto;
 	height: auto;
 	object-fit: contain;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   FIX (سبد خرید بازِ پیش‌فرض): کشوی سبد (#cart-drawer) با کلاس
-   «-translate-x-full» باید پیش‌فرض بیرون از صفحه (سمت چپ) پنهان باشد.
-   این قانون یک fallback تدافعی است: حتی اگر به هر دلیلی (مثلاً build
-   ناقص Tailwind که پیش از این باعث اصل باگ شده بود) آن یوتیلیتی از
-   CSS نهایی جا بیفتد، این قانون با specificity بالاتر از یوتیلیتی‌های
-   عادی Tailwind، مطمئن می‌شود کشو همیشه پیش‌فرض بسته (خارج از دید) است.
-   خودِ mini-cart.js با remove/add کردن همین کلاس روی <aside>، باز/بسته
-   شدن واقعی را کنترل می‌کند و این قانون مزاحم آن رفتار نمی‌شود.
+   کشوی سبد خرید — fallback تدافعی: حتی اگر یوتیلیتی «-translate-x-full» از
+   خروجی نهایی جا بیفتد، کشو همیشه پیش‌فرض بسته (بیرون از دید) می‌ماند.
+   خود mini-cart.js با add/remove همین کلاس، باز و بسته‌شدن را کنترل می‌کند.
    ───────────────────────────────────────────────────────────────────────── */
 #cart-drawer.-translate-x-full {
 	transform: translateX(-100%);
 }
 #cart-overlay.hidden {
 	display: none;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   صفحه‌بندی وردپرس (paginate_links با type=list) — چون خروجی آن HTML خام
+   است و کلاس Tailwind نمی‌پذیرد، اینجا مستقیم استایل داده می‌شود.
+   ───────────────────────────────────────────────────────────────────────── */
+.saro-pagination ul.page-numbers {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+.saro-pagination .page-numbers {
+	display: grid;
+	place-items: center;
+	min-width: 38px;
+	height: 38px;
+	padding: 0 12px;
+	border: 1px solid var(--gold-line);
+	border-radius: 9px;
+	font-size: 13px;
+	color: var(--ink);
+	font-variant-numeric: tabular-nums;
+	transition: border-color 0.18s ease, color 0.18s ease;
+}
+.saro-pagination .page-numbers:hover {
+	border-color: var(--gold);
+	color: var(--gold);
+}
+.saro-pagination .page-numbers.current {
+	background: var(--teal);
+	border-color: var(--gold);
+	color: var(--gold-soft);
+	font-weight: 700;
+}
+.saro-pagination .page-numbers.dots {
+	border-color: transparent;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   محتوای مدیرِ سایت (توضیح محصول، متن نوشته، توضیح دسته) — تایپوگرافی
+   خوانا برای متن‌های بلند فارسی/عربی.
+   ───────────────────────────────────────────────────────────────────────── */
+.saro-prose {
+	font-size: 14.5px;
+	line-height: 2.3;
+	color: var(--ink);
+	text-align: justify;
+}
+.saro-prose p {
+	margin: 0 0 14px;
+}
+.saro-prose h2,
+.saro-prose h3,
+.saro-prose h4 {
+	color: var(--teal);
+	margin: 22px 0 10px;
+	font-weight: 700;
+}
+.saro-prose h2 { font-size: 20px; }
+.saro-prose h3 { font-size: 17px; }
+.saro-prose ul,
+.saro-prose ol {
+	margin: 0 0 14px;
+	padding-right: 22px;
+}
+.saro-prose li {
+	margin-bottom: 6px;
+}
+.saro-prose a {
+	color: var(--gold);
+	border-bottom: 1px solid var(--gold-hair);
+}
+.saro-prose img {
+	max-width: 100%;
+	height: auto;
+	border-radius: 10px;
+}
+.saro-prose blockquote {
+	margin: 0 0 14px;
+	padding: 12px 18px;
+	background: var(--cream-2);
+	border-right: 3px solid var(--gold);
+	border-radius: 8px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   فرم دیدگاه ووکامرس در صفحه‌ی محصول — خروجی هسته است و کلاس Tailwind
+   نمی‌پذیرد، پس با پالت سرو هماهنگ می‌شود.
+   ───────────────────────────────────────────────────────────────────────── */
+#reviews .comment-form input[type="text"],
+#reviews .comment-form input[type="email"],
+#reviews .comment-form textarea {
+	width: 100%;
+	background: var(--input);
+	border: 1px solid var(--gold-line);
+	border-radius: 10px;
+	padding: 10px 12px;
+	font-family: inherit;
+	font-size: 13.5px;
+	color: var(--ink);
+}
+#reviews .comment-form input[type="submit"] {
+	background: var(--teal);
+	color: var(--gold-soft);
+	border: 0;
+	border-radius: 10px;
+	padding: 11px 26px;
+	font-family: inherit;
+	font-size: 13px;
+	font-weight: 700;
+	cursor: pointer;
+}
+#reviews .commentlist {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+#reviews .commentlist li {
+	border-bottom: 1px solid var(--gold-hair);
+	padding: 14px 0;
+}
+#reviews .star-rating,
+.saro-stars .star-rating {
+	color: var(--gold);
 }

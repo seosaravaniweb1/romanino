@@ -1,6 +1,6 @@
 <?php
 /**
- * Romanino Minimal — functions.php (HARDENED & OPTIMIZED v2 + Dynamic Serving)
+ * Saro Minimal — functions.php (HARDENED & OPTIMIZED v2 + Dynamic Serving)
  * ─────────────────────────────────────────────────────────────────────────────
  * فاز ۱ — معماری: حذف Tailwind CDN، ساختار صحیح enqueue
  * فاز ۲ — امنیت: Nonce متمرکز، escape صحیح خروجی‌ها
@@ -15,9 +15,9 @@ defined( 'ABSPATH' ) || exit;
    ۱. Theme Setup
    ========================================================================== */
 
-if ( ! function_exists( 'romanino_setup' ) ) :
-function romanino_setup(): void {
-    load_theme_textdomain( 'romanino', get_template_directory() . '/languages' );
+if ( ! function_exists( 'saro_setup' ) ) :
+function saro_setup(): void {
+    load_theme_textdomain( 'saro', get_template_directory() . '/languages' );
     add_theme_support( 'title-tag' );
     add_theme_support( 'post-thumbnails' );
     // FIX (لوگوی غول‌پیکر روی هدر): قبلاً 'custom-logo' بدون هیچ آرگومانی
@@ -48,22 +48,22 @@ function romanino_setup(): void {
     ] );
 }
 endif;
-add_action( 'after_setup_theme', 'romanino_setup' );
+add_action( 'after_setup_theme', 'saro_setup' );
 
 /* ==========================================================================
    ۲. Enqueue — استایل‌ها و اسکریپت‌ها (بدون CDN Tailwind)
    ========================================================================== */
 
-add_action( 'wp_enqueue_scripts', 'romanino_enqueue_assets' );
-function romanino_enqueue_assets(): void {
+add_action( 'wp_enqueue_scripts', 'saro_enqueue_assets' );
+function saro_enqueue_assets(): void {
     $ver = wp_get_theme()->get( 'Version' );
 
     // ── CSS ──────────────────────────────────────────────────────────────────
-    wp_enqueue_style( 'romanino-style', get_stylesheet_uri(), [], $ver ); // فقط برای هدر استاندارد قالب وردپرس
+    wp_enqueue_style( 'saro-style', get_stylesheet_uri(), [], $ver ); // فقط برای هدر استاندارد قالب وردپرس
     wp_enqueue_style(
-        'romanino-tailwind',
+        'saro-tailwind',
         get_template_directory_uri() . '/assets/css/tailwind-build.css',
-        [ 'romanino-style' ],
+        [ 'saro-style' ],
         $ver
     );
     /* FIX (بحرانی): این خط قبلاً به tailwind-src.css اشاره می‌کرد (فایل خامِ
@@ -83,7 +83,7 @@ function romanino_enqueue_assets(): void {
 
     // ── JS ───────────────────────────────────────────────────────────────────
     wp_enqueue_script(
-        'romanino-main',
+        'saro-main',
         get_template_directory_uri() . '/assets/js/main.js',
         [],
         $ver,
@@ -91,10 +91,10 @@ function romanino_enqueue_assets(): void {
     );
 
     // Localize متمرکز برای تمام AJAX‌ها
-    wp_localize_script( 'romanino-main', 'romanino', [
+    wp_localize_script( 'saro-main', 'saro', [
         'ajaxUrl'   => esc_url( admin_url( 'admin-ajax.php' ) ),
-        'authNonce' => wp_create_nonce( 'romanino_auth_nonce' ),
-        'cartNonce' => wp_create_nonce( 'romanino_cart_nonce' ),
+        'authNonce' => wp_create_nonce( 'saro_auth_nonce' ),
+        'cartNonce' => wp_create_nonce( 'saro_cart_nonce' ),
         'homeUrl'   => esc_url( home_url( '/' ) ),
     ] );
 }
@@ -102,20 +102,26 @@ function romanino_enqueue_assets(): void {
 /* ==========================================================================
    ۳-الف. Preload فونت اصلی — جلوگیری از پرش/چشمک متن هنگام لود فونت
    ========================================================================== */
-add_action( 'wp_head', 'romanino_preload_font', 0 );
-function romanino_preload_font(): void {
-    printf(
-        '<link rel="preload" href="%s" as="font" type="font/woff2" crossorigin>' . "\n",
-        esc_url( get_template_directory_uri() . '/assets/fonts/IRANSansWeb-Regular.woff2' )
-    );
+add_action( 'wp_head', 'saro_preload_font', 0 );
+function saro_preload_font(): void {
+    // هر دو فونتِ «بالای صفحه» پیش‌بارگذاری می‌شوند: ایران‌سنس برای متن جاری و
+    // نسخ عربی برای تیترها (h1 هر صفحه بلافاصله با همین فونت رسم می‌شود، پس
+    // اگر preload نشود یک لحظه پرش متن دیده می‌شود). هر دو روی سرور خودمان
+    // میزبانی می‌شوند — هیچ درخواستی به fonts.googleapis.com زده نمی‌شود.
+    foreach ( array( 'IRANSansWeb-Regular.woff2', 'NotoNaskhArabic-Variable.woff2' ) as $saro_font_file ) {
+        printf(
+            '<link rel="preload" href="%s" as="font" type="font/woff2" crossorigin>' . "\n",
+            esc_url( get_template_directory_uri() . '/assets/fonts/' . $saro_font_file )
+        );
+    }
 }
 
 /* ==========================================================================
    ۴. پرفورمنس — حذف CSS/JS ووکامرس در صفحات غیرضروری و Defer
    ========================================================================== */
 
-add_action( 'wp_enqueue_scripts', 'romanino_dequeue_unnecessary_assets', 99 );
-function romanino_dequeue_unnecessary_assets(): void {
+add_action( 'wp_enqueue_scripts', 'saro_dequeue_unnecessary_assets', 99 );
+function saro_dequeue_unnecessary_assets(): void {
     if ( is_woocommerce() || is_cart() || is_checkout() || is_account_page() ) {
         return;
     }
@@ -148,9 +154,9 @@ remove_action( 'wp_head', 'rsd_link' );
 remove_action( 'wp_head', 'wlwmanifest_link' );
 remove_action( 'wp_head', 'wp_generator' );
 
-add_filter( 'script_loader_tag', 'romanino_defer_scripts', 10, 3 );
-function romanino_defer_scripts( string $tag, string $handle, string $src ): string {
-    $defer_handles = [ 'comment-reply', 'wp-embed', 'romanino-main' ];
+add_filter( 'script_loader_tag', 'saro_defer_scripts', 10, 3 );
+function saro_defer_scripts( string $tag, string $handle, string $src ): string {
+    $defer_handles = [ 'comment-reply', 'wp-embed', 'saro-main' ];
     if ( in_array( $handle, $defer_handles, true ) ) {
         return str_replace( ' src=', ' defer src=', $tag );
     }
@@ -168,7 +174,7 @@ remove_action( 'wp_head', 'rest_output_link_wp_head' );
 remove_action( 'template_redirect', 'rest_output_link_header', 11 );
 
 /* FIX (بحرانی سئو): حذف canonical پیش‌فرض هسته‌ی وردپرس.
-   inc/seo-functions.php::romanino_canonical_url() یک canonical سفارشی برای
+   inc/seo-functions.php::saro_canonical_url() یک canonical سفارشی برای
    صفحه اصلی/محصول/دسته‌بندی/فروشگاه چاپ می‌کند. اما تا همین الان، اکشن
    پیش‌فرض هسته‌ی وردپرس (rel_canonical، هوکشده روی wp_head با اولویت ۱۰)
    هرگز غیرفعال نشده بود — یعنی روی همان صفحات، «دو» تگ
@@ -183,8 +189,8 @@ add_filter( 'xmlrpc_enabled', '__return_false' );
 // Heartbeat API فقط در صفحه‌ی ویرایش پست لازم است (قفل ویرایش هم‌زمان)؛
 // در بقیه‌ی پیشخوان و در فرانت (سبد خرید/حساب کاربری) هر ۱۵ تا ۶۰ ثانیه یک
 // درخواست admin-ajax اضافه می‌فرستد که برای این سایت لازم نیست.
-add_action( 'init', 'romanino_control_heartbeat', 1 );
-function romanino_control_heartbeat(): void {
+add_action( 'init', 'saro_control_heartbeat', 1 );
+function saro_control_heartbeat(): void {
     if ( is_admin() && isset( $_GET['action'] ) && $_GET['action'] === 'edit' ) {
         return; // صفحه‌ی ویرایش پست: Heartbeat را دست‌نخورده می‌گذاریم
     }
@@ -198,23 +204,23 @@ add_filter( 'the_generator', '__return_empty_string' );
    ۵. AJAX جستجو (بهینه‌شده با WP_Query cache)
    ========================================================================== */
 
-add_action( 'wp_ajax_romanino_ajax_search', 'romanino_ajax_search_handler' );
-add_action( 'wp_ajax_nopriv_romanino_ajax_search', 'romanino_ajax_search_handler' );
-function romanino_ajax_search_handler(): void {
-    check_ajax_referer( 'romanino_auth_nonce', 'nonce' );
+add_action( 'wp_ajax_saro_ajax_search', 'saro_ajax_search_handler' );
+add_action( 'wp_ajax_nopriv_saro_ajax_search', 'saro_ajax_search_handler' );
+function saro_ajax_search_handler(): void {
+    check_ajax_referer( 'saro_auth_nonce', 'nonce' );
 
     // Phase 4: جلوگیری از هجوم درخواست جست‌وجو (مثلاً اسکریپتی که کلمه‌به‌کلمه
     // کوئری می‌زند و دیتابیس را زیر فشار می‌گذارد)؛ کش موجود cache miss ها را
     // کم می‌کند ولی خود تعداد درخواست را محدود نمی‌کند.
-    romanino_enforce_ajax_rate_limit( 'ajax_search', romanino_get_client_ip(), 60, 2 * MINUTE_IN_SECONDS );
+    saro_enforce_ajax_rate_limit( 'ajax_search', saro_get_client_ip(), 60, 2 * MINUTE_IN_SECONDS );
 
     $keyword = sanitize_text_field( wp_unslash( $_POST['keyword'] ?? '' ) );
     if ( mb_strlen( $keyword ) < 2 ) {
         wp_send_json_error( [ 'message' => 'حداقل ۲ کاراکتر وارد کنید.' ], 400 );
     }
 
-    $cache_key = 'romanino_search_' . md5( $keyword );
-    $results   = wp_cache_get( $cache_key, 'romanino_search' );
+    $cache_key = 'saro_search_' . md5( $keyword );
+    $results   = wp_cache_get( $cache_key, 'saro_search' );
 
     if ( false === $results ) {
         $query = new WP_Query( [
@@ -239,143 +245,152 @@ function romanino_ajax_search_handler(): void {
                 ];
             }
         }
-        wp_cache_set( $cache_key, $results, 'romanino_search', 5 * MINUTE_IN_SECONDS );
+        wp_cache_set( $cache_key, $results, 'saro_search', 5 * MINUTE_IN_SECONDS );
     }
 
     if ( empty( $results ) ) {
-        wp_send_json_error( [ 'message' => 'رمانی یافت نشد.' ] );
+        wp_send_json_error( [ 'message' => 'کتابی یافت نشد.' ] );
     }
     wp_send_json_success( $results );
 }
 
 /* ==========================================================================
-   ۶. متاباکس مشخصات رمان (بهینه + ایمن)
+   ۶. متاباکس مشخصات کتاب (بهینه + ایمن)
    ========================================================================== */
 
-add_action( 'add_meta_boxes', 'romanino_add_product_specs_metabox' );
-function romanino_add_product_specs_metabox(): void {
+add_action( 'add_meta_boxes', 'saro_add_product_specs_metabox' );
+function saro_add_product_specs_metabox(): void {
     add_meta_box(
-        'romanino_product_specs_box',
-        'مشخصات رمان (سئو + فنی)',
-        'romanino_product_specs_metabox_content',
+        'saro_product_specs_box',
+        'ویژگی‌های اثر (انتشارات سرو)',
+        'saro_product_specs_metabox_content',
         'product', 'normal', 'high'
     );
 }
 
-function romanino_product_specs_metabox_content( WP_Post $post ): void {
-    wp_nonce_field( 'romanino_save_specs_data', 'romanino_specs_meta_nonce' );
+/**
+ * ویژگی‌های اثر — تنها منبع «متن‌های اختصاصی» صفحهٔ محصول.
+ * ─────────────────────────────────────────────────────────────────────────
+ * طبق درخواست، فیلدهای قدیمی قالب پایه (نام نویسنده، تعداد صفحه، تعداد جلد،
+ * وجود نسخهٔ صوتی، مناسب‌بودن فایل) نه اینجا وارد می‌شوند و نه هیچ‌جای سایت
+ * نمایش داده می‌شوند. به‌جای آن‌ها فقط یک لیست آزاد از «ویژگی» وجود دارد که
+ * مدیر سایت هر عبارتی بخواهد در آن می‌نویسد — مثلاً:
+ *     مناسب جذب انرژی و قدرت
+ *     مناسب افزایش ثروت
+ * این عبارت‌ها در صفحهٔ محصول دقیقاً به همان شکلی که نوشته شده‌اند، بدون هیچ
+ * عنوان یا برچسب یا توضیح اضافه، به‌صورت چیپ نمایش داده می‌شوند.
+ *
+ * مقادیر قدیمی متاهای حذف‌شده (page_count، translator، volume_number و…) در
+ * دیتابیس دست‌نخورده می‌مانند؛ فقط دیگر خوانده، ذخیره یا نمایش داده نمی‌شوند.
+ */
+function saro_product_specs_metabox_content( WP_Post $post ): void {
+    wp_nonce_field( 'saro_save_specs_data', 'saro_specs_meta_nonce' );
 
-    // FIX: طبق درخواست، این باکس فقط باید شامل چیزهایی باشد که معادلِ آن‌ها
-    // در ویژگی‌های ووکامرس (pa_format / pa_nationality) یا تکسونومی برند
-    // (نام نویسنده) وجود ندارد. فیلدهای «نام نویسنده»، «ناشر»، «زبان کتاب» و
-    // «فرمت فایل» از اینجا حذف شدند: نویسنده از تب Brand محصول خوانده
-    // می‌شود، فرمت و ملیت هم از ویژگی‌های محصول (pa_format / pa_nationality)
-    // — نه اینجا. مقادیر قدیمی این فیلدها در دیتابیس دست‌نخورده باقی
-    // می‌مانند (چون از تابع ذخیره هم حذف شده‌اند)، فقط دیگر در این فرم
-    // نمایش/ویرایش نمی‌شوند.
-    // FIX (Task 3.3): طبق درخواست جدید، به‌جای چک‌باکس «چند جلدی؟» + وارد کردن
-    // دستی عنوان/لینک هر جلد، حالا مدیر سایت مستقیماً «شماره‌ی جلد» همین محصول
-    // را انتخاب می‌کند (۰ تا ۱۰، صفر = تک‌جلدی) به‌همراه یک «کلید مجموعه»
-    // مشترک بین همه‌ی جلدهای یک رمان؛ سایر جلدها با کوئری روی همین دو مقدار
-    // به‌صورت خودکار پیدا و لینک می‌شوند (romanino_get_volume_info در
-    // inc/misc-functions.php) — دیگر نیازی به وارد کردن دستی لینک هر جلد نیست.
-    $fields = [
-        'translator'          => get_post_meta( $post->ID, 'translator', true ),
-        'page_count'          => get_post_meta( $post->ID, 'page_count', true ),
-        'sample_download_url' => get_post_meta( $post->ID, 'sample_download_url', true ),
-        'is_foreign_novel'    => get_post_meta( $post->ID, 'is_foreign_novel', true ),
-        'volume_number'       => absint( get_post_meta( $post->ID, 'romanino_volume_number', true ) ),
-        'series_key'          => get_post_meta( $post->ID, 'romanino_series_key', true ),
-        'file_size'           => get_post_meta( $post->ID, 'file_size', true ),
-    ];
+    $features = saro_get_product_features( $post->ID );
+    if ( empty( $features ) ) {
+        $features = array( '' ); // همیشه دست‌کم یک ردیف خالی برای شروع
+    }
+    $file_size   = get_post_meta( $post->ID, 'file_size', true );
+    $sample_url  = get_post_meta( $post->ID, 'sample_download_url', true );
     ?>
     <div style="padding:12px; font-family: Tahoma, sans-serif;">
-        <p style="background:#eef6ff; border:1px solid #cfe4ff; border-radius:5px; padding:10px 12px; color:#1a4b7a;">
-            نام نویسنده از تب «Brand/برند» همین صفحه تنظیم می‌شود؛ فرمت فایل (PDF/صوتی) و ملیت رمان (ایرانی/خارجی)
-            هم از بخش «ویژگی‌ها» (Attributes) در همین صفحه‌ی محصول تنظیم می‌شوند — دیگر لازم نیست اینجا وارد کنید.
+        <p style="background:#f7f2e6; border:1px solid #e3d5b0; border-radius:5px; padding:10px 12px; color:#5d4a1f;">
+            هر ویژگی را در یک ردیف بنویسید (مثلاً «مناسب جذب انرژی و قدرت»). همین متن‌ها — بدون هیچ عنوان یا
+            توضیح اضافه — در صفحهٔ محصول نمایش داده می‌شوند. ردیف‌های خالی ذخیره نمی‌شوند.
+            <br>سایر مشخصات (قطع، صحافی، زبان و…) را از بخش «ویژگی‌ها/Attributes» همین صفحهٔ محصول وارد کنید؛
+            آن‌ها در تب «مشخصات» صفحهٔ محصول نمایش داده می‌شوند.
         </p>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
-            <div>
-                <label style="font-weight:bold; display:block; margin-bottom:5px;">تعداد صفحات</label>
-                <input type="number" name="page_count" min="1" max="99999" value="<?php echo esc_attr( $fields['page_count'] ); ?>" placeholder="مثال: 358" style="width:100%;" />
+
+        <div id="saro-features-rows" style="display:flex; flex-direction:column; gap:8px; max-width:640px; margin-bottom:10px;">
+            <?php foreach ( $features as $feature ) : ?>
+            <div class="saro-feature-row" style="display:flex; gap:8px;">
+                <input type="text" name="saro_features[]" value="<?php echo esc_attr( $feature ); ?>" placeholder="مثال: مناسب افزایش ثروت" style="flex:1;" />
+                <button type="button" class="button saro-feature-remove">حذف</button>
             </div>
+            <?php endforeach; ?>
+        </div>
+        <button type="button" class="button button-secondary" id="saro-features-add">+ افزودن ویژگی</button>
+
+        <div style="border-top:1px solid #ddd; margin-top:16px; padding-top:14px; display:grid; grid-template-columns:1fr 1fr; gap:14px;">
             <div>
                 <label style="font-weight:bold; display:block; margin-bottom:5px;">حجم فایل</label>
-                <input type="text" name="file_size" value="<?php echo esc_attr( $fields['file_size'] ); ?>" placeholder="مثال: 2.4 MB" style="width:100%;" dir="ltr" />
-                <small style="color:#666;">برای اسکیمای Schema.org (contentSize) استفاده می‌شود؛ عدد و واحد را با هم وارد کنید.</small>
+                <input type="text" name="file_size" value="<?php echo esc_attr( $file_size ); ?>" placeholder="مثال: 2.4 MB" style="width:100%;" dir="ltr" />
+                <small style="color:#666;">فقط برای اسکیمای Schema.org (contentSize) استفاده می‌شود و در صفحهٔ محصول چاپ نمی‌شود.</small>
             </div>
-        </div>
-
-        <p>
-            <label>
-                <input type="checkbox" name="is_foreign_novel" id="is_foreign_novel" value="yes" <?php checked( $fields['is_foreign_novel'], 'yes' ); ?> />
-                <strong>این رمان خارجی است و مترجم دارد</strong>
-            </label>
-        </p>
-        <div id="romanino_translator_field" style="<?php echo $fields['is_foreign_novel'] === 'yes' ? '' : 'display:none;'; ?> margin-bottom:12px;">
-            <label style="font-weight:bold; display:block; margin-bottom:5px;">نام مترجم</label>
-            <input type="text" name="translator" value="<?php echo esc_attr( $fields['translator'] ); ?>" placeholder="رضا رضایی" style="width:100%; max-width:400px;" />
-        </div>
-
-        <p style="border-top:1px solid #ddd; padding-top:12px;">
-            <label style="font-weight:bold; display:block; margin-bottom:5px;">شماره جلد این محصول</label>
-            <select name="romanino_volume_number" style="width:200px;">
-                <option value="0" <?php selected( $fields['volume_number'], 0 ); ?>>تک‌جلدی (بدون شماره)</option>
-                <?php for ( $v = 1; $v <= 10; $v++ ) : ?>
-                <option value="<?php echo esc_attr( $v ); ?>" <?php selected( $fields['volume_number'], $v ); ?>><?php echo esc_html( romanino_get_volume_display_text( $v ) ); ?></option>
-                <?php endfor; ?>
-            </select>
-        </p>
-        <div id="romanino_series_key_wrapper" style="<?php echo $fields['volume_number'] > 0 ? '' : 'display:none;'; ?> margin-bottom:12px;">
-            <label style="font-weight:bold; display:block; margin-bottom:5px;">کلید مجموعه (بین همه‌ی جلدهای همین رمان یکسان وارد کنید)</label>
-            <input type="text" name="romanino_series_key" value="<?php echo esc_attr( $fields['series_key'] ); ?>" placeholder="مثال: هری-پاتر یا هر شناسه‌ی یکتای دیگر" style="width:100%; max-width:400px;" dir="ltr" />
-            <small style="color:#666;">سایر جلدهایی که همین مقدار را دارند، خودکار در صفحه‌ی محصول به‌عنوان «سایر جلدهای این مجموعه» با تصویر کاور لینک می‌شوند.</small>
-        </div>
-
-        <div style="border-top:1px solid #ddd; padding-top:12px;">
-            <label style="font-weight:bold; display:block; margin-bottom:5px;">لینک فایل نمونه رایگان (PDF)</label>
-            <input type="url" name="sample_download_url" value="<?php echo esc_url( $fields['sample_download_url'] ); ?>" placeholder="https://..." dir="ltr" style="width:100%; max-width:600px;" />
-            <br/><small style="color:#666;">این لینک در اسکیمای Schema.org و دکمه «دانلود نمونه» نمایش داده می‌شود.</small>
+            <div>
+                <label style="font-weight:bold; display:block; margin-bottom:5px;">لینک فایل نمونهٔ رایگان</label>
+                <input type="url" name="sample_download_url" value="<?php echo esc_url( $sample_url ); ?>" placeholder="https://..." dir="ltr" style="width:100%;" />
+                <small style="color:#666;">اگر پر باشد، دکمهٔ «دریافت نمونهٔ رایگان» در صفحهٔ محصول ظاهر می‌شود.</small>
+            </div>
         </div>
     </div>
 
     <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const $ = id => document.getElementById(id);
-        const toggle = (el, show) => el && (el.style.display = show ? 'block' : 'none');
+        var rows = document.getElementById('saro-features-rows');
+        var addBtn = document.getElementById('saro-features-add');
+        if (!rows || !addBtn) return;
 
-        $('is_foreign_novel').addEventListener('change', e => toggle($('romanino_translator_field'), e.target.checked));
-        const volSelect = document.querySelector('select[name="romanino_volume_number"]');
-        if (volSelect) {
-            volSelect.addEventListener('change', e => toggle($('romanino_series_key_wrapper'), parseInt(e.target.value, 10) > 0));
-        }
+        addBtn.addEventListener('click', function () {
+            var row = document.createElement('div');
+            row.className = 'saro-feature-row';
+            row.style.display = 'flex';
+            row.style.gap = '8px';
+            row.innerHTML = '<input type="text" name="saro_features[]" value="" placeholder="مثال: مناسب افزایش ثروت" style="flex:1;" />' +
+                '<button type="button" class="button saro-feature-remove">حذف</button>';
+            rows.appendChild(row);
+        });
+
+        // حذف با واگذاری رویداد، تا ردیف‌های تازه‌ساخته‌شده هم کار کنند
+        rows.addEventListener('click', function (e) {
+            if (!e.target.classList.contains('saro-feature-remove')) return;
+            if (rows.querySelectorAll('.saro-feature-row').length > 1) {
+                e.target.closest('.saro-feature-row').remove();
+            } else {
+                e.target.closest('.saro-feature-row').querySelector('input').value = '';
+            }
+        });
     });
     </script>
     <?php
 }
 
-add_action( 'save_post_product', 'romanino_save_product_specs_meta' );
-function romanino_save_product_specs_meta( int $post_id ): void {
-    if ( ! isset( $_POST['romanino_specs_meta_nonce'] ) ||
-         ! wp_verify_nonce( $_POST['romanino_specs_meta_nonce'], 'romanino_save_specs_data' ) ) {
+/**
+ * خواندن ویژگی‌های اثر به‌صورت آرایه‌ای از رشته‌های تمیز.
+ * تنها نقطه‌ای که این متا خوانده می‌شود، تا اگر روزی ساختار ذخیره‌سازی عوض
+ * شد فقط همین‌جا تغییر کند.
+ */
+function saro_get_product_features( int $post_id ): array {
+    $raw = get_post_meta( $post_id, 'saro_features', true );
+    if ( ! is_array( $raw ) ) {
+        return array();
+    }
+    $features = array_map( 'trim', array_map( 'strval', $raw ) );
+    return array_values( array_filter( $features, static fn( string $f ): bool => '' !== $f ) );
+}
+
+add_action( 'save_post_product', 'saro_save_product_specs_meta' );
+function saro_save_product_specs_meta( int $post_id ): void {
+    if ( ! isset( $_POST['saro_specs_meta_nonce'] ) ||
+         ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['saro_specs_meta_nonce'] ) ), 'saro_save_specs_data' ) ) {
         return;
     }
     if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
     if ( ! current_user_can( 'edit_post', $post_id ) ) return;
 
-    $page_count = absint( $_POST['page_count'] ?? 0 );
+    $features = array();
+    if ( isset( $_POST['saro_features'] ) && is_array( $_POST['saro_features'] ) ) {
+        foreach ( wp_unslash( $_POST['saro_features'] ) as $feature ) {
+            $feature = sanitize_text_field( $feature );
+            if ( '' !== $feature ) {
+                $features[] = $feature;
+            }
+        }
+    }
+    update_post_meta( $post_id, 'saro_features', $features );
 
-    update_post_meta( $post_id, 'is_foreign_novel',     isset( $_POST['is_foreign_novel'] ) ? 'yes' : 'no' );
-    update_post_meta( $post_id, 'romanino_volume_number', absint( $_POST['romanino_volume_number'] ?? 0 ) );
-    update_post_meta( $post_id, 'romanino_series_key',    sanitize_title( wp_unslash( $_POST['romanino_series_key'] ?? '' ) ) );
-    update_post_meta( $post_id, 'translator',           sanitize_text_field( $_POST['translator'] ?? '' ) );
-    update_post_meta( $post_id, 'page_count',           $page_count > 0 ? $page_count : '' );
-    update_post_meta( $post_id, 'sample_download_url',  esc_url_raw( $_POST['sample_download_url'] ?? '' ) );
-    update_post_meta( $post_id, 'file_size', sanitize_text_field( $_POST['file_size'] ?? '' ) );
-    // FIX: «نام نویسنده»، «ناشر»، «زبان کتاب» و «فرمت فایل» دیگر از این فرم
-    // ذخیره نمی‌شوند (حذف شدند طبق درخواست) — مقادیر قدیمی این متاها اگر
-    // قبلاً برای محصولی ثبت شده بود دست‌نخورده در دیتابیس می‌ماند، فقط
-    // دیگر توسط این تابع بازنویسی نمی‌شود.
+    update_post_meta( $post_id, 'file_size', sanitize_text_field( wp_unslash( $_POST['file_size'] ?? '' ) ) );
+    update_post_meta( $post_id, 'sample_download_url', esc_url_raw( wp_unslash( $_POST['sample_download_url'] ?? '' ) ) );
 }
 
 /* ==========================================================================
@@ -398,7 +413,7 @@ add_action( 'init', function () {
    TASK 4 — ادغام کامل با Rank Math (حذف Schema سفارشی هاردکد قبلی)
    ─────────────────────────────────────────────────────────────────────────
    قبلاً این قالب Schema محصول (Book+Product) را کاملاً دستی و مستقل از هر
-   پلاگین سئو در wp_head چاپ می‌کرد (تابع romanino_inject_schema_jsonld که
+   پلاگین سئو در wp_head چاپ می‌کرد (تابع saro_inject_schema_jsonld که
    اینجا بود). طبق درخواست، این منبع مستقل حذف شد تا Rank Math (که از قبل
    روی سایت نصب و فعال است) تنها منبع تولید Schema باشد — یعنی دقیقاً یک
    بلوک JSON-LD معتبر برای هر محصول، بدون هیچ تناقض/تکراری.
@@ -415,16 +430,12 @@ add_action( 'init', function () {
    Product entity نمی‌سازد و این تابع هم صدا زده نمی‌شود (بی‌خطر است، فقط
    اثری ندارد).
    ========================================================================== */
-add_filter( 'rank_math/snippet/rich_snippet_product_entity', 'romanino_extend_rankmath_product_schema', 10, 1 );
-function romanino_extend_rankmath_product_schema( $entity ) {
-    // FIX (بحرانی): این هوک قبلاً با type-hint سخت‌گیرِ «array $entity» تعریف
-    // شده بود. اگر به هر دلیلی (نسخه‌ی متفاوت Rank Math، پلاگین دیگری که همین
-    // فیلتر را زودتر به یک مقدار غیر-آرایه تغییر داده، یا هر شرایط پیش‌بینی‌
-    // نشده‌ی دیگر) این فیلتر با چیزی غیر از آرایه صدا زده شود، PHP بلافاصله
-    // یک TypeError پرتاب می‌کند که چون catch نشده، کل صفحه (و چون این فیلتر
-    // به‌طور بالقوه در بسیاری از صفحات اجرا می‌شود، عملاً کل سایت) را با
-    // «critical error» از کار می‌انداخت. حالا به‌جای type-hint سخت‌گیر، یک
-    // بررسی امن در همان ابتدای تابع انجام می‌شود.
+add_filter( 'rank_math/snippet/rich_snippet_product_entity', 'saro_extend_rankmath_product_schema', 10, 1 );
+function saro_extend_rankmath_product_schema( $entity ) {
+    // این هوک عمداً بدون type-hint سخت‌گیر تعریف شده: اگر نسخه‌ای از Rank Math
+    // یا پلاگین دیگری این فیلتر را با چیزی غیر از آرایه صدا بزند، PHP یک
+    // TypeError پرتاب می‌کند که چون catch نمی‌شود کل صفحه را با «critical
+    // error» از کار می‌اندازد. پس به‌جای type-hint، بررسی امن انجام می‌شود.
     if ( ! is_array( $entity ) ) return $entity;
     if ( ! is_singular( 'product' ) ) return $entity;
 
@@ -434,74 +445,45 @@ function romanino_extend_rankmath_product_schema( $entity ) {
     }
     if ( ! $product ) return $entity;
 
-    $post_id     = get_the_ID();
-    $author      = wp_strip_all_tags( romanino_get_book_author( $post_id ) );
-    $translator  = wp_strip_all_tags( (string) get_post_meta( $post_id, 'translator', true ) );
-    $page_count  = absint( get_post_meta( $post_id, 'page_count', true ) );
-    $file_size   = trim( (string) get_post_meta( $post_id, 'file_size', true ) );
-    $sample_url  = esc_url( get_post_meta( $post_id, 'sample_download_url', true ) );
+    $post_id    = get_the_ID();
+    $file_size  = trim( (string) get_post_meta( $post_id, 'file_size', true ) );
+    $sample_url = esc_url( get_post_meta( $post_id, 'sample_download_url', true ) );
+    $features   = saro_get_product_features( $post_id );
 
-    $romanino_schema_fmt = romanino_get_product_formats( $post_id );
-    $format = $romanino_schema_fmt['has_pdf'] && $romanino_schema_fmt['has_audio']
-        ? 'pdf+audio'
-        : ( $romanino_schema_fmt['has_audio'] ? 'audio' : 'pdf' );
-    $encoding_format_map = [
-        'pdf'       => 'application/pdf',
-        'audio'     => 'audio/mpeg',
-        'pdf+audio' => 'application/pdf',
-    ];
-    $schema_encoding_format = $encoding_format_map[ $format ] ?? 'application/pdf';
-
-    // برند/نویسنده — اگر Rank Math قبلاً چیزی ست نکرده باشد
-    if ( $author && empty( $entity['brand']['name'] ) ) {
-        $entity['brand'] = [ '@type' => 'Brand', 'name' => $author ];
+    // ویژگی‌های اثر → additionalProperty استاندارد Schema.org. چون این
+    // عبارت‌ها عمداً «بدون عنوان» هستند (مثل «مناسب افزایش ثروت»)، برای name
+    // از یک برچسب عمومی و ثابت استفاده می‌شود و خودِ متن در value می‌نشیند.
+    if ( $features ) {
+        $properties = array();
+        foreach ( $features as $feature ) {
+            $properties[] = array(
+                '@type' => 'PropertyValue',
+                'name'  => 'ویژگی',
+                'value' => $feature,
+            );
+        }
+        $entity['additionalProperty'] = $properties;
     }
 
-    // مترجم — فقط برای رمان خارجی (همان چیزی که در محصول UI هم رعایت می‌شود)
-    $romanino_nat_for_schema = romanino_get_product_nationality( $post_id );
-    if ( $translator && ! empty( $romanino_nat_for_schema['is_foreign'] ) ) {
-        $entity['translator'] = [ '@type' => 'Person', 'name' => $translator ];
-    }
-
-    // تعداد صفحات
-    if ( $page_count ) {
-        $entity['numberOfPages'] = $page_count;
-    }
-
-    // فرمت فایل + حجم فایل (هم contentSize مستقیم، هم associatedMedia استاندارد)
+    // حجم فایل (هم contentSize مستقیم، هم associatedMedia استاندارد)
     if ( $file_size ) {
-        // FIX (Task 3.3): این مقدار همان رشته‌ی دارای واحد «مگابایت» است که در
-        // romanino_get_formatted_file_size() ساخته می‌شود؛ برای Schema رشته‌ی
-        // خام عددی (بدون فاصله‌ی فارسی) امن‌تر است، پس دوباره trim می‌شود.
         $entity['contentSize']     = sanitize_text_field( $file_size );
-        $entity['associatedMedia'] = [
+        $entity['associatedMedia'] = array(
             '@type'          => 'DataDownload',
             'contentSize'    => sanitize_text_field( $file_size ),
-            'encodingFormat' => $schema_encoding_format,
-        ];
+            'encodingFormat' => 'application/pdf',
+        );
     }
 
-    // نمونه‌ی رایگان (در صورت وجود)
+    // نمونهٔ رایگان (در صورت وجود)
     if ( $sample_url && empty( $entity['workExample'] ) ) {
-        $entity['workExample'] = [
+        $entity['workExample'] = array(
             '@type'      => 'Book',
-            'name'       => 'نمونه رایگان: ' . wp_strip_all_tags( $product->get_name() ),
+            'name'       => 'نمونهٔ رایگان: ' . wp_strip_all_tags( $product->get_name() ),
             'url'        => $sample_url,
             'bookFormat' => 'https://schema.org/EBook',
-            'offers'     => [ '@type' => 'Offer', 'price' => '0', 'priceCurrency' => get_woocommerce_currency() ],
-        ];
-    }
-
-    // شماره جلد / مجموعه (در صورت رمان چند جلدی — بخش Task 3.3)
-    $romanino_vol = romanino_get_volume_info( $post_id );
-    if ( $romanino_vol['volume_number'] > 0 ) {
-        $entity['position']       = $romanino_vol['volume_number']; // موقعیت این جلد در مجموعه
-        if ( ! empty( $romanino_vol['series_key'] ) ) {
-            $entity['isPartOf'] = [
-                '@type' => 'BookSeries',
-                'name'  => $romanino_vol['series_key'],
-            ];
-        }
+            'offers'     => array( '@type' => 'Offer', 'price' => '0', 'priceCurrency' => get_woocommerce_currency() ),
+        );
     }
 
     return $entity;
@@ -511,12 +493,12 @@ function romanino_extend_rankmath_product_schema( $entity ) {
    ۸. سئو — Alt تصویر اتوماتیک
    ========================================================================== */
 
-add_filter( 'woocommerce_product_get_image', 'romanino_auto_alt_product_image', 10, 5 );
-function romanino_auto_alt_product_image(
+add_filter( 'woocommerce_product_get_image', 'saro_auto_alt_product_image', 10, 5 );
+function saro_auto_alt_product_image(
     string $image, WC_Product $product, $size, array $attr, bool $placeholder
 ): string {
     if ( empty( $attr['alt'] ) || $attr['alt'] === '' ) {
-        $auto_alt = 'دانلود رمان ' . $product->get_name() . ' PDF';
+        $auto_alt = 'دانلود کتاب ' . $product->get_name() . ' PDF';
         $image = str_replace( 'alt=""', 'alt="' . esc_attr( $auto_alt ) . '"', $image );
         $image = preg_replace( '/alt=\'\'/', "alt='" . esc_attr( $auto_alt ) . "'", $image );
     }
@@ -533,11 +515,10 @@ function romanino_auto_alt_product_image(
    بسازد، بدون خروجی تکراری.
    ========================================================================== */
 
-add_filter( 'wp_robots', 'romanino_robots_noindex_private_pages' );
-function romanino_robots_noindex_private_pages( array $robots ): array {
+add_filter( 'wp_robots', 'saro_robots_noindex_private_pages' );
+function saro_robots_noindex_private_pages( array $robots ): array {
     $is_private = is_cart() || is_checkout() || is_account_page() || is_search()
-        || isset( $_GET['add-to-cart'] )
-        || get_query_var( 'romanino_author' );
+        || isset( $_GET['add-to-cart'] );
 
     if ( $is_private ) {
         $robots['noindex']  = true;
@@ -562,13 +543,13 @@ add_filter( 'woocommerce_cart_needs_shipping_address', '__return_false' );
    ۱۱الف. ووکامرس — هدایت هوشمند پس از ورود / ثبت‌نام
    ─────────────────────────────────────────────────────────────────────────
    اولویت: redirect_to یا redirect در URL → سبد پر → referer → صفحه اصلی
-   برای فرم پیش‌فرض ووکامرس و همچنین ورود AJAX (romanino_after_login_redirect).
+   برای فرم پیش‌فرض ووکامرس و همچنین ورود AJAX (saro_after_login_redirect).
    ========================================================================== */
 
 /**
  * آیا URL مقصدِ ریدایرکت، صفحه‌ی ورود/حساب است (برای جلوگیری از حلقه)؟
  */
-function romanino_is_blocked_auth_redirect_url( string $url ): bool {
+function saro_is_blocked_auth_redirect_url( string $url ): bool {
 	$url = untrailingslashit( $url );
 	if ( ! $url ) {
 		return true;
@@ -591,7 +572,7 @@ function romanino_is_blocked_auth_redirect_url( string $url ): bool {
 /**
  * redirect_to / redirect از درخواست جاری یا query-string صفحه‌ی referer (برای AJAX).
  */
-function romanino_get_explicit_redirect_url(): string {
+function saro_get_explicit_redirect_url(): string {
 	foreach ( [ 'redirect_to', 'redirect' ] as $key ) {
 		if ( ! empty( $_REQUEST[ $key ] ) && is_string( $_REQUEST[ $key ] ) ) {
 			return wp_unslash( $_REQUEST[ $key ] );
@@ -621,11 +602,11 @@ function romanino_get_explicit_redirect_url(): string {
 /**
  * تعیین URL مقصد پس از ورود یا ثبت‌نام موفق.
  */
-function romanino_get_post_auth_redirect_url( string $fallback = '' ): string {
-	$explicit = romanino_get_explicit_redirect_url();
+function saro_get_post_auth_redirect_url( string $fallback = '' ): string {
+	$explicit = saro_get_explicit_redirect_url();
 	if ( $explicit && wp_http_validate_url( $explicit ) ) {
 		$explicit = esc_url_raw( $explicit );
-		if ( 0 === strpos( $explicit, home_url() ) && ! romanino_is_blocked_auth_redirect_url( $explicit ) ) {
+		if ( 0 === strpos( $explicit, home_url() ) && ! saro_is_blocked_auth_redirect_url( $explicit ) ) {
 			return $explicit;
 		}
 	}
@@ -637,14 +618,14 @@ function romanino_get_post_auth_redirect_url( string $fallback = '' ): string {
 	$referer = wp_get_referer();
 	if ( $referer && wp_http_validate_url( $referer ) ) {
 		$referer = esc_url_raw( $referer );
-		if ( 0 === strpos( $referer, home_url() ) && ! romanino_is_blocked_auth_redirect_url( $referer ) ) {
+		if ( 0 === strpos( $referer, home_url() ) && ! saro_is_blocked_auth_redirect_url( $referer ) ) {
 			return $referer;
 		}
 	}
 
 	if ( $fallback && wp_http_validate_url( $fallback ) ) {
 		$fallback = esc_url_raw( $fallback );
-		if ( 0 === strpos( $fallback, home_url() ) && ! romanino_is_blocked_auth_redirect_url( $fallback ) ) {
+		if ( 0 === strpos( $fallback, home_url() ) && ! saro_is_blocked_auth_redirect_url( $fallback ) ) {
 			return $fallback;
 		}
 	}
@@ -652,17 +633,17 @@ function romanino_get_post_auth_redirect_url( string $fallback = '' ): string {
 	return home_url( '/' );
 }
 
-add_filter( 'woocommerce_login_redirect', 'romanino_wc_login_redirect', 10, 2 );
-function romanino_wc_login_redirect( string $redirect, $user = null ): string {
-	return romanino_get_post_auth_redirect_url( $redirect );
+add_filter( 'woocommerce_login_redirect', 'saro_wc_login_redirect', 10, 2 );
+function saro_wc_login_redirect( string $redirect, $user = null ): string {
+	return saro_get_post_auth_redirect_url( $redirect );
 }
 
-add_filter( 'woocommerce_registration_redirect', 'romanino_wc_registration_redirect' );
-function romanino_wc_registration_redirect( string $redirect ): string {
-	return romanino_get_post_auth_redirect_url( $redirect );
+add_filter( 'woocommerce_registration_redirect', 'saro_wc_registration_redirect' );
+function saro_wc_registration_redirect( string $redirect ): string {
+	return saro_get_post_auth_redirect_url( $redirect );
 }
 
-add_filter( 'romanino_after_login_redirect', 'romanino_wc_login_redirect', 10, 2 );
+add_filter( 'saro_after_login_redirect', 'saro_wc_login_redirect', 10, 2 );
 
 /* ==========================================================================
    ۱۱ب. ووکامرس — جلوگیری از کش (LiteSpeed / WP Rocket / هدر No-Cache)
@@ -674,7 +655,7 @@ add_filter( 'romanino_after_login_redirect', 'romanino_wc_login_redirect', 10, 2
 /**
  * آیا درخواست جاری باید از کش مستثنا شود؟
  */
-function romanino_wc_is_no_cache_request(): bool {
+function saro_wc_is_no_cache_request(): bool {
 	if ( ! empty( $_GET['download_file'] ) ) {
 		return true;
 	}
@@ -706,9 +687,9 @@ function romanino_wc_is_no_cache_request(): bool {
 	return false;
 }
 
-add_action( 'wp', 'romanino_wc_define_no_cache_constants', 0 );
-function romanino_wc_define_no_cache_constants(): void {
-	if ( ! romanino_wc_is_no_cache_request() ) {
+add_action( 'wp', 'saro_wc_define_no_cache_constants', 0 );
+function saro_wc_define_no_cache_constants(): void {
+	if ( ! saro_wc_is_no_cache_request() ) {
 		return;
 	}
 	if ( ! defined( 'DONOTCACHEPAGE' ) ) {
@@ -722,9 +703,9 @@ function romanino_wc_define_no_cache_constants(): void {
 	}
 }
 
-add_action( 'template_redirect', 'romanino_wc_send_no_cache_headers', 0 );
-function romanino_wc_send_no_cache_headers(): void {
-	if ( ! romanino_wc_is_no_cache_request() || headers_sent() ) {
+add_action( 'template_redirect', 'saro_wc_send_no_cache_headers', 0 );
+function saro_wc_send_no_cache_headers(): void {
+	if ( ! saro_wc_is_no_cache_request() || headers_sent() ) {
 		return;
 	}
 	nocache_headers();
@@ -733,35 +714,35 @@ function romanino_wc_send_no_cache_headers(): void {
 	header( 'Expires: Wed, 11 Jan 1984 05:00:00 GMT' );
 }
 
-add_action( 'init', 'romanino_litespeed_wc_no_cache_early', 1 );
-function romanino_litespeed_wc_no_cache_early(): void {
+add_action( 'init', 'saro_litespeed_wc_no_cache_early', 1 );
+function saro_litespeed_wc_no_cache_early(): void {
 	if ( ! empty( $_GET['download_file'] ) ) {
-		do_action( 'litespeed_control_set_nocache', 'romanino woocommerce download' );
+		do_action( 'litespeed_control_set_nocache', 'saro woocommerce download' );
 		if ( ! defined( 'LSCACHE_NO_CACHE' ) ) {
 			define( 'LSCACHE_NO_CACHE', true );
 		}
 	}
 }
 
-add_action( 'wp', 'romanino_litespeed_wc_no_cache', 1 );
-function romanino_litespeed_wc_no_cache(): void {
-	if ( romanino_wc_is_no_cache_request() ) {
-		do_action( 'litespeed_control_set_nocache', 'romanino woocommerce dynamic' );
+add_action( 'wp', 'saro_litespeed_wc_no_cache', 1 );
+function saro_litespeed_wc_no_cache(): void {
+	if ( saro_wc_is_no_cache_request() ) {
+		do_action( 'litespeed_control_set_nocache', 'saro woocommerce dynamic' );
 	}
 }
 
-add_filter( 'do_rocket_generate_caching_files', 'romanino_wp_rocket_wc_no_cache' );
-function romanino_wp_rocket_wc_no_cache( bool $generate ): bool {
-	return romanino_wc_is_no_cache_request() ? false : $generate;
+add_filter( 'do_rocket_generate_caching_files', 'saro_wp_rocket_wc_no_cache' );
+function saro_wp_rocket_wc_no_cache( bool $generate ): bool {
+	return saro_wc_is_no_cache_request() ? false : $generate;
 }
 
-add_filter( 'rocket_override_donotcachepage', 'romanino_wp_rocket_wc_donotcachepage', 10, 2 );
-function romanino_wp_rocket_wc_donotcachepage( bool $donotcache, $post_id ): bool {
-	return romanino_wc_is_no_cache_request() ? true : $donotcache;
+add_filter( 'rocket_override_donotcachepage', 'saro_wp_rocket_wc_donotcachepage', 10, 2 );
+function saro_wp_rocket_wc_donotcachepage( bool $donotcache, $post_id ): bool {
+	return saro_wc_is_no_cache_request() ? true : $donotcache;
 }
 
-add_filter( 'rocket_cache_reject_uri', 'romanino_wp_rocket_wc_reject_uris' );
-function romanino_wp_rocket_wc_reject_uris( array $uris ): array {
+add_filter( 'rocket_cache_reject_uri', 'saro_wp_rocket_wc_reject_uris' );
+function saro_wp_rocket_wc_reject_uris( array $uris ): array {
 	$wc_pages = array_filter( [
 		function_exists( 'wc_get_page_id' ) ? wc_get_page_id( 'cart' ) : 0,
 		function_exists( 'wc_get_page_id' ) ? wc_get_page_id( 'checkout' ) : 0,
@@ -792,7 +773,7 @@ function romanino_wp_rocket_wc_reject_uris( array $uris ): array {
  *
  * @return string[]
  */
-function romanino_wc_address_fields_to_remove(): array {
+function saro_wc_address_fields_to_remove(): array {
 	return [
 		'billing_address_1',
 		'billing_address_2',
@@ -811,8 +792,8 @@ function romanino_wc_address_fields_to_remove(): array {
 	];
 }
 
-add_filter( 'woocommerce_checkout_fields', 'romanino_simplify_checkout_fields' );
-function romanino_simplify_checkout_fields( array $fields ): array {
+add_filter( 'woocommerce_checkout_fields', 'saro_simplify_checkout_fields' );
+function saro_simplify_checkout_fields( array $fields ): array {
 	$keep = [ 'billing_first_name', 'billing_last_name', 'billing_phone', 'billing_email' ];
 
 	if ( isset( $fields['billing'] ) ) {
@@ -833,32 +814,32 @@ function romanino_simplify_checkout_fields( array $fields ): array {
 	return $fields;
 }
 
-add_filter( 'woocommerce_admin_billing_fields', 'romanino_simplify_admin_billing_fields' );
-function romanino_simplify_admin_billing_fields( array $fields ): array {
-	foreach ( romanino_wc_address_fields_to_remove() as $field ) {
+add_filter( 'woocommerce_admin_billing_fields', 'saro_simplify_admin_billing_fields' );
+function saro_simplify_admin_billing_fields( array $fields ): array {
+	foreach ( saro_wc_address_fields_to_remove() as $field ) {
 		unset( $fields[ $field ] );
 	}
 	return $fields;
 }
 
-add_filter( 'woocommerce_billing_fields', 'romanino_simplify_account_billing_fields' );
-function romanino_simplify_account_billing_fields( array $fields ): array {
-	foreach ( romanino_wc_address_fields_to_remove() as $field ) {
+add_filter( 'woocommerce_billing_fields', 'saro_simplify_account_billing_fields' );
+function saro_simplify_account_billing_fields( array $fields ): array {
+	foreach ( saro_wc_address_fields_to_remove() as $field ) {
 		unset( $fields[ $field ] );
 	}
 	return $fields;
 }
 
-add_filter( 'woocommerce_default_address_fields', 'romanino_remove_default_address_fields' );
-function romanino_remove_default_address_fields( array $fields ): array {
-	foreach ( romanino_wc_address_fields_to_remove() as $field ) {
+add_filter( 'woocommerce_default_address_fields', 'saro_remove_default_address_fields' );
+function saro_remove_default_address_fields( array $fields ): array {
+	foreach ( saro_wc_address_fields_to_remove() as $field ) {
 		unset( $fields[ $field ] );
 	}
 	return $fields;
 }
 
-add_filter( 'woocommerce_get_country_locale', 'romanino_disable_address_locale_requirements' );
-function romanino_disable_address_locale_requirements( array $locale ): array {
+add_filter( 'woocommerce_get_country_locale', 'saro_disable_address_locale_requirements' );
+function saro_disable_address_locale_requirements( array $locale ): array {
 	$optional = [ 'address_1', 'address_2', 'city', 'state', 'postcode', 'company' ];
 	foreach ( $locale as $country => $country_fields ) {
 		foreach ( $optional as $field ) {
@@ -871,8 +852,8 @@ function romanino_disable_address_locale_requirements( array $locale ): array {
 	return $locale;
 }
 
-add_filter( 'woocommerce_checkout_posted_data', 'romanino_checkout_posted_data_defaults' );
-function romanino_checkout_posted_data_defaults( array $data ): array {
+add_filter( 'woocommerce_checkout_posted_data', 'saro_checkout_posted_data_defaults' );
+function saro_checkout_posted_data_defaults( array $data ): array {
 	$defaults = [
 		'billing_country'   => 'IR',
 		'billing_state'     => '',
@@ -894,16 +875,16 @@ add_filter( 'woocommerce_validate_postcode', '__return_true', 10, 3 );
 add_filter( 'woocommerce_validate_state', '__return_true', 10, 3 );
 add_filter( 'woocommerce_enable_order_notes_field', '__return_false' );
 
-add_filter( 'woocommerce_admin_shipping_fields', 'romanino_simplify_admin_shipping_fields' );
-function romanino_simplify_admin_shipping_fields( array $fields ): array {
-	foreach ( romanino_wc_address_fields_to_remove() as $field ) {
+add_filter( 'woocommerce_admin_shipping_fields', 'saro_simplify_admin_shipping_fields' );
+function saro_simplify_admin_shipping_fields( array $fields ): array {
+	foreach ( saro_wc_address_fields_to_remove() as $field ) {
 		unset( $fields[ $field ] );
 	}
 	return $fields;
 }
 
-add_action( 'woocommerce_checkout_process', 'romanino_validate_minimal_checkout_fields' );
-function romanino_validate_minimal_checkout_fields(): void {
+add_action( 'woocommerce_checkout_process', 'saro_validate_minimal_checkout_fields' );
+function saro_validate_minimal_checkout_fields(): void {
 	$labels = [
 		'billing_first_name' => 'نام',
 		'billing_last_name'  => 'نام خانوادگی',
@@ -920,8 +901,8 @@ function romanino_validate_minimal_checkout_fields(): void {
 	}
 }
 
-add_filter( 'woocommerce_order_get_formatted_billing_address', 'romanino_formatted_billing_address', 10, 3 );
-function romanino_formatted_billing_address( string $address, array $raw_address, WC_Order $order ): string {
+add_filter( 'woocommerce_order_get_formatted_billing_address', 'saro_formatted_billing_address', 10, 3 );
+function saro_formatted_billing_address( string $address, array $raw_address, WC_Order $order ): string {
 	$parts = array_filter( [
 		trim( ( $raw_address['first_name'] ?? '' ) . ' ' . ( $raw_address['last_name'] ?? '' ) ),
 		$raw_address['phone'] ?? '',
@@ -934,7 +915,7 @@ function romanino_formatted_billing_address( string $address, array $raw_address
    ۱۲. بارگذاری ماژول‌ها
    ========================================================================== */
 
-$romanino_modules = [
+$saro_modules = [
     'inc/misc-functions.php',
     'inc/sms-functions.php',
     'inc/auth-functions.php',
@@ -944,7 +925,7 @@ $romanino_modules = [
     'inc/seo-functions.php',
     'inc/theme-options.php',
 ];
-foreach ( $romanino_modules as $module ) {
+foreach ( $saro_modules as $module ) {
     $path = get_template_directory() . '/' . $module;
     if ( file_exists( $path ) ) {
         require_once $path;
@@ -956,7 +937,7 @@ foreach ( $romanino_modules as $module ) {
    ========================================================================== */
 add_action( 'after_switch_theme', function () {
     flush_rewrite_rules();
-    romanino_maybe_assign_login_template();
+    saro_maybe_assign_login_template();
 } );
 
 /* ==========================================================================
@@ -977,11 +958,11 @@ add_action( 'after_switch_theme', function () {
    قبلیِ ادمین را override نمی‌کند) تا نیازی به کار دستی نباشد. اگر
    ادمین قبلاً این تنظیم را انجام داده، این تابع هیچ تغییری نمی‌دهد.
    ========================================================================== */
-add_action( 'init', 'romanino_maybe_assign_login_template', 20 );
-function romanino_maybe_assign_login_template(): void {
+add_action( 'init', 'saro_maybe_assign_login_template', 20 );
+function saro_maybe_assign_login_template(): void {
     // فقط یک‌بار اجرا شود؛ برای اجرای مجدد کافی است آپشن زیر را حذف کنید:
-    // delete_option( 'romanino_login_template_assigned' );
-    if ( get_option( 'romanino_login_template_assigned' ) ) {
+    // delete_option( 'saro_login_template_assigned' );
+    if ( get_option( 'saro_login_template_assigned' ) ) {
         return;
     }
     if ( ! function_exists( 'wc_get_page_id' ) ) {
@@ -996,7 +977,7 @@ function romanino_maybe_assign_login_template(): void {
         if ( empty( $current_template ) || $current_template === 'default' ) {
             update_post_meta( $myaccount_id, '_wp_page_template', 'page-login.php' );
         }
-        update_option( 'romanino_login_template_assigned', 1 );
+        update_option( 'saro_login_template_assigned', 1 );
     }
 }
 /* ==========================================================================
@@ -1013,9 +994,9 @@ function romanino_maybe_assign_login_template(): void {
    woocommerce_billing_fields) استفاده کند هم این فیلدها را نبیند و اعتبارسنجی
    نکند، نه فقط قالب فعلی خود چک‌اوت.
    ========================================================================== */
-add_filter( 'woocommerce_checkout_fields', 'romanino_remove_physical_address_checkout_fields' );
-add_filter( 'woocommerce_billing_fields', 'romanino_remove_physical_address_billing_fields' );
-function romanino_strip_physical_address_fields( array $fields ): array {
+add_filter( 'woocommerce_checkout_fields', 'saro_remove_physical_address_checkout_fields' );
+add_filter( 'woocommerce_billing_fields', 'saro_remove_physical_address_billing_fields' );
+function saro_strip_physical_address_fields( array $fields ): array {
     $to_remove = array(
         'billing_country',
         'billing_state',
@@ -1037,17 +1018,17 @@ function romanino_strip_physical_address_fields( array $fields ): array {
     }
     return $fields;
 }
-function romanino_remove_physical_address_checkout_fields( array $fields ): array {
+function saro_remove_physical_address_checkout_fields( array $fields ): array {
     if ( isset( $fields['billing'] ) ) {
-        $fields['billing'] = romanino_strip_physical_address_fields( $fields['billing'] );
+        $fields['billing'] = saro_strip_physical_address_fields( $fields['billing'] );
     }
     if ( isset( $fields['shipping'] ) ) {
-        $fields['shipping'] = romanino_strip_physical_address_fields( $fields['shipping'] );
+        $fields['shipping'] = saro_strip_physical_address_fields( $fields['shipping'] );
     }
     return $fields;
 }
-function romanino_remove_physical_address_billing_fields( array $fields ): array {
-    return romanino_strip_physical_address_fields( $fields );
+function saro_remove_physical_address_billing_fields( array $fields ): array {
+    return saro_strip_physical_address_fields( $fields );
 }
 
 // FIX: چون فیلدهای بالا دیگر اصلاً رندر نمی‌شوند، اگر جایی (مثلاً یک افزونه)
@@ -1080,8 +1061,8 @@ add_filter( 'woocommerce_checkout_fields', function ( array $fields ): array {
     }
     return $fields;
 }, 20 );
-add_action( 'wp_enqueue_scripts', 'romanino_enqueue_pages_custom_css', 20 );
-function romanino_enqueue_pages_custom_css(): void {
+add_action( 'wp_enqueue_scripts', 'saro_enqueue_pages_custom_css', 20 );
+function saro_enqueue_pages_custom_css(): void {
     // اگر می‌خواهید فقط در همین ۷ صفحه لود شود (بهتر برای پرفورمنس)،
     // اسلاگ‌های واقعی صفحاتتان را این‌جا بگذارید و شرط را فعال کنید:
     //
@@ -1089,9 +1070,9 @@ function romanino_enqueue_pages_custom_css(): void {
     // if ( ! is_page( $slugs ) ) { return; }
  
     wp_enqueue_style(
-        'romanino-pages-custom',
+        'saro-pages-custom',
         get_template_directory_uri() . '/assets/css/pages-custom.css',
-        [ 'romanino-tailwind' ],
+        [ 'saro-tailwind' ],
         wp_get_theme()->get( 'Version' )
     );
 }

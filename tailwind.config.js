@@ -1,11 +1,24 @@
 /**
- * تنظیمات Tailwind برای قالب رمانینو — برای کامپایل لوکال.
+ * تنظیمات Tailwind برای قالب «انتشارات سرو» — برای کامپایل لوکال.
  * ─────────────────────────────────────────────────────────────────────────────
  * رنگ‌ها به متغیرهای CSS در assets/css/tailwind-src.css وصل شده‌اند (تنها
- * منبع رنگ‌ها در کل قالب). شامل توکن‌هایی مثل primary-foreground، accent و
- * ring هم می‌شود که در چند تمپلیت استفاده شده بودند ولی قبلاً هیچ‌جا تعریف
- * نشده بودند (یعنی آن کلاس‌ها بی‌اثر بودند).
+ * منبع رنگ‌ها در کل قالب). پالت سرو: کِرِم کاغذی، سبز-آبی عمیق (فیروزه‌ای
+ * تیره) و طلایی مینیاتوری — همان پالتی که در طرح رابط کاربری تأیید شد.
+ *
+ * ⚠️ چرا رنگ‌ها به شکل «rgb(var(--x-rgb) / <alpha-value>)» تعریف شده‌اند و نه
+ * مستقیم «var(--x)»؟ چون اگر یک رنگ در Tailwind مقدارش یک var() آماده باشد،
+ * Tailwind نمی‌تواند مادیفایرهای شفافیت را روی آن اعمال کند و کلاس‌هایی مثل
+ * «bg-teal-ink/40» یا «bg-destructive/10» اصلاً هیچ CSSای تولید نمی‌کنند —
+ * یعنی آن عنصر بی‌پس‌زمینه می‌ماند (مثلاً پشت مودال‌ها تیره نمی‌شود). با شکل
+ * کانالی (‎--teal-ink-rgb: 10 44 49‎) هر دو حالت کار می‌کنند.
+ *
+ * نام توکن‌های عمومی (background/foreground/card/primary/…) عمداً دست‌نخورده
+ * مانده تا تمپلیت‌هایی که از کلاس‌هایی مثل bg-card یا text-muted-foreground
+ * استفاده می‌کنند، بدون تغییر با پالت جدید کار کنند.
  */
+
+/** یک رنگ با پشتیبانی کامل از مادیفایر شفافیت (bg-teal/40 و…) */
+const withAlpha = ( variable ) => `rgb(var(${ variable }) / <alpha-value>)`;
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -15,36 +28,54 @@ module.exports = {
 		'!./node_modules/**',
 		'!./vendor/**',
 	],
-	darkMode: false, // تم به‌صورت ثابت تیره است (color-scheme: dark)
 	theme: {
 		extend: {
 			colors: {
-				background: 'var(--background)',
-				foreground: 'var(--foreground)',
-				card: 'var(--card)',
-				popover: 'var(--popover)',
+				background: withAlpha( '--background-rgb' ),
+				foreground: withAlpha( '--foreground-rgb' ),
+				card: withAlpha( '--card-rgb' ),
+				popover: withAlpha( '--popover-rgb' ),
 				primary: {
-					DEFAULT: 'var(--primary)',
-					foreground: 'var(--primary-foreground)',
+					DEFAULT: withAlpha( '--primary-rgb' ),
+					foreground: withAlpha( '--primary-foreground-rgb' ),
 				},
-				gold: 'var(--gold)',
-				'cyan-glow': 'var(--cyan-glow)',
-				'emerald-glow': 'var(--emerald-glow)',
+
+				/* ── توکن‌های اختصاصی پالت سرو ── */
+				teal: {
+					DEFAULT: withAlpha( '--teal-rgb' ),
+					deep: withAlpha( '--teal-deep-rgb' ),
+					ink: withAlpha( '--teal-ink-rgb' ),
+				},
+				gold: {
+					DEFAULT: withAlpha( '--gold-rgb' ),
+					soft: withAlpha( '--gold-soft-rgb' ),
+					// این دو عمداً «کانالی» نیستند: خودشان از پیش نیمه‌شفاف‌اند و
+					// همیشه با همان شفافیت ثابت (خط طلایی نازک) استفاده می‌شوند.
+					line: 'var(--gold-line)',
+					hair: 'var(--gold-hair)',
+				},
+				cream: {
+					DEFAULT: withAlpha( '--cream-rgb' ),
+					2: withAlpha( '--cream-2-rgb' ),
+					3: withAlpha( '--cream-3-rgb' ),
+				},
+				ink: withAlpha( '--ink-rgb' ),
+
 				secondary: {
-					DEFAULT: 'var(--secondary)',
-					foreground: 'var(--secondary-foreground)',
+					DEFAULT: withAlpha( '--secondary-rgb' ),
+					foreground: withAlpha( '--secondary-foreground-rgb' ),
 				},
 				muted: {
-					DEFAULT: 'var(--muted)',
-					foreground: 'var(--muted-foreground)',
+					DEFAULT: withAlpha( '--muted-rgb' ),
+					foreground: withAlpha( '--muted-foreground-rgb' ),
 				},
 				accent: {
-					DEFAULT: 'var(--accent)',
-					foreground: 'var(--accent-foreground)',
+					DEFAULT: withAlpha( '--accent-rgb' ),
+					foreground: withAlpha( '--accent-foreground-rgb' ),
 				},
 				destructive: {
-					DEFAULT: 'var(--destructive)',
-					foreground: 'var(--destructive-foreground)',
+					DEFAULT: withAlpha( '--destructive-rgb' ),
+					foreground: withAlpha( '--destructive-foreground-rgb' ),
 				},
 				border: 'var(--border)',
 				input: 'var(--input)',
@@ -54,7 +85,13 @@ module.exports = {
 				DEFAULT: 'var(--radius)',
 			},
 			fontFamily: {
-				sans: ['IRANSansWeb', 'Tahoma', 'system-ui', 'sans-serif'],
+				// متن جاری سایت
+				sans: [ 'IRANSansWeb', 'Vazirmatn', 'Tahoma', 'system-ui', 'sans-serif' ],
+				// تیترها — نسخ عربی (میزبانی‌شده روی سرور خودمان)
+				naskh: [ 'NotoNaskhArabic', 'IRANSansWeb', 'Tahoma', 'serif' ],
+			},
+			maxWidth: {
+				saro: '1340px',
 			},
 		},
 	},

@@ -1,5 +1,5 @@
 /**
- * Romanino — main.js
+ * Saro — main.js
  * جایگزین تمام اسکریپت‌های inline پراکنده در فایل‌های قالب
  * ─────────────────────────────────────────────────────────────────────────────
  */
@@ -21,28 +21,40 @@
     });
   }
 
-  /* ── ۲. تب‌های صفحه محصول ───────────────────────────────────────────────── */
-  const tabBtns   = document.querySelectorAll('.tab-btn');
-  const tabPanels = document.querySelectorAll('.tab-panel');
+  /* ── ۲. باکس توضیح تاشو (آرشیو محصولات و صفحهٔ دسته‌بندی) ───────────────
+     کل متن همیشه در HTML هست و فقط ارتفاع باکس بسته می‌ماند، پس گوگل متن
+     کامل را می‌بیند. اگر متن آن‌قدر کوتاه باشد که اصلاً بریده نشود، دکمه و
+     سایهٔ محوکننده هر دو حذف می‌شوند. */
+  const descWrap   = document.getElementById('saro-desc-wrap');
+  const descToggle = document.getElementById('saro-desc-toggle');
+  const descFade   = document.getElementById('saro-desc-fade');
 
-  if (tabBtns.length) {
-    tabBtns.forEach(btn => {
-      btn.addEventListener('click', function () {
-        tabBtns.forEach(b => {
-          b.setAttribute('aria-selected', 'false');
-          b.classList.remove('bg-primary', 'text-primary-foreground');
-          b.classList.add('text-muted-foreground', 'hover:bg-secondary');
-        });
-        tabPanels.forEach(p => { p.classList.add('hidden'); p.classList.remove('block'); });
+  if (descWrap && descToggle) {
+    const COLLAPSED = 96;
 
-        this.setAttribute('aria-selected', 'true');
-        this.classList.add('bg-primary', 'text-primary-foreground');
-        this.classList.remove('text-muted-foreground', 'hover:bg-secondary');
+    if (descWrap.scrollHeight <= COLLAPSED + 8) {
+      descToggle.style.display = 'none';
+      if (descFade) descFade.style.display = 'none';
+      descWrap.style.maxHeight = 'none';
+    } else {
+      descToggle.addEventListener('click', () => {
+        const expanded = descWrap.style.maxHeight !== COLLAPSED + 'px';
+        const label    = descToggle.querySelector('[data-label]');
+        const chevron  = descToggle.querySelector('[data-chevron]');
 
-        const target = document.getElementById(this.id.replace('tab-', 'panel-'));
-        if (target) { target.classList.remove('hidden'); target.classList.add('block'); }
+        if (expanded) {
+          descWrap.style.maxHeight = COLLAPSED + 'px';
+          if (descFade) descFade.style.opacity = '1';
+          if (label) label.textContent = 'مشاهدهٔ بیشتر';
+          if (chevron) chevron.style.transform = 'rotate(0deg)';
+        } else {
+          descWrap.style.maxHeight = descWrap.scrollHeight + 'px';
+          if (descFade) descFade.style.opacity = '0';
+          if (label) label.textContent = 'بستن';
+          if (chevron) chevron.style.transform = 'rotate(180deg)';
+        }
       });
-    });
+    }
   }
 
   /* ── ۳. صفحه ورود: OTP digit auto-advance ───────────────────────────────── */
@@ -82,7 +94,7 @@
   };
 
   /* ── ۵. صفحه ورود — جریان OTP / رمز عبور / ثبت‌نام ──────────────────────── */
-  const authAjax = window.romanino || {};
+  const authAjax = window.saro || {};
 
   const AUTH_STEPS = ['step-phone', 'step-password', 'step-otp', 'step-name', 'step-manual-login', 'step-register'];
 
@@ -122,7 +134,7 @@
 
       try {
         const fd = new FormData();
-        fd.append('action', 'romanino_check_phone');
+        fd.append('action', 'saro_check_phone');
         fd.append('nonce', authAjax.authNonce || '');
         fd.append('phone', phone);
 
@@ -160,7 +172,7 @@
 
       try {
         const fd = new FormData();
-        fd.append('action', 'romanino_login_password');
+        fd.append('action', 'saro_login_password');
         fd.append('nonce', authAjax.authNonce || '');
         fd.append('phone', currentPhone);
         fd.append('password', password);
@@ -192,7 +204,7 @@
 
       try {
         const fd = new FormData();
-        fd.append('action', 'romanino_verify_otp');
+        fd.append('action', 'saro_verify_otp');
         fd.append('nonce', authAjax.authNonce || '');
         fd.append('phone', currentPhone);
         fd.append('code', code);
@@ -226,7 +238,7 @@
     btnResend.addEventListener('click', async () => {
       btnResend.disabled = true;
       const fd = new FormData();
-      fd.append('action', 'romanino_send_otp');
+      fd.append('action', 'saro_send_otp');
       fd.append('nonce', authAjax.authNonce || '');
       fd.append('phone', currentPhone);
       await fetch(authAjax.ajaxUrl, { method: 'POST', body: fd });
@@ -237,7 +249,7 @@
   // سوئیچ به OTP
   document.getElementById('btn-use-otp-instead')?.addEventListener('click', async () => {
     const fd = new FormData();
-    fd.append('action', 'romanino_send_otp');
+    fd.append('action', 'saro_send_otp');
     fd.append('nonce', authAjax.authNonce || '');
     fd.append('phone', currentPhone);
     await fetch(authAjax.ajaxUrl, { method: 'POST', body: fd });
@@ -258,7 +270,7 @@
 
       try {
         const fd = new FormData();
-        fd.append('action', 'romanino_save_name');
+        fd.append('action', 'saro_save_name');
         fd.append('nonce', authAjax.authNonce || '');
         fd.append('first_name', firstName);
         fd.append('last_name', lastName);
@@ -292,7 +304,7 @@
 
       try {
         const fd = new FormData();
-        fd.append('action', 'romanino_login_password');
+        fd.append('action', 'saro_login_password');
         fd.append('nonce', authAjax.authNonce || '');
         fd.append('identifier', identifier);
         fd.append('password', password);
@@ -334,7 +346,7 @@
 
       try {
         const fd = new FormData();
-        fd.append('action', 'romanino_register_manual');
+        fd.append('action', 'saro_register_manual');
         fd.append('nonce', authAjax.authNonce || '');
         fd.append('username', username);
         fd.append('first_name', firstName);

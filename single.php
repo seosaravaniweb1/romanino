@@ -1,7 +1,7 @@
 <?php get_header(); ?>
-<div class="min-h-screen bg-background">
+<div class="min-h-screen bg-cream">
     <?php while ( have_posts() ) : the_post(); ?>
-    <main class="mx-auto max-w-3xl px-4 py-10">
+    <main id="saro-main" class="mx-auto max-w-3xl px-4 py-10">
 
         <!-- مسیر بازگشت -->
         <a href="<?php echo esc_url( get_permalink( get_option('page_for_posts') ) ?: home_url('/') ); ?>" class="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
@@ -15,12 +15,12 @@
                 <?php
                 $cats = get_the_category();
                 if ( ! empty( $cats ) ) : ?>
-                    <a href="<?php echo esc_url( get_category_link( $cats[0]->term_id ) ); ?>" class="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                    <a href="<?php echo esc_url( get_category_link( $cats[0]->term_id ) ); ?>" class="saro-chip-solid">
                         <?php echo esc_html( $cats[0]->name ); ?>
                     </a>
                 <?php endif; ?>
 
-                <h1 class="mt-4 text-balance text-2xl font-extrabold leading-relaxed text-foreground md:text-3xl">
+                <h1 class="mt-4 text-balance font-naskh text-2xl font-bold leading-relaxed text-teal md:text-3xl">
                     <?php the_title(); ?>
                 </h1>
 
@@ -30,9 +30,9 @@
                         <span class="font-medium text-foreground"><?php the_author(); ?></span>
                     </span>
                     <span>·</span>
-                    <span><?php echo get_the_date('Y/m/d'); ?></span>
+                    <span class="tabular-nums"><?php echo esc_html( saro_jalali_date( get_the_ID() ) ); ?></span>
                     <span>·</span>
-                    <span><?php echo esc_html( romanino_reading_time() ); ?> دقیقه مطالعه</span>
+                    <span><?php echo esc_html( saro_reading_time() ); ?> دقیقه مطالعه</span>
                 </div>
             </header>
 
@@ -42,7 +42,7 @@
                 </div>
             <?php endif; ?>
 
-            <div class="prose prose-sm md:prose-base max-w-none text-justify leading-loose text-foreground">
+            <div class="saro-prose">
                 <?php the_content(); ?>
             </div>
 
@@ -68,7 +68,7 @@
             <?php echo get_avatar( get_the_author_meta('ID'), 56, '', '', array('class' => 'rounded-full') ); ?>
             <div>
                 <p class="text-sm font-bold text-foreground"><?php the_author(); ?></p>
-                <p class="mt-1 text-xs leading-relaxed text-muted-foreground"><?php echo esc_html( get_the_author_meta( 'description' ) ?: 'نویسنده و عضو تیم محتوای رمانینو.' ); ?></p>
+                <p class="mt-1 text-xs leading-relaxed text-muted-foreground"><?php echo esc_html( get_the_author_meta( 'description' ) ?: 'نویسنده و عضو تیم محتوای انتشارات سرو.' ); ?></p>
             </div>
         </div>
 

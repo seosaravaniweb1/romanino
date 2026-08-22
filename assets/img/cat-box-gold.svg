@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 220" preserveAspectRatio="none">
+<defs>
+  <clipPath id="oct">
+    <polygon points="50,0 190,0 240,48 240,172 190,220 50,220 0,172 0,48"></polygon>
+  </clipPath>
+  <pattern id="geo" width="52" height="52" patternUnits="userSpaceOnUse">
+    <path d="M26 2 L50 26 L26 50 L2 26 Z M26 12 L40 26 L26 40 L12 26 Z" fill="none" stroke="#fff4cf" stroke-width=".8" opacity=".20"></path>
+  </pattern>
+  <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#dfbf70"></stop>
+    <stop offset=".5" stop-color="#d0a64d"></stop>
+    <stop offset="1" stop-color="#bd9139"></stop>
+  </linearGradient>
+</defs>
+<g clip-path="url(#oct)">
+  <rect width="240" height="220" fill="url(#gold)"></rect>
+  <rect width="240" height="220" fill="url(#geo)"></rect>
+  <g fill="none" stroke="#fff1c5" stroke-width="1" opacity=".62">
+    <path d="M0 72 Q20 46 42 42 Q54 18 74 0"></path>
+    <path d="M0 98 Q26 64 50 60"></path>
+    <path d="M240 148 Q218 174 198 178 Q186 202 166 220"></path>
+    <path d="M240 122 Q214 156 190 160"></path>
+  </g>
+  <path d="M20 18 Q48 28 58 54 Q30 48 20 18Z" fill="none" stroke="#fff1c5" stroke-width="1" opacity=".38"></path>
+</g>
+<polygon points="50,0 190,0 240,48 240,172 190,220 50,220 0,172 0,48" fill="none" stroke="#f5df9f" stroke-width="1.4"></polygon>
+</svg>

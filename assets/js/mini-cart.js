@@ -39,10 +39,10 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!itemsWrap) return; // کشو در صفحه نیست؛ فقط شمارنده‌ی سبد را جدا به‌روز می‌کنیم
         itemsWrap.innerHTML = '<div class="flex h-full items-center justify-center text-sm text-muted-foreground">در حال بارگذاری...</div>';
         try {
-            const res = await fetch(romaninoCart.ajaxUrl, {
+            const res = await fetch(saroCart.ajaxUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({ action: 'romanino_get_mini_cart', nonce: romaninoCart.nonce }),
+                body: new URLSearchParams({ action: 'saro_get_mini_cart', nonce: saroCart.nonce }),
             });
             const json = await res.json();
             if (!json.success) {
@@ -94,10 +94,10 @@ document.addEventListener('DOMContentLoaded', function () {
             btn.addEventListener('click', async function () {
                 const key = this.dataset.key;
                 try {
-                    await fetch(romaninoCart.ajaxUrl, {
+                    await fetch(saroCart.ajaxUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: new URLSearchParams({ action: 'romanino_remove_cart_item', nonce: romaninoCart.nonce, key }),
+                        body: new URLSearchParams({ action: 'saro_remove_cart_item', nonce: saroCart.nonce, key }),
                     });
                 } finally {
                     refreshCart();
@@ -124,10 +124,10 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!btn) return;
         e.preventDefault();
         const productId = btn.dataset.product_id;
-        fetch(romaninoCart.ajaxUrl, {
+        fetch(saroCart.ajaxUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ action: 'romanino_add_to_cart', nonce: romaninoCart.nonce, product_id: productId }),
+            body: new URLSearchParams({ action: 'saro_add_to_cart', nonce: saroCart.nonce, product_id: productId }),
         })
         .then(res => res.json())
         .then(json => {
@@ -146,9 +146,9 @@ document.addEventListener('DOMContentLoaded', function () {
     /* ── «خرید و دانلود رمان»: افزودن + پاپ‌آپ تاییدیه، بدون رفرش صفحه ────── */
 
     async function addToCart(productId, replace) {
-        const body = { action: 'romanino_add_to_cart', nonce: romaninoCart.nonce, product_id: productId };
+        const body = { action: 'saro_add_to_cart', nonce: saroCart.nonce, product_id: productId };
         if (replace) body.replace = '1';
-        const res  = await fetch(romaninoCart.ajaxUrl, {
+        const res  = await fetch(saroCart.ajaxUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: new URLSearchParams(body),
@@ -178,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     document.body.addEventListener('click', function (e) {
-        const btn = e.target.closest('.romanino-buy-btn');
+        const btn = e.target.closest('.saro-buy-btn');
         if (!btn) return;
         e.preventDefault();
         if (btn.disabled) return;

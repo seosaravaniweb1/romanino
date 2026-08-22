@@ -1,246 +1,151 @@
 <?php
 /**
- * صفحه‌ی دسته‌بندی محصولات ووکامرس — رمانینو (فاز ۲: ریسپانسیو موبایل‌فرست)
+ * صفحهٔ دستهٔ محصولات — «انتشارات سرو»
+ * ─────────────────────────────────────────────────────────────────────────
+ * مثل آرشیو فروشگاه، این صفحه هم بدون سایدبار است: مسیر صفحه و عنوان دسته
+ * در یک نوار بالا، سپس توضیح تاشوی دسته (برای سئو)، زیردسته‌ها، نوار
+ * مرتب‌سازی و در نهایت گرید تمام‌عرض محصولات.
+ *
+ * تنظیم «نمایش دسته» ووکامرس (پیشخوان → ووکامرس → تنظیمات → محصولات) هم
+ * رعایت می‌شود: فقط زیردسته‌ها، فقط محصولات، یا هر دو.
  */
-
 get_header();
 
-$queried_term = get_queried_object();
-$show_setting = get_option( 'woocommerce_category_archive_display', '' ); // '', 'subcategories', 'both'
-$show_subcats = in_array( $show_setting, [ 'subcategories', 'both' ], true );
-$show_products = ( $show_setting !== 'subcategories' );
+$saro_term      = get_queried_object();
+$saro_display   = get_option( 'woocommerce_category_archive_display', '' ); // '', 'subcategories', 'both'
+$saro_show_subs = in_array( $saro_display, array( 'subcategories', 'both' ), true );
+$saro_show_prod = ( 'subcategories' !== $saro_display );
 
-$subcats = [];
-if ( $show_subcats && $queried_term && ! is_wp_error( $queried_term ) ) {
-    $subcats = get_terms( [
+$saro_subcats = array();
+if ( $saro_show_subs && $saro_term && ! is_wp_error( $saro_term ) ) {
+    $saro_subcats = get_terms( array(
         'taxonomy'   => 'product_cat',
-        'parent'     => $queried_term->term_id,
+        'parent'     => $saro_term->term_id,
         'hide_empty' => true,
-    ] );
-    if ( is_wp_error( $subcats ) ) {
-        $subcats = [];
+    ) );
+    if ( is_wp_error( $saro_subcats ) ) {
+        $saro_subcats = array();
     }
 }
 
-// دسته‌بندی‌ها یک‌بار واکشی می‌شود؛ هم برای پیل موبایل و هم لیست دسکتاپ
-$tax_cats = get_terms( [ 'taxonomy' => 'product_cat', 'hide_empty' => true ] );
-if ( is_wp_error( $tax_cats ) ) $tax_cats = [];
+global $wp_query;
+$saro_found       = (int) $wp_query->found_posts;
+$saro_description = $saro_term ? term_description( $saro_term ) : '';
+
+// زنجیرهٔ دسته‌های والد برای مسیر صفحه (سئوی داخلی بهتر از یک برک‌کرامب تخت)
+$saro_ancestors = array();
+if ( $saro_term && ! is_wp_error( $saro_term ) ) {
+    foreach ( array_reverse( get_ancestors( $saro_term->term_id, 'product_cat' ) ) as $saro_anc_id ) {
+        $saro_anc = get_term( $saro_anc_id, 'product_cat' );
+        if ( $saro_anc && ! is_wp_error( $saro_anc ) ) {
+            $saro_ancestors[] = $saro_anc;
+        }
+    }
+}
 ?>
 
-<div class="min-h-screen bg-background">
-<main class="mx-auto max-w-7xl px-4 py-6 md:px-6 lg:py-8">
+<main id="saro-main" dir="rtl">
 
-    <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb" class="mb-4 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-        <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="hover:text-primary">خانه</a>
-        <span>/</span>
-        <a href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>" class="hover:text-primary">فروشگاه</a>
-        <span>/</span>
-        <span class="font-semibold text-foreground"><?php single_cat_title(); ?></span>
-    </nav>
+    <!-- ═══ سربرگ دسته ═══ -->
+    <section class="relative overflow-hidden border-b border-gold-hair bg-cream-2">
+        <div class="saro-arabesque pointer-events-none absolute inset-0 opacity-50" style="mask-image: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent); -webkit-mask-image: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent);"></div>
+        <div class="relative mx-auto max-w-saro px-6 pb-8 pt-6">
+            <nav aria-label="مسیر صفحه" class="flex flex-wrap items-center gap-2 text-[12.5px] text-muted-foreground">
+                <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="text-muted-foreground hover:text-gold">خانه</a>
+                <span class="text-gold">/</span>
+                <a href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>" class="text-muted-foreground hover:text-gold">فروشگاه</a>
+                <?php foreach ( $saro_ancestors as $saro_anc ) : ?>
+                    <span class="text-gold">/</span>
+                    <a href="<?php echo esc_url( get_term_link( $saro_anc ) ); ?>" class="text-muted-foreground hover:text-gold"><?php echo esc_html( $saro_anc->name ); ?></a>
+                <?php endforeach; ?>
+                <span class="text-gold">/</span>
+                <span class="text-teal"><?php single_cat_title(); ?></span>
+            </nav>
 
-    <!-- چیدمان: موبایل ستون‌عمودی (سایدبار بالا، گرید پایین) → دسکتاپ ردیفی با سایدبار چسبان -->
-    <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
-
-        <!-- ═══ سایدبار فیلتر ═══ -->
-        <aside class="w-full lg:w-60 lg:shrink-0">
-            <div class="space-y-4 lg:sticky lg:top-24 lg:space-y-5">
-
-                <!-- جست‌وجو -->
-                <div class="rounded-2xl border border-border bg-card p-4">
-                    <h3 class="mb-3 text-sm font-bold text-foreground">جست‌وجو</h3>
-                    <form role="search" method="get" action="<?php echo esc_url( home_url( '/' ) ); ?>">
-                        <input type="search" name="s" value="<?php echo esc_attr( get_search_query() ); ?>"
-                            placeholder="نام رمان یا نویسنده..."
-                            class="w-full rounded-xl border border-border bg-secondary/30 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring" />
-                        <input type="hidden" name="post_type" value="product" />
-                        <button type="submit" class="mt-2 w-full rounded-xl bg-primary py-2 text-sm font-semibold text-[#0b0514] hover:bg-primary/90">جست‌وجو</button>
-                    </form>
-                </div>
-
-                <!-- دسته‌بندی‌ها — موبایل: پیل‌های اسکرول‌افقی -->
-                <div class="rounded-2xl border border-border bg-card p-4 lg:hidden">
-                    <h3 class="mb-3 text-sm font-bold text-foreground">دسته‌بندی‌ها</h3>
-                    <div class="flex gap-2 overflow-x-auto pb-1">
-                        <a href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>"
-                            class="shrink-0 whitespace-nowrap rounded-full bg-secondary px-3.5 py-1.5 text-xs font-semibold text-muted-foreground">
-                            همه
-                        </a>
-                        <?php foreach ( $tax_cats as $cat ) :
-                            $active = $queried_term && ! is_wp_error( $queried_term ) && $cat->term_id === $queried_term->term_id;
-                        ?>
-                        <a href="<?php echo esc_url( get_term_link( $cat ) ); ?>"
-                            class="shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors <?php echo $active ? 'bg-primary text-[#0b0514]' : 'bg-secondary text-muted-foreground'; ?>">
-                            <?php echo esc_html( $cat->name ); ?>
-                        </a>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-
-                <!-- دسته‌بندی‌ها — دسکتاپ: لیست عمودی با شمارنده -->
-                <div class="hidden rounded-2xl border border-border bg-card p-4 lg:block">
-                    <h3 class="mb-3 text-sm font-bold text-foreground">دسته‌بندی‌ها</h3>
-                    <ul class="space-y-0.5">
-                        <li>
-                            <a href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>"
-                                class="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
-                                <span>همه</span>
-                            </a>
-                        </li>
-                        <?php foreach ( $tax_cats as $cat ) :
-                            $active = $queried_term && ! is_wp_error( $queried_term ) && $cat->term_id === $queried_term->term_id;
-                        ?>
-                        <li>
-                            <a href="<?php echo esc_url( get_term_link( $cat ) ); ?>"
-                                class="flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors <?php echo $active ? 'bg-primary/10 font-semibold text-primary' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'; ?>">
-                                <span><?php echo esc_html( $cat->name ); ?></span>
-                                <span class="rounded-full bg-secondary px-2 py-0.5 text-xs"><?php echo (int) $cat->count; ?></span>
-                            </a>
-                        </li>
-                        <?php endforeach; ?>
-                    </ul>
-                </div>
-
-                <!-- فیلتر بر اساس برچسب رمان + ویژگی‌ها (فرمت فایل، ملیت رمان) -->
-                <?php romanino_render_listing_filters(); ?>
+            <div class="mt-4 flex flex-wrap items-center gap-3.5">
+                <span class="text-sm text-gold">✦</span>
+                <h1 class="m-0 font-naskh text-2xl font-bold text-teal lg:text-[32px]"><?php single_cat_title(); ?></h1>
+                <span class="hidden h-[26px] w-px bg-gold-hair sm:block"></span>
+                <span class="text-[12.5px] tabular-nums text-muted-foreground"><?php echo esc_html( sprintf( '%s عنوان در این دسته', number_format_i18n( $saro_found ) ) ); ?></span>
             </div>
-        </aside>
+        </div>
+    </section>
 
-        <div class="min-w-0 flex-1">
-
-            <!-- Header آرشیو (منتقل شده به اینجا) -->
-            <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <h1 class="text-xl font-extrabold text-foreground lg:text-3xl"><?php single_cat_title(); ?></h1>
-                    <?php global $wp_query; ?>
-                    <p class="mt-1 text-xs text-muted-foreground lg:text-sm"><?php echo number_format_i18n( $wp_query->found_posts ); ?> رمان</p>
+    <?php if ( ! empty( trim( wp_strip_all_tags( $saro_description ) ) ) ) : ?>
+    <!-- ═══ توضیح دسته (تاشو) ═══ -->
+    <section class="border-b border-gold-hair bg-cream">
+        <div class="mx-auto max-w-saro px-6 pb-8 pt-7">
+            <div class="rounded-2xl border border-gold-line bg-card px-7 py-6">
+                <div id="saro-desc-wrap" class="relative overflow-hidden transition-[max-height] duration-500 ease-in-out" style="max-height: 96px;">
+                    <div class="saro-prose"><?php echo wp_kses_post( $saro_description ); ?></div>
+                    <div id="saro-desc-fade" class="pointer-events-none absolute inset-x-0 bottom-0 h-24 transition-opacity duration-300" style="background: linear-gradient(180deg, rgba(253,251,245,0), var(--card) 78%);"></div>
                 </div>
-                <?php if ( $show_products ) : ?>
-                <!-- مرتب‌سازی -->
-                <form method="get">
-                    <?php
-                    foreach ( $_GET as $k => $v ) {
-                        if ( $k !== 'orderby' ) {
-                            echo '<input type="hidden" name="' . esc_attr( $k ) . '" value="' . esc_attr( $v ) . '" />';
-                        }
-                    }
-                    ?>
-                    <select name="orderby" onchange="this.form.submit()"
-                        class="rounded-xl border border-border bg-card px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring lg:text-sm">
-                        <?php
-                        $current_order = sanitize_text_field( wp_unslash( $_GET['orderby'] ?? 'date' ) );
-                        $orders = [ 'date' => 'جدیدترین', 'price' => 'ارزان‌ترین', 'price-desc' => 'گران‌ترین', 'popularity' => 'محبوب‌ترین', 'rating' => 'بهترین امتیاز' ];
-                        foreach ( $orders as $val => $label ) {
-                            echo '<option value="' . esc_attr( $val ) . '"' . selected( $current_order, $val, false ) . '>' . esc_html( $label ) . '</option>';
-                        }
-                        ?>
-                    </select>
-                </form>
-                <?php endif; ?>
-            </div>
-
-            <!-- ========================================== -->
-            <!-- سئو باکس: توضیحات لیستینگ (مخفی‌شونده برای سئو) -->
-            <!-- ========================================== -->
-            <?php if ( $queried_term && ! is_wp_error( $queried_term ) && term_description( $queried_term ) ) : ?>
-            <section aria-label="توضیحات دسته‌بندی <?php echo esc_attr( $queried_term->name ); ?>" class="relative mb-6 rounded-2xl border border-border bg-card p-5">
-                <div id="seo-content-wrap" class="relative overflow-hidden transition-[max-height] duration-500 ease-in-out" style="max-height: 85px;">
-                    <div class="prose prose-sm max-w-none text-justify text-sm leading-loose text-muted-foreground pb-2">
-                        <?php echo wp_kses_post( term_description( $queried_term ) ); ?>
-                    </div>
-                    <!-- هاله محو کننده -->
-                    <div id="seo-fade-layer" class="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#0f0726] to-transparent transition-opacity duration-300"></div>
-                </div>
-
-                <div class="relative z-10 mt-2 flex justify-center">
-                    <button type="button" id="seo-read-more-btn" class="flex items-center gap-1.5 rounded-lg bg-secondary/50 px-4 py-2 text-xs font-bold text-foreground transition-all hover:bg-secondary">
-                        مشاهده بیشتر
-                        <svg class="h-4 w-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                <div class="mt-4 flex justify-center">
+                    <button type="button" id="saro-desc-toggle" class="saro-btn-ghost rounded-full py-2 text-[13px]">
+                        <span data-label>مشاهدهٔ بیشتر</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="text-gold transition-transform duration-300" data-chevron><path d="m6 9 6 6 6-6"></path></svg>
                     </button>
                 </div>
-            </section>
+            </div>
+        </div>
+    </section>
+    <?php endif; ?>
 
-            <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const wrap = document.getElementById('seo-content-wrap');
-                const fade = document.getElementById('seo-fade-layer');
-                const btn = document.getElementById('seo-read-more-btn');
+    <section class="bg-cream">
+        <div class="mx-auto max-w-saro px-6 pb-14 pt-7">
 
-                if (wrap && wrap.scrollHeight <= 90) {
-                    if (btn) btn.style.display = 'none';
-                    if (fade) fade.style.display = 'none';
-                    wrap.style.maxHeight = 'none';
-                } else if (btn && wrap) {
-                    btn.addEventListener('click', function() {
-                        const isExpanded = wrap.style.maxHeight !== '85px';
-                        if (!isExpanded) {
-                            wrap.style.maxHeight = wrap.scrollHeight + 'px';
-                            fade.style.opacity = '0';
-                            btn.innerHTML = 'بستن <svg class="w-4 h-4 rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>';
-                        } else {
-                            wrap.style.maxHeight = '85px';
-                            fade.style.opacity = '1';
-                            btn.innerHTML = 'مشاهده بیشتر <svg class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>';
-                        }
-                    });
-                }
-            });
-            </script>
-            <?php endif; ?>
-
-            <?php if ( $show_subcats && ! empty( $subcats ) ) : ?>
-            <!-- زیردسته‌ها: ۲ ستون موبایل → ۳ ستون تبلت → ۴ ستون دسکتاپ -->
-            <div class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:mb-8 lg:grid-cols-4">
-                <?php foreach ( $subcats as $subcat ) :
-                    $thumb_id  = get_term_meta( $subcat->term_id, 'thumbnail_id', true );
-                    $thumb_url = $thumb_id ? wp_get_attachment_image_url( $thumb_id, 'medium' ) : '';
-                ?>
-                <a href="<?php echo esc_url( get_term_link( $subcat ) ); ?>"
-                    class="group flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-4 text-center transition-shadow hover:shadow-md">
-                    <div class="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-secondary/40 lg:h-16 lg:w-16">
-                        <?php if ( $thumb_url ) : ?>
-                        <img src="<?php echo esc_url( $thumb_url ); ?>" alt="<?php echo esc_attr( $subcat->name ); ?>" loading="lazy" class="h-full w-full object-cover" />
-                        <?php else : ?>
-                        <span class="text-xl lg:text-2xl">📖</span>
-                        <?php endif; ?>
-                    </div>
-                    <span class="text-xs font-semibold text-foreground group-hover:text-primary lg:text-sm"><?php echo esc_html( $subcat->name ); ?></span>
-                    <span class="text-[11px] text-muted-foreground lg:text-xs"><?php echo (int) $subcat->count; ?> رمان</span>
-                </a>
+            <?php if ( $saro_show_subs && ! empty( $saro_subcats ) ) : ?>
+            <!-- زیردسته‌ها -->
+            <div class="mb-8 grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-5">
+                <?php foreach ( $saro_subcats as $saro_sub ) :
+                    $saro_sub_thumb_id  = (int) get_term_meta( $saro_sub->term_id, 'thumbnail_id', true );
+                    $saro_sub_thumb_url = $saro_sub_thumb_id ? wp_get_attachment_image_url( $saro_sub_thumb_id, 'medium' ) : '';
+                    ?>
+                    <a href="<?php echo esc_url( get_term_link( $saro_sub ) ); ?>" class="saro-hover-lift flex flex-col items-center gap-2 rounded-xl border border-gold-line bg-card p-4 text-center">
+                        <span class="saro-plate h-14 w-14 overflow-hidden rounded-full">
+                            <?php if ( $saro_sub_thumb_url ) : ?>
+                                <img src="<?php echo esc_url( $saro_sub_thumb_url ); ?>" alt="<?php echo esc_attr( $saro_sub->name ); ?>" loading="lazy" width="56" height="56" />
+                            <?php else : ?>
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" class="text-gold"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                            <?php endif; ?>
+                        </span>
+                        <span class="font-naskh text-[14px] font-bold text-ink"><?php echo esc_html( $saro_sub->name ); ?></span>
+                        <span class="text-[11px] tabular-nums text-muted-foreground"><?php echo esc_html( sprintf( '%s اثر', number_format_i18n( (int) $saro_sub->count ) ) ); ?></span>
+                    </a>
                 <?php endforeach; ?>
             </div>
             <?php endif; ?>
 
-            <?php if ( $show_products ) : ?>
-                <?php if ( have_posts() ) : ?>
-                <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
-                    <?php
-                    $romanino_loop_index = 0;
-                    while ( have_posts() ) : the_post();
-                        get_template_part( 'template-parts/product/book', 'card', array( 'romanino_loop_index' => $romanino_loop_index ) );
-                        $romanino_loop_index++;
-                    endwhile;
-                    ?>
-                </div>
+            <?php if ( $saro_show_prod ) : ?>
+                <?php saro_render_listing_toolbar( $saro_found ); ?>
 
-                <nav class="mt-8 flex justify-center lg:mt-10">
-                    <?php echo paginate_links( [ 'prev_text' => '&raquo; قبلی', 'next_text' => 'بعدی &laquo;', 'type' => 'list' ] ); ?>
-                </nav>
+                <?php if ( have_posts() ) : ?>
+                    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                        <?php
+                        $saro_loop_index = 0;
+                        while ( have_posts() ) :
+                            the_post();
+                            get_template_part( 'template-parts/product/book', 'card', array( 'saro_loop_index' => $saro_loop_index ) );
+                            $saro_loop_index++;
+                        endwhile;
+                        ?>
+                    </div>
+
+                    <nav class="saro-pagination mt-10" aria-label="صفحه‌بندی نتایج">
+                        <?php echo paginate_links( array( 'prev_text' => '‹', 'next_text' => '›', 'type' => 'list' ) ); ?>
+                    </nav>
 
                 <?php else : ?>
-                <div class="flex flex-col items-center justify-center rounded-2xl border border-border bg-card py-16 text-center lg:py-24">
-                    <div class="text-4xl lg:text-5xl">📚</div>
-                    <h2 class="mt-4 text-lg font-bold text-foreground lg:mt-5 lg:text-xl">رمانی در این دسته یافت نشد</h2>
-                    <p class="mt-2 text-sm text-muted-foreground">فیلتر یا جست‌وجوی دیگری را امتحان کنید.</p>
-                    <a href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>"
-                        class="mt-5 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-[#0b0514] hover:bg-primary/90 lg:mt-6">مشاهده همه</a>
-                </div>
+                    <div class="flex flex-col items-center justify-center rounded-2xl border border-gold-line bg-card py-16 text-center">
+                        <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" class="text-gold"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                        <h2 class="mt-4 font-naskh text-xl font-bold text-teal">هنوز اثری در این دسته منتشر نشده</h2>
+                        <p class="mt-2 text-sm text-muted-foreground">به‌زودی عناوین این بخش اضافه می‌شوند.</p>
+                        <a href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>" class="saro-btn mt-6">مشاهدهٔ همهٔ آثار</a>
+                    </div>
                 <?php endif; ?>
             <?php endif; ?>
-
         </div>
-    </div>
+    </section>
 </main>
-</div>
 
 <?php get_footer(); ?>

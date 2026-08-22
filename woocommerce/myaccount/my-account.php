@@ -1,6 +1,6 @@
 <?php
 /**
- * My Account — رمانینو (بازطراحی گرافیکی، دارک گلس‌مورفیسم)
+ * My Account — انتشارات سرو (بازطراحی گرافیکی، دارک گلس‌مورفیسم)
  * توجه: منطق PHP دقیقاً همان فایل قبلی است (همان hookها، همان nonce،
  * همان متغیرها) — فقط کلاس‌ها و مارک‌آپ بازطراحی شده تا با پالت رنگی
  * واقعی سایت (که در header.php تعریف شده) یکدست شود.
@@ -23,7 +23,7 @@ do_action( 'woocommerce_before_account_navigation' );
 <div class="mx-auto max-w-6xl px-4 py-8 md:px-6">
 
 	<!-- هدر پنل کاربری -->
-	<div class="glass glow-gold relative overflow-hidden rounded-3xl p-6 md:p-8 mb-6 flex flex-col md:flex-row items-center justify-between gap-6">
+	<div class="border border-gold-line bg-card  relative overflow-hidden rounded-3xl p-6 md:p-8 mb-6 flex flex-col md:flex-row items-center justify-between gap-6">
 		<!-- درخشش تزئینی پس‌زمینه -->
 		<div class="pointer-events-none absolute -top-16 -left-16 h-56 w-56 rounded-full bg-gold/10 blur-3xl"></div>
 
@@ -50,21 +50,21 @@ do_action( 'woocommerce_before_account_navigation' );
 
 	<!-- ردیف آمار سریع -->
 	<div class="grid grid-cols-2 gap-3 mb-6 sm:gap-4">
-		<div class="glass rounded-2xl p-4 text-center">
+		<div class="border border-gold-line bg-card rounded-2xl p-4 text-center">
 			<p class="text-xl font-extrabold text-gold"><?php echo esc_html( $orders_count ); ?></p>
 			<p class="mt-1 text-[11px] text-muted-foreground">سفارش‌ها</p>
 		</div>
-		<div class="glass rounded-2xl p-4 text-center">
-			<p class="text-xl font-extrabold text-cyan-glow"><?php echo esc_html( $downloads_count ); ?></p>
+		<div class="border border-gold-line bg-card rounded-2xl p-4 text-center">
+			<p class="text-xl font-extrabold text-teal"><?php echo esc_html( $downloads_count ); ?></p>
 			<p class="mt-1 text-[11px] text-muted-foreground">فایل قابل دانلود</p>
 		</div>
 	</div>
 
 	<!-- بنر تخفیف -->
-	<div class="glass relative overflow-hidden rounded-2xl p-4 mb-6 flex items-center gap-3">
+	<div class="border border-gold-line bg-card relative overflow-hidden rounded-2xl p-4 mb-6 flex items-center gap-3">
 		<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold/15 text-xl ring-1 ring-gold/30">🎁</span>
 		<div class="text-xs leading-relaxed text-muted-foreground">
-			<strong class="text-foreground">جشنواره تخفیف رمانینو:</strong> با کد
+			<strong class="text-foreground">جشنواره تخفیف انتشارات سرو:</strong> با کد
 			<code class="rounded bg-gold/15 px-2 py-0.5 font-mono font-black text-gold">ROMAN20</code>
 			از ۲۰٪ تخفیف بهره‌مند شوید!
 		</div>
@@ -72,35 +72,35 @@ do_action( 'woocommerce_before_account_navigation' );
 
 	<!-- فرم تکمیل پروفایل -->
 	<?php if ( $needs_profile_update ) : ?>
-	<div class="glass rounded-3xl p-6 mb-6" style="border-color: rgba(16,185,129,0.25);">
+	<div class="border border-gold-line bg-card rounded-3xl p-6 mb-6" style="border-color: rgba(16,185,129,0.25);">
 		<div class="mb-2 flex items-center gap-2">
 			<span class="text-lg">📝</span>
-			<h3 class="text-xs font-black text-emerald-glow">تکمیل سریع پروفایل کاربری</h3>
+			<h3 class="text-xs font-black text-gold">تکمیل سریع پروفایل کاربری</h3>
 		</div>
 		<p class="mb-4 text-[11px] text-muted-foreground">برای ارائه بهتر خدمات، مشخصات اولیه خود را وارد کنید:</p>
 
 		<form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="POST"
 			class="grid grid-cols-1 gap-3 md:grid-cols-4">
-			<input type="hidden" name="action" value="romanino_save_quick_profile" />
-			<?php wp_nonce_field( 'romanino_quick_profile', '_romanino_quick_profile_nonce' ); ?>
+			<input type="hidden" name="action" value="saro_save_quick_profile" />
+			<?php wp_nonce_field( 'saro_quick_profile', '_saro_quick_profile_nonce' ); ?>
 
 			<input type="text" name="first_name" value="<?php echo esc_attr( $first_name ); ?>"
 				placeholder="نام *" required
-				class="w-full rounded-xl border border-border bg-input px-3 py-2.5 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-gold/60 focus:ring-1 focus:ring-gold/40" />
+				class="w-full rounded-xl border border-gold-hair bg-input px-3 py-2.5 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-gold/60 focus:ring-1 focus:ring-gold/40" />
 
 			<input type="text" name="last_name" value="<?php echo esc_attr( $last_name ); ?>"
 				placeholder="نام خانوادگی *" required
-				class="w-full rounded-xl border border-border bg-input px-3 py-2.5 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-gold/60 focus:ring-1 focus:ring-gold/40" />
+				class="w-full rounded-xl border border-gold-hair bg-input px-3 py-2.5 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-gold/60 focus:ring-1 focus:ring-gold/40" />
 
 			<select name="user_gender" required
-				class="w-full rounded-xl border border-border bg-input px-3 py-2.5 text-xs text-foreground outline-none focus:border-gold/60 focus:ring-1 focus:ring-gold/40">
+				class="w-full rounded-xl border border-gold-hair bg-input px-3 py-2.5 text-xs text-foreground outline-none focus:border-gold/60 focus:ring-1 focus:ring-gold/40">
 				<option value="" class="bg-background">جنسیت *</option>
 				<option value="female" class="bg-background" <?php selected( $gender, 'female' ); ?>>خانم</option>
 				<option value="male" class="bg-background" <?php selected( $gender, 'male' ); ?>>آقا</option>
 			</select>
 
 			<button type="submit"
-				class="glow-gold w-full rounded-xl bg-gold py-2.5 text-xs font-bold text-background transition-all hover:brightness-110">
+				class=" w-full rounded-xl bg-gold py-2.5 text-xs font-bold text-background transition-all hover:brightness-110">
 				ثبت و ذخیره
 			</button>
 		</form>

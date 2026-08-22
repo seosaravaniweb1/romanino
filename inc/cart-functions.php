@@ -2,35 +2,35 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 /* ==========================================================================
-   Phase 1 FIX: توابع کمکی مشترک برای «رمان رایگان» / «محصول ناموجود» / لینک
+   Phase 1 FIX: توابع کمکی مشترک برای «کتاب رایگان» / «محصول ناموجود» / لینک
    دانلود مستقیم
    ========================================================================== */
 
-if ( ! defined( 'ROMANINO_FREE_TAG_SLUG' ) ) {
-    define( 'ROMANINO_FREE_TAG_SLUG', 'رایگان' );
+if ( ! defined( 'SARO_FREE_TAG_SLUG' ) ) {
+    define( 'SARO_FREE_TAG_SLUG', 'رایگان' );
 }
 
-function romanino_product_price_field_is_empty( $product ): bool {
+function saro_product_price_field_is_empty( $product ): bool {
     if ( ! $product instanceof WC_Product ) return true;
     $regular = trim( (string) $product->get_regular_price() );
     $price   = trim( (string) $product->get_price() );
     return '' === $regular && '' === $price;
 }
 
-function romanino_product_has_free_tag( $product ): bool {
+function saro_product_has_free_tag( $product ): bool {
     if ( ! $product instanceof WC_Product ) return false;
-    return (bool) has_term( ROMANINO_FREE_TAG_SLUG, 'product_tag', $product->get_id() );
+    return (bool) has_term( SARO_FREE_TAG_SLUG, 'product_tag', $product->get_id() );
 }
 
-function romanino_is_free_product( $product ): bool {
+function saro_is_free_product( $product ): bool {
     if ( ! $product instanceof WC_Product ) return false;
-    if ( romanino_product_price_field_is_empty( $product ) ) return false;
-    if ( romanino_product_has_free_tag( $product ) ) return true;
+    if ( saro_product_price_field_is_empty( $product ) ) return false;
+    if ( saro_product_has_free_tag( $product ) ) return true;
     $price = $product->get_price();
     return is_numeric( $price ) && 0.0 === (float) $price;
 }
 
-function romanino_get_direct_download_url( $product ): string {
+function saro_get_direct_download_url( $product ): string {
     if ( ! $product instanceof WC_Product ) return '';
     $downloads = $product->get_downloads();
     if ( empty( $downloads ) ) return '';
@@ -39,30 +39,30 @@ function romanino_get_direct_download_url( $product ): string {
     return esc_url_raw( $first->get_file() );
 }
 
-function romanino_get_free_download_url( $product ): string {
+function saro_get_free_download_url( $product ): string {
     if ( ! $product instanceof WC_Product ) return '';
     $sample_url = trim( (string) get_post_meta( $product->get_id(), 'sample_download_url', true ) );
     if ( $sample_url ) return $sample_url;
-    return romanino_get_direct_download_url( $product );
+    return saro_get_direct_download_url( $product );
 }
 
-function romanino_enqueue_cart_assets() {
-    wp_enqueue_script( 'romanino-mini-cart', get_template_directory_uri() . '/assets/js/mini-cart.js', array(), '1.0.0', true );
-    wp_localize_script( 'romanino-mini-cart', 'romaninoCart', array(
+function saro_enqueue_cart_assets() {
+    wp_enqueue_script( 'saro-mini-cart', get_template_directory_uri() . '/assets/js/mini-cart.js', array(), '1.0.0', true );
+    wp_localize_script( 'saro-mini-cart', 'saroCart', array(
         'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-        'nonce'   => wp_create_nonce( 'romanino_cart_nonce' ),
+        'nonce'   => wp_create_nonce( 'saro_cart_nonce' ),
     ) );
 }
-add_action( 'wp_enqueue_scripts', 'romanino_enqueue_cart_assets' );
+add_action( 'wp_enqueue_scripts', 'saro_enqueue_cart_assets' );
 
 /** بازگرداندن محتوای سبد خرید به‌صورت JSON برای رندر در کشو */
-add_action( 'wp_ajax_romanino_get_mini_cart', 'romanino_ajax_get_mini_cart' );
-add_action( 'wp_ajax_nopriv_romanino_get_mini_cart', 'romanino_ajax_get_mini_cart' );
-function romanino_ajax_get_mini_cart() {
-    check_ajax_referer( 'romanino_cart_nonce', 'nonce' );
+add_action( 'wp_ajax_saro_get_mini_cart', 'saro_ajax_get_mini_cart' );
+add_action( 'wp_ajax_nopriv_saro_get_mini_cart', 'saro_ajax_get_mini_cart' );
+function saro_ajax_get_mini_cart() {
+    check_ajax_referer( 'saro_cart_nonce', 'nonce' );
 
     // Phase 4: جلوگیری از فراخوانی مکرر و بی‌رویه
-    romanino_enforce_ajax_rate_limit( 'get_mini_cart', romanino_get_client_ip(), 120, 5 * MINUTE_IN_SECONDS );
+    saro_enforce_ajax_rate_limit( 'get_mini_cart', saro_get_client_ip(), 120, 5 * MINUTE_IN_SECONDS );
 
     if ( ! WC()->cart ) wc_load_cart();
 
@@ -93,12 +93,12 @@ function romanino_ajax_get_mini_cart() {
 add_filter( 'woocommerce_is_sold_individually', '__return_true', 20, 2 );
 
 /** افزودن محصول به سبد */
-add_action( 'wp_ajax_romanino_add_to_cart', 'romanino_ajax_add_to_cart' );
-add_action( 'wp_ajax_nopriv_romanino_add_to_cart', 'romanino_ajax_add_to_cart' );
-function romanino_ajax_add_to_cart() {
-    check_ajax_referer( 'romanino_cart_nonce', 'nonce' );
+add_action( 'wp_ajax_saro_add_to_cart', 'saro_ajax_add_to_cart' );
+add_action( 'wp_ajax_nopriv_saro_add_to_cart', 'saro_ajax_add_to_cart' );
+function saro_ajax_add_to_cart() {
+    check_ajax_referer( 'saro_cart_nonce', 'nonce' );
 
-    romanino_enforce_ajax_rate_limit( 'add_to_cart', romanino_get_client_ip(), 40, 5 * MINUTE_IN_SECONDS );
+    saro_enforce_ajax_rate_limit( 'add_to_cart', saro_get_client_ip(), 40, 5 * MINUTE_IN_SECONDS );
 
     if ( ! WC()->cart || ! WC()->session ) {
         wc_load_cart();
@@ -110,16 +110,16 @@ function romanino_ajax_add_to_cart() {
     $product_id = absint( $_POST['product_id'] ?? 0 );
     $replace    = ! empty( $_POST['replace'] );
 
-    $romanino_product = wc_get_product( $product_id );
-    if ( ! $product_id || ! $romanino_product ) {
+    $saro_product = wc_get_product( $product_id );
+    if ( ! $product_id || ! $saro_product ) {
         wp_send_json_error( array( 'message' => 'این محصول دیگر در دسترس نیست.' ) );
     }
 
-    if ( romanino_product_price_field_is_empty( $romanino_product ) ) {
-        wp_send_json_error( array( 'message' => 'این رمان فعلاً قابل خرید نیست.' ) );
+    if ( saro_product_price_field_is_empty( $saro_product ) ) {
+        wp_send_json_error( array( 'message' => 'این کتاب فعلاً قابل خرید نیست.' ) );
     }
-    if ( romanino_is_free_product( $romanino_product ) ) {
-        wp_send_json_error( array( 'message' => 'این رمان رایگان است و از طریق دکمه‌ی «دانلود مستقیم» قابل دریافت است.' ) );
+    if ( saro_is_free_product( $saro_product ) ) {
+        wp_send_json_error( array( 'message' => 'این کتاب رایگان است و از طریق دکمه‌ی «دانلود مستقیم» قابل دریافت است.' ) );
     }
 
     if ( $replace ) {
@@ -131,7 +131,7 @@ function romanino_ajax_add_to_cart() {
         wp_send_json_success( array(
             'count'           => WC()->cart->get_cart_contents_count(),
             'already_in_cart' => true,
-            'message'         => 'این رمان همین الان هم در سبد خرید شماست.',
+            'message'         => 'این کتاب همین الان هم در سبد خرید شماست.',
         ) );
     }
 
@@ -154,12 +154,12 @@ function romanino_ajax_add_to_cart() {
 }
 
 /** حذف یک آیتم از سبد خرید */
-add_action( 'wp_ajax_romanino_remove_cart_item', 'romanino_ajax_remove_cart_item' );
-add_action( 'wp_ajax_nopriv_romanino_remove_cart_item', 'romanino_ajax_remove_cart_item' );
-function romanino_ajax_remove_cart_item() {
-    check_ajax_referer( 'romanino_cart_nonce', 'nonce' );
+add_action( 'wp_ajax_saro_remove_cart_item', 'saro_ajax_remove_cart_item' );
+add_action( 'wp_ajax_nopriv_saro_remove_cart_item', 'saro_ajax_remove_cart_item' );
+function saro_ajax_remove_cart_item() {
+    check_ajax_referer( 'saro_cart_nonce', 'nonce' );
 
-    romanino_enforce_ajax_rate_limit( 'remove_cart_item', romanino_get_client_ip(), 40, 5 * MINUTE_IN_SECONDS );
+    saro_enforce_ajax_rate_limit( 'remove_cart_item', saro_get_client_ip(), 40, 5 * MINUTE_IN_SECONDS );
 
     if ( ! WC()->cart ) wc_load_cart();
 

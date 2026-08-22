@@ -1,9 +1,9 @@
 <?php
 /**
- * Thankyou page — رمانینو (مخصوص فایل‌های دانلودی)
+ * Thankyou page — انتشارات سرو (مخصوص فایل‌های دانلودی)
  * ─────────────────────────────────────────────────────────────────────────────
  * این صفحه جایگزین جدول پیش‌فرض ووکامرس می‌شود تا کاربر بلافاصله پس از پرداخت،
- * در یک رابط کاربری شیشه‌ای (Glassmorphism) و تمیز، لینک دانلود رمان خود را ببیند.
+ * در یک رابط کاربری شیشه‌ای (Glassmorphism) و تمیز، لینک دانلود کتاب خود را ببیند.
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -21,32 +21,32 @@ defined( 'ABSPATH' ) || exit;
 		<?php if ( $is_failed ) : ?>
 			<!-- حالت پرداخت ناموفق -->
 			<?php
-			$failure_reason  = $order->get_meta( '_romanino_failure_reason' );
-			$failure_gateway = $order->get_meta( '_romanino_failure_gateway' ) ?: $order->get_payment_method();
-			$guidance_steps  = romanino_get_payment_failure_guidance( $failure_gateway );
+			$failure_reason  = $order->get_meta( '_saro_failure_reason' );
+			$failure_gateway = $order->get_meta( '_saro_failure_gateway' ) ?: $order->get_payment_method();
+			$guidance_steps  = saro_get_payment_failure_guidance( $failure_gateway );
 			?>
-			<div class="glass rounded-3xl p-6 text-center sm:p-8" style="border-color: rgba(239, 68, 68, 0.3);">
-				<span class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10 text-3xl text-red-500 ring-1 ring-red-500/30">❌</span>
-				<h1 class="text-xl font-black text-red-400">پرداخت شما ناموفق بود</h1>
+			<div class="border border-gold-line bg-card rounded-3xl p-6 text-center sm:p-8" style="border-color: rgba(239, 68, 68, 0.3);">
+				<span class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10 text-3xl text-destructive ring-1 ring-destructive/30">❌</span>
+				<h1 class="font-naskh text-xl font-bold text-destructive">پرداخت شما ناموفق بود</h1>
 				<p class="mt-2 text-sm text-muted-foreground">متأسفانه تراکنش سفارش <span class="font-mono">#<?php echo esc_html( $order->get_order_number() ); ?></span> انجام نشد.</p>
 
 				<?php if ( $failure_reason ) : ?>
-					<div class="mx-auto mt-4 max-w-md rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-2.5 text-xs text-red-300">
+					<div class="mx-auto mt-4 max-w-md rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-2.5 text-xs text-destructive">
 						پیام درگاه پرداخت: <?php echo esc_html( $failure_reason ); ?>
 					</div>
 				<?php endif; ?>
 
 				<div class="mt-6 flex justify-center">
-					<a href="<?php echo esc_url( $order->get_checkout_payment_url() ); ?>" class="rounded-xl bg-red-500 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-red-600">پرداخت مجدد</a>
+					<a href="<?php echo esc_url( $order->get_checkout_payment_url() ); ?>" class="saro-btn">پرداخت مجدد</a>
 				</div>
 
 				<?php if ( ! empty( $guidance_steps ) ) : ?>
-					<div class="mx-auto mt-8 max-w-md rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-right">
-						<h2 class="mb-3 text-sm font-bold text-white">چرا این اتفاق می‌افتد و چه‌کار کنم؟</h2>
+					<div class="mx-auto mt-8 max-w-md rounded-2xl border border-gold-hair bg-cream-2 p-5 text-right">
+						<h2 class="mb-3 text-sm font-bold text-teal">چرا این اتفاق می‌افتد و چه‌کار کنم؟</h2>
 						<ol class="space-y-2.5">
 							<?php foreach ( $guidance_steps as $i => $step ) : ?>
-								<li class="flex items-start gap-2.5 text-xs leading-relaxed text-slate-300">
-									<span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/10 text-[10px] font-bold text-slate-300"><?php echo esc_html( $i + 1 ); ?></span>
+								<li class="flex items-start gap-2.5 text-xs leading-relaxed text-ink">
+									<span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-cream-3 text-[10px] font-bold text-teal"><?php echo esc_html( $i + 1 ); ?></span>
 									<?php echo esc_html( $step ); ?>
 								</li>
 							<?php endforeach; ?>
@@ -57,14 +57,14 @@ defined( 'ABSPATH' ) || exit;
 
 		<?php else : ?>
 			<!-- حالت پرداخت موفق -->
-			<div class="glass glow-gold relative overflow-hidden rounded-3xl p-8 text-center mb-8">
+			<div class="border border-gold-line bg-card  relative overflow-hidden rounded-3xl p-8 text-center mb-8">
 				<!-- افکت‌های نوری -->
 				<div class="pointer-events-none absolute -top-16 -left-16 h-40 w-40 rounded-full bg-emerald-500/10 blur-3xl"></div>
 				
 				<span class="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/10 text-4xl text-emerald-400 ring-1 ring-emerald-500/30 shadow-[0_0_20px_-5px_rgba(16,185,129,0.5)]">✓</span>
 				
 				<h1 class="text-2xl font-black text-foreground">سفارش شما با موفقیت ثبت شد</h1>
-				<p class="mt-2 text-sm text-muted-foreground">از خرید شما سپاسگزاریم. فایل‌های رمان شما هم‌اکنون آماده‌ی دانلود است.</p>
+				<p class="mt-2 text-sm text-muted-foreground">از خرید شما سپاسگزاریم. فایل‌های کتاب شما هم‌اکنون آماده‌ی دانلود است.</p>
 
 				<!-- جزئیات سریع تراکنش -->
 				<div class="mt-8 flex flex-wrap justify-center gap-6 border-t border-white/10 pt-6 text-sm">
@@ -72,12 +72,12 @@ defined( 'ABSPATH' ) || exit;
 						<span class="text-[11px] text-muted-foreground">شماره سفارش</span>
 						<strong class="font-mono text-gold mt-1">#<?php echo esc_html( $order->get_order_number() ); ?></strong>
 					</div>
-					<div class="h-8 w-px bg-white/10"></div>
+					<div class="h-8 w-px bg-gold-hair"></div>
 					<div class="flex flex-col items-center">
 						<span class="text-[11px] text-muted-foreground">تاریخ</span>
 						<strong class="mt-1 text-foreground"><?php echo wc_format_datetime( $order->get_date_created() ); ?></strong>
 					</div>
-					<div class="h-8 w-px bg-white/10"></div>
+					<div class="h-8 w-px bg-gold-hair"></div>
 					<div class="flex flex-col items-center">
 						<span class="text-[11px] text-muted-foreground">مبلغ پرداختی</span>
 						<strong class="mt-1 text-emerald-400"><?php echo wp_kses_post( $order->get_formatted_order_total() ); ?></strong>
@@ -87,7 +87,7 @@ defined( 'ABSPATH' ) || exit;
 
 			<!-- باکس دانلود فایل‌ها -->
 			<div class="mb-8">
-				<h2 class="mb-4 flex items-center gap-2 text-lg font-extrabold text-white">
+				<h2 class="mb-4 flex items-center gap-2 font-naskh text-lg font-bold text-teal">
 					<span class="text-gold">📥</span> لینک‌های دانلود شما
 				</h2>
 				
@@ -103,21 +103,23 @@ defined( 'ABSPATH' ) || exit;
 						$product    = wc_get_product( $product_id );
 						$image_url  = wp_get_attachment_image_url( $product->get_image_id(), 'thumbnail' ) ?: wc_placeholder_img_src();
 						
-						// استخراج فرمت از ویژگی ووکامرس pa_format (نه فیلد اختصاصی قدیمی)
-						$format_label = romanino_get_product_formats( $product_id )['label'];
+						// دستهٔ اصلی اثر — به‌جای «فرمت فایل» که در قالب سرو حذف شده است
+						$saro_dl_cat = saro_get_primary_product_category( (int) $product_id );
 						?>
-						<div class="glass flex flex-col justify-between gap-3 rounded-2xl p-4 transition-transform hover:-translate-y-1">
+						<div class="border border-gold-line bg-card flex flex-col justify-between gap-3 rounded-2xl p-4 transition-transform hover:-translate-y-1">
 							<div class="flex gap-3">
-								<img src="<?php echo esc_url( $image_url ); ?>" class="h-16 w-12 rounded bg-slate-900 object-cover shadow-sm" alt="">
+								<img src="<?php echo esc_url( $image_url ); ?>" class="h-16 w-12 rounded bg-cream-2 object-cover" alt="">
 								<div class="min-w-0">
-									<h3 class="truncate text-sm font-bold text-foreground"><?php echo esc_html( $download['product_name'] ); ?></h3>
+									<h3 class="truncate text-sm font-bold text-ink"><?php echo esc_html( $download['product_name'] ); ?></h3>
 									<p class="mt-1 text-[11px] text-muted-foreground">فایل: <?php echo esc_html( $download['download_name'] ); ?></p>
-									<span class="mt-1 inline-block rounded bg-cyan-glow/10 px-2 py-0.5 text-[10px] text-cyan-glow"><?php echo $format_label; ?></span>
+									<?php if ( $saro_dl_cat ) : ?>
+										<span class="saro-chip-solid mt-1 inline-block"><?php echo esc_html( $saro_dl_cat->name ); ?></span>
+									<?php endif; ?>
 								</div>
 							</div>
 							
 							<!-- استفاده از download attribute برای جلوگیری از باز شدن ناخواسته فایل در تب مرورگر -->
-							<a href="<?php echo esc_url( $download['download_url'] ); ?>" download rel="noopener noreferrer" class="flex w-full items-center justify-center gap-2 rounded-xl bg-gold py-2.5 text-xs font-bold text-background transition-all hover:brightness-110">
+							<a href="<?php echo esc_url( $download['download_url'] ); ?>" download rel="noopener noreferrer" class="saro-btn w-full py-2.5 text-xs">
 								دانلود مستقیم
 							</a>
 						</div>
@@ -128,7 +130,7 @@ defined( 'ABSPATH' ) || exit;
 				else :
 					// اگر سفارشی بود ولی فایلی برای دانلود نداشت (مثلا هنوز در وضعیت در انتظار بررسی است)
 					?>
-					<div class="glass rounded-2xl p-6 text-center text-sm text-muted-foreground">
+					<div class="border border-gold-line bg-card rounded-2xl p-6 text-center text-sm text-muted-foreground">
 						سفارش شما در حال بررسی است. پس از تأیید نهایی، لینک‌های دانلود در <a href="<?php echo esc_url( wc_get_account_endpoint_url( 'downloads' ) ); ?>" class="text-primary hover:underline">پنل کاربری شما</a> قرار می‌گیرند.
 					</div>
 				<?php endif; ?>
@@ -138,8 +140,8 @@ defined( 'ABSPATH' ) || exit;
 
 	<?php else : ?>
 		<!-- صفحه بدون سفارش مشخص (ورود مستقیم) -->
-		<div class="glass rounded-2xl p-8 text-center">
-			<p class="text-muted-foreground">از خرید شما سپاسگزاریم. لطفاً برای دسترسی به رمان‌های خود به پنل کاربری مراجعه کنید.</p>
+		<div class="border border-gold-line bg-card rounded-2xl p-8 text-center">
+			<p class="text-muted-foreground">از خرید شما سپاسگزاریم. لطفاً برای دسترسی به کتاب‌های خود به پنل کاربری مراجعه کنید.</p>
 			<a href="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>" class="mt-4 inline-block rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90">ورود به پنل کاربری</a>
 		</div>
 	<?php endif; ?>

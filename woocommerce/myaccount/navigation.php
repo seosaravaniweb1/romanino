@@ -1,10 +1,10 @@
 <?php
 /**
- * My Account Navigation — رمانینو (بازطراحی گرافیکی)
+ * My Account Navigation — انتشارات سرو (بازطراحی گرافیکی)
  * منطق دقیقاً همان WooCommerce core است (wc_get_account_menu_items).
  * فقط مارک‌آپ/کلاس‌ها تغییر کرده: روی موبایل به صورت پیل‌های
  * افقی اسکرول‌شونده (با .no-scrollbar موجود در header.php) و روی
- * دسکتاپ به صورت لیست عمودی شیشه‌ای.
+ * دسکتاپ به صورت لیست عمودی کارتی.
  */
 defined( 'ABSPATH' ) || exit;
 
@@ -25,7 +25,7 @@ add_filter( 'woocommerce_account_menu_items', function ( array $items ): array {
 	return $items;
 }, 20 );
 ?>
-<nav class="woocommerce-MyAccount-navigation glass rounded-2xl p-3 lg:sticky lg:top-24">
+<nav class="woocommerce-MyAccount-navigation rounded-2xl border border-gold-line bg-card p-3 lg:sticky lg:top-28">
 	<ul class="no-scrollbar flex gap-1.5 overflow-x-auto lg:flex-col lg:overflow-visible">
 		<?php foreach ( wc_get_account_menu_items() as $endpoint => $label ) :
 			$classes   = wc_get_account_menu_item_classes( $endpoint );
@@ -42,7 +42,7 @@ add_filter( 'woocommerce_account_menu_items', function ( array $items ): array {
 		?>
 			<li class="<?php echo esc_attr( $classes ); ?> shrink-0 lg:shrink">
 				<a href="<?php echo esc_url( wc_get_account_endpoint_url( $endpoint ) ); ?>"
-					class="flex items-center gap-2.5 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all duration-150 <?php echo $is_active ? 'glow-gold bg-gold text-background' : 'text-slate-300 hover:bg-secondary hover:text-white'; ?>">
+					class="flex items-center gap-2.5 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-sm font-bold transition-colors duration-150 <?php echo $is_active ? 'bg-teal text-gold-soft' : 'text-ink hover:bg-cream-2 hover:text-teal'; ?>">
 					<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="<?php echo esc_attr( $path ); ?>"/></svg>
 					<?php echo esc_html( $label ); ?>
 				</a>

@@ -1,6 +1,6 @@
 <?php
 /**
- * The Template for displaying all single products — رمانینو
+ * The Template for displaying all single products — انتشارات سرو
  * ─────────────────────────────────────────────────────────────────────────
  * فاز ۲ ریفکتور: wp_is_mobile() به‌طور کامل حذف شد. تفکیک نمایش موبایل/
  * دسکتاپ دیگر در PHP انجام نمی‌شود؛ به‌جای دو فایل جدا (content-desktop.php

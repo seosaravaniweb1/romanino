@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
    نصب (یکی از این دو روش را انتخاب کنید):
 
    روش ۱ — Composer (توصیه می‌شود، اگر هاست SSH/Composer دارد):
-       از داخل پوشه‌ی قالب (wp-content/themes/romanino) دستور زیر را اجرا کنید:
+       از داخل پوشه‌ی قالب (wp-content/themes/saro) دستور زیر را اجرا کنید:
            composer require ippanel/php-rest-sdk
        این کار پوشه‌ی vendor/ را همین‌جا می‌سازد و همین کافی است.
 
@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
           به‌جای require 'vendor/autoload.php' با require دستی کلاس‌های
           موردنیاز (IPPanel\Client و کلاس‌های Errors) جایگزین کنید.
 
-   بعد از نصب، وارد پیشخوان → «هدر و فوتر رمانینو» → تب «پیامک (OTP)»
+   بعد از نصب، وارد پیشخوان → «هدر و فوتر انتشارات سرو» → تب «پیامک (OTP)»
    شوید و API Key، شماره خط، و کد پترن را وارد و ذخیره کنید.
    ========================================================================== */
 
@@ -45,20 +45,20 @@ add_action( 'after_setup_theme', function () {
  * @param array<string,string> $values       مقادیر متغیرهای پترن، مثلا ['code' => '12345']
  * @return bool موفقیت ارسال
  */
-function romanino_ippanel_send_pattern( string $recipient, array $values, string $pattern_code = '' ): bool {
-    $sms = romanino_get_sms_options();
+function saro_ippanel_send_pattern( string $recipient, array $values, string $pattern_code = '' ): bool {
+    $sms = saro_get_sms_options();
 
     $api_key      = $sms['ippanel_api_key'];
     $originator   = $sms['ippanel_originator'];
     $pattern_code = $pattern_code ?: $sms['ippanel_pattern_otp'];
 
     if ( ! $api_key || ! $originator || ! $pattern_code ) {
-        error_log( '[Romanino SMS] تنظیمات ippanel کامل نیست — به پیشخوان » هدر و فوتر رمانینو » تب پیامک مراجعه کنید.' );
+        error_log( '[Saro SMS] تنظیمات ippanel کامل نیست — به پیشخوان » هدر و فوتر انتشارات سرو » تب پیامک مراجعه کنید.' );
         return false;
     }
 
     if ( ! class_exists( '\IPPanel\Client' ) ) {
-        error_log( '[Romanino SMS] کلاس IPPanel\Client یافت نشد. پکیج ippanel/php-rest-sdk را طبق راهنمای بالای inc/sms-functions.php نصب کنید.' );
+        error_log( '[Saro SMS] کلاس IPPanel\Client یافت نشد. پکیج ippanel/php-rest-sdk را طبق راهنمای بالای inc/sms-functions.php نصب کنید.' );
         return false;
     }
 
@@ -70,7 +70,7 @@ function romanino_ippanel_send_pattern( string $recipient, array $values, string
         // FIX: خطای واقعی SDK (چه خطای اعتبارسنجی ippanel و چه خطای شبکه) لاگ
         // می‌شود تا در صورت مشکل، قابل پیگیری باشد — نه فقط false ساده که
         // دلیلش هیچ‌وقت مشخص نمی‌شود.
-        error_log( '[Romanino SMS] خطا در ارسال پیامک: ' . $e->getMessage() );
+        error_log( '[Saro SMS] خطا در ارسال پیامک: ' . $e->getMessage() );
         return false;
     }
 }

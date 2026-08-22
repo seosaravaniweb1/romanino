@@ -1,6 +1,6 @@
 <?php
 /**
- * Romanino — Account Functions
+ * Saro — Account Functions
  * ─────────────────────────────────────────────────────────────────────────────
  * سیستم تیکت/پشتیبانی از این فایل کامل حذف شد — پشتیبانی به‌صورت یک
  * افزونه‌ی جداگانه توسط مالک سایت ساخته می‌شود، بنابراین هیچ CPT، endpoint،
@@ -23,34 +23,34 @@ add_filter( 'woocommerce_account_menu_items', function ( array $items ): array {
 
 /* ─── فیلدهای اضافه به فرم ویرایش حساب ─────────────────────────────────── */
 
-add_action( 'woocommerce_edit_account_form', 'romanino_add_custom_user_profile_fields' );
-function romanino_add_custom_user_profile_fields(): void {
+add_action( 'woocommerce_edit_account_form', 'saro_add_custom_user_profile_fields' );
+function saro_add_custom_user_profile_fields(): void {
     $user_id = get_current_user_id();
     $gender  = esc_attr( get_user_meta( $user_id, 'user_gender', true ) );
     $dob     = esc_attr( get_user_meta( $user_id, 'user_dob', true ) );
     ?>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
         <div>
-            <label for="user_gender" class="mb-1.5 block text-sm font-medium text-foreground">جنسیت</label>
+            <label for="user_gender" class="mb-1.5 block text-sm font-bold text-ink">جنسیت</label>
             <select name="user_gender" id="user_gender"
-                class="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring">
+                class="saro-input">
                 <option value="" <?php selected( $gender, '' ); ?>>انتخاب کنید...</option>
                 <option value="female" <?php selected( $gender, 'female' ); ?>>خانم</option>
                 <option value="male" <?php selected( $gender, 'male' ); ?>>آقا</option>
             </select>
         </div>
         <div>
-            <label for="user_dob" class="mb-1.5 block text-sm font-medium text-foreground">تاریخ تولد</label>
+            <label for="user_dob" class="mb-1.5 block text-sm font-bold text-ink">تاریخ تولد</label>
             <input type="text" name="user_dob" id="user_dob" value="<?php echo $dob; ?>"
                 placeholder="1375/01/01"
-                class="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring" />
+                class="saro-input" />
         </div>
     </div>
     <?php
 }
 
-add_action( 'woocommerce_save_account_details', 'romanino_save_custom_user_profile_fields' );
-function romanino_save_custom_user_profile_fields( int $user_id ): void {
+add_action( 'woocommerce_save_account_details', 'saro_save_custom_user_profile_fields' );
+function saro_save_custom_user_profile_fields( int $user_id ): void {
     // اعتبارسنجی جنسیت
     $allowed_genders = [ 'male', 'female', '' ];
     $gender = sanitize_text_field( $_POST['user_gender'] ?? '' );
@@ -66,15 +66,15 @@ function romanino_save_custom_user_profile_fields( int $user_id ): void {
 }
 
 /* ─── فرم سریع پروفایل — فقط برای کاربران لاگین ─────────────────────────── */
-add_action( 'admin_post_romanino_save_quick_profile', 'romanino_handle_quick_profile_save' );
-function romanino_handle_quick_profile_save(): void {
+add_action( 'admin_post_saro_save_quick_profile', 'saro_handle_quick_profile_save' );
+function saro_handle_quick_profile_save(): void {
     if ( ! is_user_logged_in() ) {
         wp_safe_redirect( wc_get_page_permalink( 'myaccount' ) );
         exit;
     }
 
-    if ( ! isset( $_POST['_romanino_quick_profile_nonce'] ) ||
-         ! wp_verify_nonce( $_POST['_romanino_quick_profile_nonce'], 'romanino_quick_profile' ) ) {
+    if ( ! isset( $_POST['_saro_quick_profile_nonce'] ) ||
+         ! wp_verify_nonce( $_POST['_saro_quick_profile_nonce'], 'saro_quick_profile' ) ) {
         wp_die( 'درخواست نامعتبر.' );
     }
 

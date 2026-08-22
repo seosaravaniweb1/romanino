@@ -1,6 +1,6 @@
 <?php
 /**
- * چک‌اوت مرحله‌ای — رمانینو
+ * چک‌اوت مرحله‌ای — انتشارات سرو
  * ─────────────────────────────────────────────────────────────────────────────
  * ۳ مرحله: سبد خرید (صفحه‌ی /cart/ موجود) → اطلاعات تماس → روش پرداخت
  * حرکت بین مرحله‌ها با ریلود کامل صفحه انجام می‌شود (بدون AJAX/fetch)، یعنی:
@@ -16,8 +16,8 @@ defined( 'ABSPATH' ) || exit;
    ۱. غیرفعال‌سازی AJAX چک‌اوت در صفحه‌ی پرداخت (برای ریلود واقعی صفحه)
    ========================================================================== */
 
-add_action( 'wp_enqueue_scripts', 'romanino_force_non_ajax_checkout', 100 );
-function romanino_force_non_ajax_checkout(): void {
+add_action( 'wp_enqueue_scripts', 'saro_force_non_ajax_checkout', 100 );
+function saro_force_non_ajax_checkout(): void {
 	if ( ! function_exists( 'is_checkout' ) || ! is_checkout() || is_order_received_page() ) {
 		return;
 	}
@@ -29,7 +29,7 @@ function romanino_force_non_ajax_checkout(): void {
    ۲. تشخیص مرحله‌ی جاری
    ========================================================================== */
 
-function romanino_get_checkout_step(): string {
+function saro_get_checkout_step(): string {
 	$step = isset( $_GET['step'] ) ? sanitize_key( wp_unslash( $_GET['step'] ) ) : 'info';
 	return in_array( $step, array( 'info', 'payment' ), true ) ? $step : 'info';
 }
@@ -40,15 +40,15 @@ function romanino_get_checkout_step(): string {
    شیء را در سشن نگه می‌دارد)، بنابراین در مرحله‌ی پرداخت همچنان در دسترس‌اند.
    ========================================================================== */
 
-add_action( 'template_redirect', 'romanino_handle_checkout_info_step' );
-function romanino_handle_checkout_info_step(): void {
+add_action( 'template_redirect', 'saro_handle_checkout_info_step' );
+function saro_handle_checkout_info_step(): void {
 	if ( ! function_exists( 'is_checkout' ) || ! is_checkout() ) {
 		return;
 	}
-	if ( empty( $_POST['romanino_checkout_step'] ) || $_POST['romanino_checkout_step'] !== 'info' ) {
+	if ( empty( $_POST['saro_checkout_step'] ) || $_POST['saro_checkout_step'] !== 'info' ) {
 		return;
 	}
-	if ( ! isset( $_POST['romanino_checkout_info_nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['romanino_checkout_info_nonce'] ), 'romanino_checkout_info' ) ) {
+	if ( ! isset( $_POST['saro_checkout_info_nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['saro_checkout_info_nonce'] ), 'saro_checkout_info' ) ) {
 		wc_add_notice( 'نشست شما منقضی شده است، لطفاً دوباره تلاش کنید.', 'error' );
 		return;
 	}
@@ -57,7 +57,7 @@ function romanino_handle_checkout_info_step(): void {
 	$last_name  = sanitize_text_field( wp_unslash( $_POST['billing_last_name'] ?? '' ) );
 	$email_raw  = sanitize_email( wp_unslash( $_POST['billing_email'] ?? '' ) );
 	$phone_raw  = sanitize_text_field( wp_unslash( $_POST['billing_phone'] ?? '' ) );
-	$phone      = function_exists( 'romanino_normalize_phone' ) ? romanino_normalize_phone( $phone_raw ) : false;
+	$phone      = function_exists( 'saro_normalize_phone' ) ? saro_normalize_phone( $phone_raw ) : false;
 
 	// FIX: طبق سیاست جدید فقط نام/نام‌خانوادگی/موبایل الزامی‌اند. ایمیل اختیاری است؛
 	// اگر خالی بماند یا نامعتبر باشد، یک ایمیل جایگزین یکتا از روی شماره موبایل ساخته می‌شود.
@@ -77,7 +77,7 @@ function romanino_handle_checkout_info_step(): void {
 		return; // در همین مرحله (info) با پیام خطا رندر می‌شود.
 	}
 
-	$email = ( '' !== $email_raw ) ? $email_raw : romanino_build_placeholder_email( $phone );
+	$email = ( '' !== $email_raw ) ? $email_raw : saro_build_placeholder_email( $phone );
 
 	WC()->customer->set_billing_first_name( $first_name );
 	WC()->customer->set_billing_last_name( $last_name );
@@ -94,7 +94,7 @@ function romanino_handle_checkout_info_step(): void {
 	// تا دیگر ایمیل جایگزین/ناقص روی حساب نماند.
 	if ( is_user_logged_in() && '' !== $email_raw ) {
 		$current_user = wp_get_current_user();
-		if ( ! is_email( $current_user->user_email ) || romanino_is_placeholder_email( $current_user->user_email ) ) {
+		if ( ! is_email( $current_user->user_email ) || saro_is_placeholder_email( $current_user->user_email ) ) {
 			wp_update_user( array( 'ID' => $current_user->ID, 'user_email' => $email_raw ) );
 		}
 	}
@@ -107,12 +107,12 @@ function romanino_handle_checkout_info_step(): void {
    ۵. جلوگیری از رسیدن مستقیم به مرحله‌ی پرداخت بدون تکمیل اطلاعات
    ========================================================================== */
 
-add_action( 'template_redirect', 'romanino_guard_checkout_payment_step' );
-function romanino_guard_checkout_payment_step(): void {
+add_action( 'template_redirect', 'saro_guard_checkout_payment_step' );
+function saro_guard_checkout_payment_step(): void {
 	if ( ! function_exists( 'is_checkout' ) || ! is_checkout() || is_order_received_page() ) {
 		return;
 	}
-	if ( 'payment' !== romanino_get_checkout_step() ) {
+	if ( 'payment' !== saro_get_checkout_step() ) {
 		return;
 	}
 	if ( ! WC()->customer->get_billing_email() ) {
@@ -131,8 +131,8 @@ function romanino_guard_checkout_payment_step(): void {
    این گارد با اولویت ۵ (زودتر از باقی گاردهای همین فایل) اجرا می‌شود تا
    کاربر مهمان اصلاً به منطق مراحل بعدی نرسد.
    ========================================================================== */
-add_action( 'template_redirect', 'romanino_force_login_before_checkout', 5 );
-function romanino_force_login_before_checkout(): void {
+add_action( 'template_redirect', 'saro_force_login_before_checkout', 5 );
+function saro_force_login_before_checkout(): void {
 	if ( ! function_exists( 'is_checkout' ) || ! is_checkout() || is_order_received_page() ) {
 		return;
 	}
@@ -169,7 +169,7 @@ add_filter( 'pre_option_woocommerce_enable_checkout_login_reminder', function ()
  * @param string $gateway_id شناسه‌ی درگاه پرداخت فعال (مثلاً 'zibal' یا هر درگاه دیگری که از طریق افزونه نصب شده)
  * @return string[] لیست مراحل راهنما
  */
-function romanino_get_payment_failure_guidance( string $gateway_id ): array {
+function saro_get_payment_failure_guidance( string $gateway_id ): array {
 	$default = array(
 		'موجودی حساب یا سقف تراکنش کارت خود را بررسی کنید.',
 		'اگر رمز پویا یا رمز دوم فعال نیست، از طریق همراه‌بانک آن را فعال کنید.',
@@ -181,12 +181,12 @@ function romanino_get_payment_failure_guidance( string $gateway_id ): array {
 	 * فیلتر برای جایگزینی راهنمای هر درگاه با متن اختصاصی.
 	 * نمونه‌ی استفاده در functions.php یا هر فایل دیگر تم:
 	 *
-	 * add_filter( 'romanino_payment_failure_guidance', function( $guidance, $gateway_id ) {
+	 * add_filter( 'saro_payment_failure_guidance', function( $guidance, $gateway_id ) {
 	 *     if ( 'zibal' === $gateway_id ) {
 	 *         return array( 'متن اختصاصی مرحله ۱', 'متن اختصاصی مرحله ۲', ... );
 	 *     }
 	 *     return $guidance;
 	 * }, 10, 2 );
 	 */
-	return apply_filters( 'romanino_payment_failure_guidance', $default, $gateway_id );
+	return apply_filters( 'saro_payment_failure_guidance', $default, $gateway_id );
 }

@@ -1,6 +1,6 @@
 <?php
 /**
- * Romanino — Auth Functions (HARDENED v2)
+ * Saro — Auth Functions (HARDENED v2)
  * ─────────────────────────────────────────────────────────────────────────────
  * اصلاحات امنیتی اعمال‌شده:
  *  1. Rate-limiting با Transient (جلوگیری از brute-force روی OTP و رمز عبور)
@@ -15,9 +15,9 @@
 defined( 'ABSPATH' ) || exit;
 
 /* ─── ثوابت ─────────────────────────────────────────────────────────────── */
-define( 'ROMANINO_OTP_EXPIRE',    5 * MINUTE_IN_SECONDS );  // ۵ دقیقه
-define( 'ROMANINO_OTP_MAX_TRY',   5 );  // حداکثر ۵ بار تلاش ناموفق
-define( 'ROMANINO_RATE_WINDOW',   15 * MINUTE_IN_SECONDS ); // پنجره rate-limit
+define( 'SARO_OTP_EXPIRE',    5 * MINUTE_IN_SECONDS );  // ۵ دقیقه
+define( 'SARO_OTP_MAX_TRY',   5 );  // حداکثر ۵ بار تلاش ناموفق
+define( 'SARO_RATE_WINDOW',   15 * MINUTE_IN_SECONDS ); // پنجره rate-limit
 
 /* ─── توابع کمکی ────────────────────────────────────────────────────────── */
 
@@ -25,7 +25,7 @@ define( 'ROMANINO_RATE_WINDOW',   15 * MINUTE_IN_SECONDS ); // پنجره rate-l
  * نرمال‌سازی و اعتبارسنجی شماره موبایل
  * @return string|false شماره‌ی نرمال‌شده یا false
  */
-function romanino_normalize_phone( string $raw ): string|false {
+function saro_normalize_phone( string $raw ): string|false {
     $phone = preg_replace( '/[^0-9]/', '', sanitize_text_field( $raw ) );
     // قبول ۱۱ رقم (09xxxxxxxxx) یا ۱۰ رقم (9xxxxxxxxx → 09xxxxxxxxx)
     if ( strlen( $phone ) === 10 && substr( $phone, 0, 1 ) === '9' ) {
@@ -38,7 +38,7 @@ function romanino_normalize_phone( string $raw ): string|false {
  * پیدا کردن کاربر با شماره موبایل
  * از meta_key ثابت 'phone_number' استفاده می‌کند (بدون تکرار کوئری)
  */
-function romanino_find_user_by_phone( string $phone ): WP_User|false {
+function saro_find_user_by_phone( string $phone ): WP_User|false {
     $users = get_users( [
         'meta_key'   => 'phone_number',
         'meta_value' => $phone,
@@ -53,12 +53,12 @@ function romanino_find_user_by_phone( string $phone ): WP_User|false {
  * پیدا کردن کاربر با شماره موبایل، نام‌کاربری یا ایمیل
  * برای فرم «ورود بدون احراز پیامکی» که هر سه را می‌پذیرد
  */
-function romanino_find_user_by_identifier( string $identifier ): WP_User|false {
+function saro_find_user_by_identifier( string $identifier ): WP_User|false {
     $identifier = sanitize_text_field( $identifier );
 
-    $normalized_phone = romanino_normalize_phone( $identifier );
+    $normalized_phone = saro_normalize_phone( $identifier );
     if ( $normalized_phone ) {
-        $by_phone = romanino_find_user_by_phone( $normalized_phone );
+        $by_phone = saro_find_user_by_phone( $normalized_phone );
         if ( $by_phone ) return $by_phone;
     }
 
@@ -75,31 +75,31 @@ function romanino_find_user_by_identifier( string $identifier ): WP_User|false {
  * بررسی rate-limit برای یک عملیات مشخص
  * @return bool اگر true باشد = بلاک شده
  */
-function romanino_is_rate_limited( string $action, string $identifier ): bool {
-    $key     = 'romanino_rl_' . $action . '_' . md5( $identifier );
+function saro_is_rate_limited( string $action, string $identifier ): bool {
+    $key     = 'saro_rl_' . $action . '_' . md5( $identifier );
     $current = (int) get_transient( $key );
-    if ( $current >= ROMANINO_OTP_MAX_TRY ) {
+    if ( $current >= SARO_OTP_MAX_TRY ) {
         return true;
     }
-    set_transient( $key, $current + 1, ROMANINO_RATE_WINDOW );
+    set_transient( $key, $current + 1, SARO_RATE_WINDOW );
     return false;
 }
 
 /** پاک کردن rate-limit پس از موفقیت */
-function romanino_clear_rate_limit( string $action, string $identifier ): void {
-    delete_transient( 'romanino_rl_' . $action . '_' . md5( $identifier ) );
+function saro_clear_rate_limit( string $action, string $identifier ): void {
+    delete_transient( 'saro_rl_' . $action . '_' . md5( $identifier ) );
 }
 
 /**
  * ارسال پیامک واقعی — جایگزین با API خودتان
  * @return bool
  */
-function romanino_send_sms_code( string $phone, string $code ): bool {
+function saro_send_sms_code( string $phone, string $code ): bool {
     // اتصال واقعی: پیامک الگو (پترن) از طریق ippanel.ir ارسال می‌شود.
     // تنظیمات (API Key / شماره خط / کد پترن) از پیشخوان » هدر و فوتر
-    // رمانینو » تب «پیامک (OTP)» خوانده می‌شوند — به inc/sms-functions.php
+    // انتشارات سرو » تب «پیامک (OTP)» خوانده می‌شوند — به inc/sms-functions.php
     // مراجعه کنید. پترن باید دقیقاً یک متغیر با نام code داشته باشد.
-    $sent = romanino_ippanel_send_pattern( $phone, [ 'code' => $code ] );
+    $sent = saro_ippanel_send_pattern( $phone, [ 'code' => $code ] );
 
     // FIX امنیتی: قبلاً فقط شرط WP_DEBUG چک می‌شد. اگر یک روز روی سرور
     // Production به‌اشتباه WP_DEBUG روشن بماند (اشتباه تنظیمات رایج)، یا
@@ -108,7 +108,7 @@ function romanino_send_sms_code( string $phone, string $code ): bool {
     // محیط اجرا «production» نباشد (wp_get_environment_type، از نسخه ۵.۵
     // به بعد وردپرس؛ اگر ست نشده باشد پیش‌فرض 'production' است — یعنی ایمن).
     if ( defined( 'WP_DEBUG' ) && WP_DEBUG && function_exists( 'wp_get_environment_type' ) && wp_get_environment_type() !== 'production' ) {
-        error_log( "[Romanino OTP] phone={$phone} code={$code} sent=" . ( $sent ? 'yes' : 'no' ) );
+        error_log( "[Saro OTP] phone={$phone} code={$code} sent=" . ( $sent ? 'yes' : 'no' ) );
     }
 
     return $sent;
@@ -117,35 +117,35 @@ function romanino_send_sms_code( string $phone, string $code ): bool {
 /**
  * تولید OTP ۵ رقمی و ذخیره با Transient
  */
-function romanino_generate_otp( string $phone ): string {
+function saro_generate_otp( string $phone ): string {
     // crypto-safe random
     $code = str_pad( (string) random_int( 10000, 99999 ), 5, '0', STR_PAD_LEFT );
     // ذخیره hash کد (نه خود کد) برای امنیت بیشتر
-    set_transient( 'romanino_otp_' . $phone, wp_hash( $code ), ROMANINO_OTP_EXPIRE );
+    set_transient( 'saro_otp_' . $phone, wp_hash( $code ), SARO_OTP_EXPIRE );
     return $code;
 }
 
 
 /* ─── ۱. بررسی شماره موبایل ─────────────────────────────────────────────── */
 
-add_action( 'wp_ajax_nopriv_romanino_check_phone', 'romanino_ajax_check_phone' );
+add_action( 'wp_ajax_nopriv_saro_check_phone', 'saro_ajax_check_phone' );
 // کاربر لاگین‌شده نباید این endpoint را فراخوانی کند
-function romanino_ajax_check_phone(): void {
-    check_ajax_referer( 'romanino_auth_nonce', 'nonce' );
+function saro_ajax_check_phone(): void {
+    check_ajax_referer( 'saro_auth_nonce', 'nonce' );
 
     $ip    = sanitize_text_field( $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0' );
-    $phone = romanino_normalize_phone( $_POST['phone'] ?? '' );
+    $phone = saro_normalize_phone( $_POST['phone'] ?? '' );
 
     if ( ! $phone ) {
         wp_send_json_error( [ 'message' => 'شماره موبایل معتبر نیست.' ], 400 );
     }
 
     // Rate-limit بر اساس IP
-    if ( romanino_is_rate_limited( 'check_phone', $ip ) ) {
+    if ( saro_is_rate_limited( 'check_phone', $ip ) ) {
         wp_send_json_error( [ 'message' => 'درخواست‌های زیادی ارسال شده. لطفاً چند دقیقه صبر کنید.' ], 429 );
     }
 
-    $user = romanino_find_user_by_phone( $phone );
+    $user = saro_find_user_by_phone( $phone );
 
     /*
      * امنیتی: به جای اینکه مشخص کنیم «کاربر وجود دارد یا نه»، فقط
@@ -156,8 +156,8 @@ function romanino_ajax_check_phone(): void {
 
     if ( ! $has_password ) {
         // ارسال OTP — چه کاربر موجود باشد چه نباشد
-        $code = romanino_generate_otp( $phone );
-        romanino_send_sms_code( $phone, $code );
+        $code = saro_generate_otp( $phone );
+        saro_send_sms_code( $phone, $code );
     }
 
     wp_send_json_success( [ 'has_password' => (bool) $has_password ] );
@@ -166,24 +166,24 @@ function romanino_ajax_check_phone(): void {
 
 /* ─── ۲. ارسال / ارسال مجدد OTP ─────────────────────────────────────────── */
 
-add_action( 'wp_ajax_nopriv_romanino_send_otp', 'romanino_ajax_send_otp' );
-function romanino_ajax_send_otp(): void {
-    check_ajax_referer( 'romanino_auth_nonce', 'nonce' );
+add_action( 'wp_ajax_nopriv_saro_send_otp', 'saro_ajax_send_otp' );
+function saro_ajax_send_otp(): void {
+    check_ajax_referer( 'saro_auth_nonce', 'nonce' );
 
     $ip    = sanitize_text_field( $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0' );
-    $phone = romanino_normalize_phone( $_POST['phone'] ?? '' );
+    $phone = saro_normalize_phone( $_POST['phone'] ?? '' );
 
     if ( ! $phone ) {
         wp_send_json_error( [ 'message' => 'شماره موبایل معتبر نیست.' ], 400 );
     }
 
     // Rate-limit: حداکثر ۵ بار در ۱۵ دقیقه
-    if ( romanino_is_rate_limited( 'send_otp', $ip . $phone ) ) {
+    if ( saro_is_rate_limited( 'send_otp', $ip . $phone ) ) {
         wp_send_json_error( [ 'message' => 'تعداد درخواست‌ها از حد مجاز گذشته. لطفاً ۱۵ دقیقه صبر کنید.' ], 429 );
     }
 
-    $code = romanino_generate_otp( $phone );
-    $sent = romanino_send_sms_code( $phone, $code );
+    $code = saro_generate_otp( $phone );
+    $sent = saro_send_sms_code( $phone, $code );
 
     if ( ! $sent ) {
         wp_send_json_error( [ 'message' => 'خطا در ارسال پیامک. لطفاً دوباره تلاش کنید.' ] );
@@ -194,12 +194,12 @@ function romanino_ajax_send_otp(): void {
 
 /* ─── ۳. تأیید OTP ───────────────────────────────────────────────────────── */
 
-add_action( 'wp_ajax_nopriv_romanino_verify_otp', 'romanino_ajax_verify_otp' );
-function romanino_ajax_verify_otp(): void {
-    check_ajax_referer( 'romanino_auth_nonce', 'nonce' );
+add_action( 'wp_ajax_nopriv_saro_verify_otp', 'saro_ajax_verify_otp' );
+function saro_ajax_verify_otp(): void {
+    check_ajax_referer( 'saro_auth_nonce', 'nonce' );
 
     $ip    = sanitize_text_field( $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0' );
-    $phone = romanino_normalize_phone( $_POST['phone'] ?? '' );
+    $phone = saro_normalize_phone( $_POST['phone'] ?? '' );
     $code  = preg_replace( '/[^0-9]/', '', sanitize_text_field( $_POST['code'] ?? '' ) );
 
     if ( ! $phone || strlen( $code ) !== 5 ) {
@@ -207,12 +207,12 @@ function romanino_ajax_verify_otp(): void {
     }
 
     // Rate-limit تلاش‌های ناموفق OTP
-    if ( romanino_is_rate_limited( 'verify_otp', $ip . $phone ) ) {
-        delete_transient( 'romanino_otp_' . $phone ); // باطل کردن OTP
+    if ( saro_is_rate_limited( 'verify_otp', $ip . $phone ) ) {
+        delete_transient( 'saro_otp_' . $phone ); // باطل کردن OTP
         wp_send_json_error( [ 'message' => 'حساب موقتاً قفل شد. لطفاً بعداً درخواست جدید بدهید.' ], 429 );
     }
 
-    $stored_hash = get_transient( 'romanino_otp_' . $phone );
+    $stored_hash = get_transient( 'saro_otp_' . $phone );
 
     // hash_equals: مقایسه ثابت-زمان برای جلوگیری از timing attack
     if ( ! $stored_hash || ! hash_equals( $stored_hash, wp_hash( $code ) ) ) {
@@ -220,19 +220,19 @@ function romanino_ajax_verify_otp(): void {
     }
 
     // موفقیت: پاک‌سازی OTP و rate-limit
-    delete_transient( 'romanino_otp_' . $phone );
-    romanino_clear_rate_limit( 'verify_otp', $ip . $phone );
-    romanino_clear_rate_limit( 'send_otp', $ip . $phone );
+    delete_transient( 'saro_otp_' . $phone );
+    saro_clear_rate_limit( 'verify_otp', $ip . $phone );
+    saro_clear_rate_limit( 'send_otp', $ip . $phone );
 
     // پیدا کردن یا ساختن کاربر
-    $user = romanino_find_user_by_phone( $phone );
+    $user = saro_find_user_by_phone( $phone );
     if ( ! $user ) {
         // ثبت‌نام خودکار
         $username = 'user_' . $phone . '_' . wp_rand( 100, 999 );
         $user_id  = wp_create_user(
             $username,
             wp_generate_password( 32, true, true ), // رمز تصادفی قوی
-            romanino_build_placeholder_email( $phone )
+            saro_build_placeholder_email( $phone )
         );
         if ( is_wp_error( $user_id ) ) {
             wp_send_json_error( [ 'message' => 'خطا در ساخت حساب کاربری.' ] );
@@ -251,7 +251,7 @@ function romanino_ajax_verify_otp(): void {
     do_action( 'wp_login', $user->user_login, $user );
 
     $redirect = apply_filters(
-        'romanino_after_login_redirect',
+        'saro_after_login_redirect',
         wc_get_page_permalink( 'myaccount' ),
         $user
     );
@@ -269,9 +269,9 @@ function romanino_ajax_verify_otp(): void {
 
 /* ─── ۴. ورود با رمز عبور ───────────────────────────────────────────────── */
 
-add_action( 'wp_ajax_nopriv_romanino_login_password', 'romanino_ajax_login_password' );
-function romanino_ajax_login_password(): void {
-    check_ajax_referer( 'romanino_auth_nonce', 'nonce' );
+add_action( 'wp_ajax_nopriv_saro_login_password', 'saro_ajax_login_password' );
+function saro_ajax_login_password(): void {
+    check_ajax_referer( 'saro_auth_nonce', 'nonce' );
 
     $ip = sanitize_text_field( $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0' );
 
@@ -286,11 +286,11 @@ function romanino_ajax_login_password(): void {
     }
 
     // Rate-limit: جلوگیری از brute-force رمز عبور
-    if ( romanino_is_rate_limited( 'login_pass', $ip . $identifier ) ) {
+    if ( saro_is_rate_limited( 'login_pass', $ip . $identifier ) ) {
         wp_send_json_error( [ 'message' => 'به دلیل تلاش‌های مکرر ناموفق، حساب موقتاً قفل شد.' ], 429 );
     }
 
-    $user = romanino_find_user_by_identifier( $identifier );
+    $user = saro_find_user_by_identifier( $identifier );
 
     // sleep ثابت برای جلوگیری از user enumeration
     if ( ! $user || ! wp_check_password( $password, $user->user_pass, $user->ID ) ) {
@@ -303,13 +303,13 @@ function romanino_ajax_login_password(): void {
         wp_send_json_error( [ 'message' => 'حساب کاربری شما غیرفعال است.' ] );
     }
 
-    romanino_clear_rate_limit( 'login_pass', $ip . $identifier );
+    saro_clear_rate_limit( 'login_pass', $ip . $identifier );
     wp_set_current_user( $user->ID );
     wp_set_auth_cookie( $user->ID, true );
     do_action( 'wp_login', $user->user_login, $user );
 
     $redirect = apply_filters(
-        'romanino_after_login_redirect',
+        'saro_after_login_redirect',
         wc_get_page_permalink( 'myaccount' ),
         $user
     );
@@ -323,9 +323,9 @@ function romanino_ajax_login_password(): void {
    «بدون احراز پیامکی» همیشه با خطای اکشن نامعتبر مواجه می‌شد.
    ────────────────────────────────────────────────────────────────────── */
 
-add_action( 'wp_ajax_nopriv_romanino_register_manual', 'romanino_ajax_register_manual' );
-function romanino_ajax_register_manual(): void {
-    check_ajax_referer( 'romanino_auth_nonce', 'nonce' );
+add_action( 'wp_ajax_nopriv_saro_register_manual', 'saro_ajax_register_manual' );
+function saro_ajax_register_manual(): void {
+    check_ajax_referer( 'saro_auth_nonce', 'nonce' );
 
     $ip          = sanitize_text_field( $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0' );
     $username    = sanitize_user( $_POST['username'] ?? '', true );
@@ -342,24 +342,24 @@ function romanino_ajax_register_manual(): void {
     if ( strlen( $password ) < 6 ) {
         wp_send_json_error( [ 'message' => 'رمز عبور باید حداقل ۶ کاراکتر باشد.' ], 400 );
     }
-    if ( romanino_is_rate_limited( 'register_manual', $ip ) ) {
+    if ( saro_is_rate_limited( 'register_manual', $ip ) ) {
         wp_send_json_error( [ 'message' => 'تعداد درخواست‌ها از حد مجاز گذشته. کمی بعد دوباره تلاش کنید.' ], 429 );
     }
     if ( username_exists( $username ) ) {
         wp_send_json_error( [ 'message' => 'این نام‌کاربری قبلاً استفاده شده.' ] );
     }
 
-    $phone = romanino_normalize_phone( $phone_raw );
+    $phone = saro_normalize_phone( $phone_raw );
     if ( ! $phone ) {
         wp_send_json_error( [ 'message' => 'شماره موبایل واردشده معتبر نیست.' ], 400 );
     }
-    if ( romanino_find_user_by_phone( $phone ) ) {
+    if ( saro_find_user_by_phone( $phone ) ) {
         wp_send_json_error( [ 'message' => 'این شماره موبایل قبلاً ثبت شده.' ] );
     }
 
     // ایمیل اختیاری: اگر خالی بود یا نامعتبر بود، جایگزین خودکار می‌سازیم.
     if ( '' === $email_raw ) {
-        $email = romanino_build_placeholder_email( $phone );
+        $email = saro_build_placeholder_email( $phone );
     } elseif ( ! is_email( $email_raw ) ) {
         wp_send_json_error( [ 'message' => 'ایمیل واردشده معتبر نیست. در صورت نداشتن ایمیل، این فیلد را خالی بگذارید.' ], 400 );
     } elseif ( email_exists( $email_raw ) ) {
@@ -391,7 +391,7 @@ function romanino_ajax_register_manual(): void {
     wp_set_auth_cookie( $user_id, true );
     do_action( 'wp_login', $user->user_login, $user );
 
-    $redirect = apply_filters( 'romanino_after_login_redirect', wc_get_page_permalink( 'myaccount' ), $user );
+    $redirect = apply_filters( 'saro_after_login_redirect', wc_get_page_permalink( 'myaccount' ), $user );
     wp_send_json_success( [ 'redirect' => esc_url_raw( $redirect ) ] );
 }
 
@@ -401,9 +401,9 @@ function romanino_ajax_register_manual(): void {
    PHP ثبت نشده بود.
    ────────────────────────────────────────────────────────────────────── */
 
-add_action( 'wp_ajax_romanino_save_name', 'romanino_ajax_save_name' );
-function romanino_ajax_save_name(): void {
-    check_ajax_referer( 'romanino_auth_nonce', 'nonce' );
+add_action( 'wp_ajax_saro_save_name', 'saro_ajax_save_name' );
+function saro_ajax_save_name(): void {
+    check_ajax_referer( 'saro_auth_nonce', 'nonce' );
 
     if ( ! is_user_logged_in() ) {
         wp_send_json_error( [ 'message' => 'ابتدا باید وارد حساب کاربری شوید.' ], 401 );
@@ -425,7 +425,7 @@ function romanino_ajax_save_name(): void {
     ] );
 
     $redirect = apply_filters(
-        'romanino_after_login_redirect',
+        'saro_after_login_redirect',
         wc_get_page_permalink( 'myaccount' ),
         wp_get_current_user()
     );
