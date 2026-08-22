@@ -25,17 +25,23 @@ $saro_account_url = function_exists( 'wc_get_page_permalink' ) ? $saro_account_u
 <a href="#saro-main" class="sr-only focus:not-sr-only focus:absolute focus:right-4 focus:top-4 focus:z-[120] focus:rounded-lg focus:bg-teal focus:px-4 focus:py-2 focus:text-sm focus:text-gold-soft">پرش به محتوای اصلی</a>
 
 <header class="sticky top-0 z-[70] w-full bg-cream-3 px-3 pt-2.5 md:px-5">
-    <div class="relative mx-auto grid max-w-saro grid-cols-[auto_1fr_auto] items-center gap-2.5 rounded-t-2xl border border-b-0 border-gold-line bg-[#fffdf7] px-4 py-2.5 shadow-[0_1px_6px_rgba(43,36,23,0.04)] lg:min-h-[62px] lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:px-7 lg:py-0">
+    <div class="relative mx-auto grid max-w-saro grid-cols-[auto_1fr_auto] items-center gap-2.5 rounded-t-2xl border border-b-0 border-gold-line bg-[#fffdf7] px-4 py-2.5 shadow-[0_1px_6px_rgba(43,36,23,0.04)] lg:min-h-[62px] lg:grid-cols-[minmax(min-content,1fr)_auto_minmax(min-content,1fr)] lg:px-7 lg:py-0">
 
         <!-- ═══ ناوبری اصلی (دسکتاپ) ═══
              ترتیب طبق درخواست: اول مگامنوی دسته‌بندی محصولات، بعد آیتم‌های
              منوی «اصلی (هدر)» که مدیر سایت از پیشخوان → نمایش → فهرست‌ها
-             می‌سازد. -->
+             می‌سازد.
+
+             نکتهٔ چیدمان: هر آیتم shrink-0 است تا هیچ‌وقت فشرده نشود و متنش
+             وسط کلمه نشکند. اگر منو آن‌قدر بلند بود که در عرض موجود جا نشد،
+             عمداً به سطر دوم می‌رود (نه اینکه زیر لوگو برود و بریده شود) و
+             هدر کمی بلندتر می‌شود — این فقط در نمایشگرهای باریکِ دسکتاپ با
+             منوی خیلی طولانی پیش می‌آید. -->
         <nav class="col-start-1 hidden min-w-0 flex-wrap items-center justify-start gap-0.5 lg:flex" aria-label="منوی اصلی">
 
             <!-- مگامنوی دسته‌بندی‌ها — کاملاً با CSS باز می‌شود (بدون جاوااسکریپت) -->
-            <div class="saro-mega-wrap static">
-                <button type="button" class="flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-lg border-0 bg-cream-2 px-3 py-1.5 font-sans text-sm font-bold text-teal hover:bg-gold hover:text-white" aria-haspopup="true">
+            <div class="saro-mega-wrap static shrink-0">
+                <button type="button" class="flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-lg border-0 bg-cream-2 px-2.5 py-1.5 font-sans text-[13px] font-bold text-teal hover:bg-gold hover:text-white xl:px-3 xl:text-sm" aria-haspopup="true">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
                     دسته‌بندی محصولات
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"></path></svg>
@@ -45,7 +51,7 @@ $saro_account_url = function_exists( 'wc_get_page_permalink' ) ? $saro_account_u
                 </div>
             </div>
 
-            <span class="mx-1.5 h-5 w-px bg-gold-hair"></span>
+            <span class="mx-1.5 h-5 w-px shrink-0 bg-gold-hair"></span>
 
             <?php
             /* منوی «اصلی (هدر)» پیشخوان. اگر مدیر سایت هنوز منویی نساخته باشد،
@@ -59,7 +65,7 @@ $saro_account_url = function_exists( 'wc_get_page_permalink' ) ? $saro_account_u
                     'walker'         => new class extends Walker_Nav_Menu {
                         function start_el( &$output, $item, $depth = 0, $args = null, $id = 0 ) {
                             $current = in_array( 'current-menu-item', (array) $item->classes, true );
-                            $output .= '<a href="' . esc_url( $item->url ) . '" class="whitespace-nowrap px-2.5 py-1.5 text-[13.5px] ' . ( $current ? 'border-b-2 border-gold font-bold text-teal' : 'text-ink hover:text-teal' ) . '">' . esc_html( $item->title ) . '</a>';
+                            $output .= '<a href="' . esc_url( $item->url ) . '" class="shrink-0 whitespace-nowrap px-1.5 py-1.5 text-[12.5px] xl:px-2 xl:text-[13.5px] ' . ( $current ? 'border-b-2 border-gold font-bold text-teal' : 'text-ink hover:text-teal' ) . '">' . esc_html( $item->title ) . '</a>';
                         }
                     },
                     'fallback_cb'    => false,
@@ -75,7 +81,7 @@ $saro_account_url = function_exists( 'wc_get_page_permalink' ) ? $saro_account_u
 
                 foreach ( $saro_default_menu as $saro_label => $saro_url ) {
                     printf(
-                        '<a href="%s" class="whitespace-nowrap px-2.5 py-1.5 text-[13.5px] %s">%s</a>',
+                        '<a href="%s" class="shrink-0 whitespace-nowrap px-1.5 py-1.5 text-[12.5px] xl:px-2 xl:text-[13.5px] %s">%s</a>',
                         esc_url( $saro_url ),
                         ( 'خانه' === $saro_label && is_front_page() ) ? 'border-b-2 border-gold font-bold text-teal' : 'text-ink hover:text-teal',
                         esc_html( $saro_label )
@@ -100,7 +106,7 @@ $saro_account_url = function_exists( 'wc_get_page_permalink' ) ? $saro_account_u
              زیر کلاس .saro-logo-slot تعریف شده‌اند. -->
         <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="saro-logo-plaque col-start-2 justify-self-center px-4 py-1.5" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?> — صفحه اصلی">
             <?php if ( has_custom_logo() ) : ?>
-                <span class="saro-logo-slot"><?php the_custom_logo(); ?></span>
+                <span class="saro-logo-slot"><?php echo saro_logo_image(); // phpcs:ignore WordPress.Security.EscapeOutput — خروجی wp_get_attachment_image از قبل escape شده است ?></span>
             <?php else : ?>
                 <span class="flex flex-col items-center gap-1">
                     <span class="grid h-10 w-10 place-items-center rounded-[50%/58%_58%_42%_42%] border border-gold bg-[#fffdf7] text-gold">

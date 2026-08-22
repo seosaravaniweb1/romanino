@@ -580,7 +580,7 @@ details[open] .saro-plus {
 		z-index: 2;
 		align-self: start;
 		margin-bottom: calc(-1 * var(--saro-logo-drop, 46px));
-		padding: 8px 26px calc(var(--saro-logo-drop, 46px) * 0.42);
+		padding: 8px 16px calc(var(--saro-logo-drop, 46px) * 0.42);
 		background: #fffdf7;
 		border: 1px solid var(--gold-line);
 		border-top: 0;
@@ -618,8 +618,19 @@ details[open] .saro-plus {
 
 @media (min-width: 1024px) {
 	.saro-logo-slot {
-		width: clamp(150px, 16vw, 230px);
+		/* عمداً از ۲۳۰px کمتر شد: ستون‌های چپ و راستِ هدر با
+		   minmax(0,1fr) دقیقاً هم‌عرض‌اند (تا لوگو دقیقاً وسط بماند)، پس هر
+		   پیکسلی که کتیبه بگیرد، دو برابرش از فضای منو و دکمه‌ها کم می‌شود و
+		   منو به سطر دوم می‌شکند و ارتفاع هدر بالا می‌رود. */
+		width: clamp(130px, 13vw, 200px);
 		height: 52px;
+	}
+}
+
+/* روی نمایشگرهای پهن فضا زیاد است، پس کتیبه می‌تواند بزرگ‌تر باشد */
+@media (min-width: 1440px) {
+	.saro-logo-slot {
+		width: clamp(180px, 14vw, 215px);
 	}
 }
 

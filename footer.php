@@ -188,7 +188,7 @@ $saro_frame_slice = (int) ( $saro_footer_opts['footer_bg_slice'] ?: 140 );
             <!-- ═══ ستون میانی: برند ═══ -->
             <div class="flex flex-col items-center gap-2.5 border-y border-gold-hair py-6 text-center md:order-2 md:border-x md:border-y-0 md:px-5 md:py-0">
                 <?php if ( has_custom_logo() ) : ?>
-                    <span class="saro-logo-slot saro-logo-slot-footer"><?php the_custom_logo(); ?></span>
+                    <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="saro-logo-slot saro-logo-slot-footer" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?> — صفحه اصلی"><?php echo saro_logo_image(); // phpcs:ignore WordPress.Security.EscapeOutput ?></a>
                 <?php else : ?>
                     <span class="grid h-14 w-14 place-items-center rounded-[50%/60%_60%_40%_40%] border border-gold text-gold">
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"><path d="M12 3c2.6 2.2 4 4.9 4 7.8 0 3.4-1.7 6.3-4 8.2-2.3-1.9-4-4.8-4-8.2C8 7.9 9.4 5.2 12 3z"></path><path d="M12 21v-8"></path></svg>
