@@ -57,6 +57,10 @@ $saro_hero_bg = $saro_hero['hero_image'] ?: get_template_directory_uri() . '/ass
         <div class="relative">
             <img src="<?php echo esc_url( $saro_hero_bg ); ?>" alt="" aria-hidden="true" class="block h-[420px] w-full object-cover md:h-auto" fetchpriority="high" decoding="async" width="1920" height="720" />
 
+            <!-- سایهٔ ملایم فقط روی موبایل: آنجا تصویر با object-cover برش می‌خورد و
+                 تیتر روی بخش روشنِ قوس می‌افتد و کم‌خوان می‌شود. دسکتاپ دست‌نخورده است. -->
+            <div class="pointer-events-none absolute inset-0 bg-gradient-to-b from-teal-ink/45 via-teal-ink/15 to-transparent md:hidden"></div>
+
             <div class="saro-hero-content absolute inset-0 flex flex-col items-center justify-start gap-3 px-6 pt-16 text-center md:px-[18%]">
                 <h1 class="m-0 font-naskh text-[clamp(22px,3.3vw,44px)] font-bold leading-snug text-gold-soft" style="text-shadow: 0 2px 14px rgba(4,26,29,.35);">
                     <?php echo esc_html( $saro_hero['hero_title'] ); ?>
@@ -96,43 +100,60 @@ $saro_hero_bg = $saro_hero['hero_image'] ?: get_template_directory_uri() . '/ass
                 </div>
                 <?php wp_reset_postdata(); endif; ?>
             </div>
+            <!-- نوار اعتماد
+                 روی md به بالا کاملاً «داخل» تصویر هرو و چسبیده به لبهٔ پایینش
+                 می‌نشیند (همان جای طرح تأییدشده). چون absolute است، تصویر هر
+                 ارتفاعی که داشته باشد نوار همیشه روی خودِ تصویر است و دیگر
+                 نصفه‌بیرون نمی‌افتد و زیرش نوار خالی نمی‌ماند.
+                 روی موبایل عمداً absolute نیست: آنجا تصویر کوتاه است و نوار
+                 روی کادر جست‌وجو می‌افتاد، پس در جریان عادی و کمی روی تصویر
+                 (margin منفی) می‌نشیند. -->
+            <div class="relative z-[5] mx-auto -mt-10 grid w-[92%] max-w-[1020px] grid-cols-2 items-start gap-1 rounded-2xl border border-gold-line bg-[rgba(253,251,245,.94)] px-2 py-4 shadow-[0_10px_26px_rgba(43,36,23,.12)] backdrop-blur-sm md:absolute md:inset-x-0 md:bottom-5 md:mt-0 md:w-[78%] md:grid-cols-4 lg:bottom-7">
+                <?php
+                $saro_trust_items = array(
+                    array(
+                        'title' => 'خرید مطمئن',
+                        'text'  => 'با نماد اعتماد و پرداخت امن و رمزنگاری‌شده',
+                        'icon'  => '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 11.5 2 2 4-4"></path>',
+                    ),
+                    array(
+                        'title' => 'دانلود آنی',
+                        'text'  => 'فایل بلافاصله پس از پرداخت در پنل شما فعال می‌شود',
+                        'icon'  => '<path d="M21 15v3a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-3"></path><path d="M8 11l4 4 4-4M12 3v12"></path>',
+                    ),
+                    array(
+                        'title' => 'پشتیبانی پاسخگو',
+                        'text'  => 'پاسخ به سؤالات شما هر روز از ۹ تا ۲۱',
+                        'icon'  => '<path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>',
+                    ),
+                    array(
+                        'title' => 'متون اصیل و معتبر',
+                        'text'  => 'برگرفته از منابع موثق با بررسی کارشناسی',
+                        'icon'  => '<circle cx="12" cy="9" r="6"></circle><path d="m8.5 14.5-1.5 7 5-2.5 5 2.5-1.5-7"></path><path d="m10 9 1.5 1.5L14.5 7"></path>',
+                    ),
+                );
+                foreach ( $saro_trust_items as $saro_i => $saro_trust ) :
+                    ?>
+                    <?php
+                    /* جداکننده‌ها: در موبایل گرید ۲ستونه است، پس ستون سمت چپ
+                       (ایندکس فرد) خط عمودی می‌گیرد و ردیف دوم خط افقی؛ از md
+                       به بالا که ۴ستونه می‌شود، همهٔ آیتم‌ها جز اولی فقط خط
+                       عمودی دارند. */
+                    $saro_divider  = ( $saro_i % 2 === 1 ) ? ' border-r border-gold-hair' : '';
+                    $saro_divider .= ( $saro_i >= 2 ) ? ' border-t border-gold-hair md:border-t-0' : '';
+                    $saro_divider .= ( $saro_i > 0 ) ? ' md:border-r md:border-gold-hair' : ' md:border-r-0';
+                    ?>
+                    <div class="flex min-w-0 flex-col items-center gap-1.5 px-3 py-2 text-center<?php echo esc_attr( $saro_divider ); ?>">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" class="text-teal"><?php echo $saro_trust['icon']; // phpcs:ignore WordPress.Security.EscapeOutput — مسیر SVG ثابت و درون‌کدی است ?></svg>
+                        <span class="font-naskh text-[15px] font-bold text-teal"><?php echo esc_html( $saro_trust['title'] ); ?></span>
+                        <span class="text-[11.5px] leading-loose text-muted-foreground"><?php echo esc_html( $saro_trust['text'] ); ?></span>
+                    </div>
+                <?php endforeach; ?>
+            </div>
         </div>
 
-        <!-- نوار اعتماد شناور -->
-        <div class="mx-auto -mt-8 grid max-w-[1020px] grid-cols-2 items-start gap-1 rounded-2xl border border-gold-line bg-[rgba(253,251,245,.92)] px-2 py-4 shadow-[0_10px_26px_rgba(43,36,23,.12)] backdrop-blur-sm md:-mt-16 md:w-[76%] md:grid-cols-4 lg:-mt-24">
-            <?php
-            $saro_trust_items = array(
-                array(
-                    'title' => 'خرید مطمئن',
-                    'text'  => 'با نماد اعتماد و پرداخت امن و رمزنگاری‌شده',
-                    'icon'  => '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 11.5 2 2 4-4"></path>',
-                ),
-                array(
-                    'title' => 'دانلود آنی',
-                    'text'  => 'فایل بلافاصله پس از پرداخت در پنل شما فعال می‌شود',
-                    'icon'  => '<path d="M21 15v3a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-3"></path><path d="M8 11l4 4 4-4M12 3v12"></path>',
-                ),
-                array(
-                    'title' => 'پشتیبانی پاسخگو',
-                    'text'  => 'پاسخ به سؤالات شما هر روز از ۹ تا ۲۱',
-                    'icon'  => '<path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>',
-                ),
-                array(
-                    'title' => 'متون اصیل و معتبر',
-                    'text'  => 'برگرفته از منابع موثق با بررسی کارشناسی',
-                    'icon'  => '<circle cx="12" cy="9" r="6"></circle><path d="m8.5 14.5-1.5 7 5-2.5 5 2.5-1.5-7"></path><path d="m10 9 1.5 1.5L14.5 7"></path>',
-                ),
-            );
-            foreach ( $saro_trust_items as $saro_i => $saro_trust ) :
-                ?>
-                <div class="flex min-w-0 flex-col items-center gap-1.5 px-3 text-center<?php echo $saro_i > 0 ? ' border-r border-gold-hair' : ''; ?>">
-                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" class="text-teal"><?php echo $saro_trust['icon']; // phpcs:ignore WordPress.Security.EscapeOutput — مسیر SVG ثابت و درون‌کدی است ?></svg>
-                    <span class="font-naskh text-[15px] font-bold text-teal"><?php echo esc_html( $saro_trust['title'] ); ?></span>
-                    <span class="text-[11.5px] leading-loose text-muted-foreground"><?php echo esc_html( $saro_trust['text'] ); ?></span>
-                </div>
-            <?php endforeach; ?>
-        </div>
-        <div class="h-11"></div>
+        <!-- روی موبایل نوار اعتماد در جریان عادی است، پس ته سکشن کمی فاصله می‌خواهد -->
+        <div class="h-8 md:hidden"></div>
     </section>
 
     <?php
