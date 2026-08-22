@@ -332,10 +332,16 @@ function saro_render_listing_toolbar( int $found ): void {
     <div class="mb-6 flex flex-wrap items-center justify-between gap-3.5 border-b border-gold-hair pb-4">
         <div class="flex flex-wrap items-center gap-1.5">
             <span class="ml-1.5 text-[12.5px] text-muted-foreground">ترتیب نمایش:</span>
-            <?php foreach ( $orders as $key => $label ) :
+            <?php
+            /* پایهٔ لینک‌ها: get_pagenum_link(1) نشانی «صفحهٔ اول» همین آرشیو را
+               می‌دهد و بقیهٔ پارامترهای کوئری را هم نگه می‌دارد. با remove_query_arg
+               تنها روی URL جاری این کار ممکن نبود، چون شمارهٔ صفحه در وردپرس
+               بخشی از مسیر است (/page/3/) نه کوئری‌استرینگ — یعنی کاربری که از
+               صفحهٔ سوم ترتیب را عوض می‌کرد، باز هم در صفحهٔ سوم می‌ماند. */
+            $base_url = remove_query_arg( 'orderby', get_pagenum_link( 1 ) );
+            foreach ( $orders as $key => $label ) :
                 $is_active = ( $key === $current );
-                // remove_query_arg(paged) تا با تغییر ترتیب، دوباره از صفحهٔ اول شروع شود
-                $url = add_query_arg( 'orderby', $key, remove_query_arg( array( 'paged', 'orderby' ) ) );
+                $url       = add_query_arg( 'orderby', $key, $base_url );
                 ?>
                 <a href="<?php echo esc_url( $url ); ?>" rel="nofollow"
                     class="rounded-full border px-4 py-1.5 text-[12.5px] font-bold transition-colors <?php echo $is_active ? 'border-gold bg-teal text-gold-soft' : 'border-gold-line text-ink hover:border-gold hover:text-gold'; ?>"<?php echo $is_active ? ' aria-current="true"' : ''; ?>>

@@ -47,16 +47,36 @@ $saro_has_discount = $product->is_on_sale() && (float) $product->get_regular_pri
 $saro_discount_pct = $saro_has_discount ? (int) round( ( ( (float) $product->get_regular_price() - (float) $product->get_sale_price() ) / (float) $product->get_regular_price() ) * 100 ) : 0;
 $saro_saved        = $saro_has_discount ? ( (float) $product->get_regular_price() - (float) $product->get_sale_price() ) : 0;
 
-// مشخصات = ویژگی‌های ووکامرس همین محصول (هرچه مدیر سایت وارد کرده باشد)
+/**
+ * مشخصات = ویژگی‌های ووکامرس همین محصول (هرچه مدیر سایت وارد کرده باشد).
+ * مقداردهی دقیقاً با همان منطق هستهٔ ووکامرس (wc_display_product_attributes):
+ * ویژگی‌های تکسونومی‌دار به آرشیو همان ترم لینک می‌شوند و ویژگی‌های سفارشی
+ * به‌صورت متن ساده نمایش داده می‌شوند.
+ */
 $saro_attributes = array();
 foreach ( $product->get_attributes() as $saro_attr ) {
 	if ( ! $saro_attr->get_visible() ) {
 		continue;
 	}
-	$saro_attr_value = wc_get_formatted_attribute_list_item( $saro_attr, $product );
-	$saro_attr_name  = wc_attribute_label( $saro_attr->get_name(), $product );
-	if ( $saro_attr_value ) {
-		$saro_attributes[ $saro_attr_name ] = $saro_attr_value;
+
+	$saro_attr_values = array();
+
+	if ( $saro_attr->is_taxonomy() ) {
+		$saro_attr_terms = wc_get_product_terms( $product->get_id(), $saro_attr->get_name(), array( 'fields' => 'all' ) );
+		foreach ( $saro_attr_terms as $saro_attr_term ) {
+			$saro_term_link = get_term_link( $saro_attr_term );
+			$saro_attr_values[] = ( ! is_wp_error( $saro_term_link ) )
+				? '<a href="' . esc_url( $saro_term_link ) . '" class="hover:text-gold">' . esc_html( $saro_attr_term->name ) . '</a>'
+				: esc_html( $saro_attr_term->name );
+		}
+	} else {
+		foreach ( $saro_attr->get_options() as $saro_attr_option ) {
+			$saro_attr_values[] = esc_html( $saro_attr_option );
+		}
+	}
+
+	if ( $saro_attr_values ) {
+		$saro_attributes[ wc_attribute_label( $saro_attr->get_name(), $product ) ] = implode( '، ', $saro_attr_values );
 	}
 }
 ?>
