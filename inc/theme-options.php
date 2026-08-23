@@ -57,6 +57,8 @@ function saro_footer_defaults() {
         'app_bazaar'  => '',
         'app_myket'   => '',
         'enamad_code' => '',
+        // کد رسمی «ساماندهی» (logo.samandehi.ir) — مثل اینماد خام چاپ می‌شود
+        'samandehi_code' => '',
         'banks'       => array(),
         'gateway_1_label' => 'درگاه پرداخت زیبال',
         'gateway_2_label' => 'پرداخت امن SSL',
@@ -79,6 +81,11 @@ function saro_header_defaults() {
         // چون قله و گودیِ قوسِ هر تصویر محرابی جای متفاوتی است، این عدد باید
         // قابل تنظیم باشد تا لوگو دقیقاً وسط گودیِ بین دو شاخ قوس بنشیند.
         'logo_drop'             => 46,
+        // همان عدد، اما برای موبایل/تبلت. آنجا تصویر هرو با object-cover
+        // کوتاه‌تر رندر می‌شود و گودیِ قوس بالاتر می‌افتد، پس آویز باید
+        // کمتر باشد؛ اگر یک عدد مشترک می‌گذاشتیم، لوگو در یکی از دو حالت
+        // بیرون از گودی می‌نشست.
+        'logo_drop_mobile'      => 31,
     );
 }
 
@@ -119,6 +126,12 @@ function saro_get_sidebar_options() {
 /** سوالات متداول صفحه اصلی — قابل ویرایش از پیشخوان (قبلاً هاردکد در inc/seo-functions.php بود) */
 function saro_faq_defaults() {
     return array(
+        // تیتر خودِ بخش سؤالات متداول در صفحهٔ اصلی
+        'heading'   => 'سؤالات متداول',
+        // «متن توضیحات پایین سؤالات متداول» — همان باکس سئوی انتهای صفحهٔ
+        // اصلی. اگر عنوان و متن هر دو خالی باشند، این باکس اصلاً رندر نمی‌شود.
+        'seo_title' => '',
+        'seo_text'  => '',
         'items' => array(
             array( 'q' => 'فایل‌ها با چه فرمتی ارائه می‌شوند؟', 'a' => 'متن‌ها با فرمت PDF و EPUB و فایل‌های صوتی با فرمت MP3 عرضه می‌شوند و پس از خرید همیشه در حساب کاربری شما باقی می‌مانند.' ),
             array( 'q' => 'پس از خرید چطور دانلود کنم؟', 'a' => 'بلافاصله پس از پرداخت، لینک دانلود در پنل کاربری شما فعال می‌شود و نشانی آن با پیامک هم برایتان ارسال می‌گردد.' ),
@@ -387,6 +400,7 @@ add_action( 'admin_init', function () {
             'app_bazaar'         => esc_url_raw( trim( wp_unslash( $_POST['app_bazaar'] ?? '' ) ) ),
             'app_myket'          => esc_url_raw( trim( wp_unslash( $_POST['app_myket'] ?? '' ) ) ),
             'enamad_code'        => wp_kses_post( wp_unslash( $_POST['enamad_code'] ?? '' ) ),
+            'samandehi_code'     => wp_kses_post( wp_unslash( $_POST['samandehi_code'] ?? '' ) ),
             'banks'              => $banks,
             'gateway_1_label'    => sanitize_text_field( wp_unslash( $_POST['gateway_1_label'] ?? $defaults['gateway_1_label'] ) ),
             'gateway_2_label'    => sanitize_text_field( wp_unslash( $_POST['gateway_2_label'] ?? $defaults['gateway_2_label'] ) ),
@@ -407,6 +421,7 @@ add_action( 'admin_init', function () {
             'hero_subtitle'       => sanitize_textarea_field( wp_unslash( $_POST['hero_subtitle'] ?? '' ) ),
             'hero_image'          => esc_url_raw( trim( wp_unslash( $_POST['hero_image'] ?? '' ) ) ),
             'logo_drop'           => max( 0, min( 220, absint( $_POST['logo_drop'] ?? 46 ) ) ),
+            'logo_drop_mobile'    => max( 0, min( 220, absint( $_POST['logo_drop_mobile'] ?? 31 ) ) ),
             'notification_enabled' => isset( $_POST['notification_enabled'] ) ? 1 : 0,
             'notification_text'    => wp_kses_post( wp_unslash( $_POST['notification_text'] ?? '' ) ),
         );
@@ -456,7 +471,14 @@ add_action( 'admin_init', function () {
             if ( '' === $q && '' === $a ) continue;
             $items[] = array( 'q' => $q, 'a' => $a );
         }
-        update_option( 'saro_faq_options', array( 'items' => $items ) );
+        update_option( 'saro_faq_options', array(
+            'items'     => $items,
+            'heading'   => sanitize_text_field( wp_unslash( $_POST['faq_heading'] ?? '' ) ),
+            'seo_title' => sanitize_text_field( wp_unslash( $_POST['faq_seo_title'] ?? '' ) ),
+            // wp_kses_post تا مدیر سایت بتواند پاراگراف، لینک و بولد بگذارد
+            // ولی هیچ اسکریپتی از پیشخوان به صفحهٔ اصلی راه پیدا نکند.
+            'seo_text'  => wp_kses_post( wp_unslash( $_POST['faq_seo_text'] ?? '' ) ),
+        ) );
         add_action( 'admin_notices', function () {
             echo '<div class="notice notice-success is-dismissible"><p>سوالات متداول با موفقیت ذخیره شد.</p></div>';
         } );
@@ -612,10 +634,16 @@ function saro_render_options_page() {
                         <th><label for="social_telegram">لینک تلگرام</label></th>
                         <td><input type="url" id="social_telegram" name="social_telegram" class="large-text" value="<?php echo esc_attr( $footer['social_telegram'] ); ?>" placeholder="https://t.me/..."></td>
                     </tr>
+                </table>
+            </div>
+
+            <div class="saro-box">
+                <h2>۲-ب. ارتباط با ما <span class="description">(ستون «ارتباط با ما»ی فوتر)</span></h2>
+                <p class="description">هر فیلدی که خالی بماند، آن سطر اصلاً در فوتر چاپ نمی‌شود.</p>
+                <table class="form-table">
                     <tr>
                         <th><label for="contact_phone">شماره تماس</label></th>
-                        <td><input type="text" id="contact_phone" name="contact_phone" class="regular-text" value="<?php echo esc_attr( $footer['contact_phone'] ); ?>" placeholder="۰۲۱ – ۶۶۴۰ ۰۸۹۰">
-                        <p class="description">در ستون «ارتباط با ما»ی فوتر نمایش داده می‌شود. اگر خالی بماند، آن سطر اصلاً چاپ نمی‌شود.</p></td>
+                        <td><input type="text" id="contact_phone" name="contact_phone" class="regular-text" value="<?php echo esc_attr( $footer['contact_phone'] ); ?>" placeholder="۰۲۱ – ۶۶۴۰ ۰۸۹۰"></td>
                     </tr>
                     <tr>
                         <th><label for="contact_email">ایمیل</label></th>
@@ -731,17 +759,22 @@ function saro_render_options_page() {
                         <th><label for="footer_bg_slice">اندازهٔ گوشه (پیکسل)</label></th>
                         <td><input type="number" id="footer_bg_slice" name="footer_bg_slice" min="20" max="400" value="<?php echo esc_attr( $footer['footer_bg_slice'] ); ?>" style="width:120px;"></td>
                     </tr>
-                    <tr>
-                        <th><label for="footer_credit">متن پایین فوتر</label></th>
-                        <td><input type="text" id="footer_credit" name="footer_credit" class="large-text" value="<?php echo esc_attr( $footer['footer_credit'] ); ?>" placeholder="طراحی و توسعه با عشق در مسیر معرفت"></td>
-                    </tr>
                 </table>
             </div>
 
             <div class="saro-box">
-                <h2>۶. نماد اعتماد الکترونیکی (اینماد)</h2>
-                <p class="description">کد دریافتی از پنل اینماد (کد HTML مربوط به لوگوی سایت) را اینجا جای‌گذاری کنید؛ همان کد عیناً در فوتر نمایش داده می‌شود.</p>
-                <textarea name="enamad_code" class="large-text code" rows="5" dir="ltr" placeholder="&lt;a referrerpolicy='origin' target='_blank' href='https://trustseal.enamad.ir/?id=...'&gt;&lt;img referrerpolicy='origin' src='https://trustseal.enamad.ir/logo.aspx?id=...' alt=''&gt;&lt;/a&gt;"><?php echo esc_textarea( $footer['enamad_code'] ); ?></textarea>
+                <h2>۶. کدهای اینماد و ساماندهی</h2>
+                <p class="description">کد HTML دریافتی از هر پنل را اینجا جای‌گذاری کنید؛ همان کد عیناً در ستون «نمادهای اعتماد» فوتر نمایش داده می‌شود. هر کدام را که خالی بگذارید، نمایش داده نمی‌شود.</p>
+                <table class="form-table">
+                    <tr>
+                        <th><label for="enamad_code">کد نماد اعتماد الکترونیکی (اینماد)</label></th>
+                        <td><textarea id="enamad_code" name="enamad_code" class="large-text code" rows="4" dir="ltr" placeholder="&lt;a referrerpolicy='origin' target='_blank' href='https://trustseal.enamad.ir/?id=...'&gt;&lt;img referrerpolicy='origin' src='https://trustseal.enamad.ir/logo.aspx?id=...' alt=''&gt;&lt;/a&gt;"><?php echo esc_textarea( $footer['enamad_code'] ); ?></textarea></td>
+                    </tr>
+                    <tr>
+                        <th><label for="samandehi_code">کد ستاد ساماندهی</label></th>
+                        <td><textarea id="samandehi_code" name="samandehi_code" class="large-text code" rows="4" dir="ltr" placeholder="&lt;a referrerpolicy='origin' target='_blank' href='https://logo.samandehi.ir/Verify.aspx?id=...'&gt;&lt;img referrerpolicy='origin' src='https://logo.samandehi.ir/logo.aspx?id=...' alt=''&gt;&lt;/a&gt;"><?php echo esc_textarea( $footer['samandehi_code'] ); ?></textarea></td>
+                    </tr>
+                </table>
             </div>
 
             <div class="saro-box">
@@ -778,6 +811,13 @@ function saro_render_options_page() {
                         <th><label for="copyright_text">متن کپی‌رایت</label></th>
                         <td><input type="text" id="copyright_text" name="copyright_text" class="large-text" value="<?php echo esc_attr( $footer['copyright_text'] ); ?>"></td>
                     </tr>
+                    <tr>
+                        <th><label for="footer_credit">متن پایانی فوتر («طراحی و توسعه با عشق…»)</label></th>
+                        <td>
+                            <input type="text" id="footer_credit" name="footer_credit" class="large-text" value="<?php echo esc_attr( $footer['footer_credit'] ); ?>" placeholder="طراحی و توسعه با عشق در مسیر معرفت">
+                            <p class="description">همان خطی که در پایین‌ترین بخش فوتر، بین دو نگارهٔ طلایی نمایش داده می‌شود. خالی بگذارید تا حذف شود.</p>
+                        </td>
+                    </tr>
                 </table>
             </div>
 
@@ -812,7 +852,7 @@ function saro_render_options_page() {
                                 <input type="text" class="saro-media-url" name="hero_image" value="<?php echo esc_attr( $header['hero_image'] ); ?>" readonly style="width:100%; max-width:420px;">
                                 <button type="button" class="button saro-upload-logo">انتخاب تصویر</button>
                             </div>
-                            <p class="description">اگر خالی بماند، تصویر پیش‌فرض قالب (محراب) استفاده می‌شود. نسبت پیشنهادی: تصویر عریض با ارتفاع کم (مثلاً ۱۹۲۰×۷۲۰).</p>
+                            <p class="description">اگر خالی بماند، تصویر پیش‌فرض قالب (محراب) استفاده می‌شود. نسبت پیشنهادی حدود ۲ به ۱ — مثل تصویر پیش‌فرض قالب (۱۰۲۴×۵۲۲) یا ۱۹۲۰×۹۸۰ — و بهتر است گودیِ بین دو شاخ قوس دقیقاً در وسط افقیِ تصویر باشد تا لوگو درست روی آن بنشیند.</p>
                         </td>
                     </tr>
                     <tr>
@@ -823,7 +863,18 @@ function saro_render_options_page() {
                                 لوگو مثل یک «کتیبه» از هدر آویزان می‌شود و روی تصویر هرو می‌نشیند. این عدد یعنی چند پیکسل
                                 پایین‌تر بیاید تا دقیقاً وسط گودیِ بین دو شاخ قوسِ محراب قرار بگیرد.
                                 چون قوسِ هر تصویری جای متفاوتی دارد، بعد از آپلود تصویر خودتان این عدد را کم/زیاد کنید تا جفت شود.
-                                (۰ = بدون آویز؛ پیش‌فرض: ۴۶). فقط روی دسکتاپ اعمال می‌شود؛ در موبایل لوگو داخل هدر می‌ماند.
+                                (۰ = بدون آویز؛ پیش‌فرض: ۴۶). این عدد فقط روی دسکتاپ (عرض ۱۰۲۴ پیکسل به بالا) اعمال می‌شود.
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="logo_drop_mobile">آویز لوگو در موبایل و تبلت (پیکسل)</label></th>
+                        <td>
+                            <input type="number" id="logo_drop_mobile" name="logo_drop_mobile" min="0" max="220" value="<?php echo esc_attr( $header['logo_drop_mobile'] ); ?>" style="width:120px;">
+                            <p class="description">
+                                همان تنظیم بالا، اما برای عرض‌های کمتر از ۱۰۲۴ پیکسل. در موبایل تصویر هرو کوتاه‌تر
+                                رندر می‌شود و گودیِ قوس بالاتر می‌افتد، پس این عدد معمولاً کمتر از عدد دسکتاپ است
+                                (۰ = بدون آویز، لوگو کاملاً داخل هدر می‌ماند؛ پیش‌فرض: ۳۱).
                             </p>
                         </td>
                     </tr>
@@ -901,6 +952,47 @@ function saro_render_options_page() {
                     <?php endforeach; ?>
                 </div>
                 <button type="button" class="button button-secondary" id="saro-add-faq">+ افزودن سوال جدید</button>
+                <table class="form-table">
+                    <tr>
+                        <th><label for="faq_heading">تیتر بخش</label></th>
+                        <td>
+                            <input type="text" id="faq_heading" name="faq_heading" class="large-text" value="<?php echo esc_attr( $faq_opts['heading'] ); ?>" placeholder="سؤالات متداول">
+                            <p class="description">تیتری که بالای همین بخش در صفحهٔ اصلی دیده می‌شود.</p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="saro-box">
+                <h2>متن توضیحات پایین سوالات متداول <span class="description">(بخش: صفحه اصلی)</span></h2>
+                <p class="description">
+                    همان باکس متنیِ انتهای صفحهٔ اصلی (زیر سوالات متداول) که برای سئو و معرفی سایت استفاده می‌شود.
+                    اگر عنوان و متن هر دو خالی بمانند، این باکس اصلاً در صفحهٔ اصلی نمایش داده نمی‌شود.
+                </p>
+                <table class="form-table">
+                    <tr>
+                        <th><label for="faq_seo_title">عنوان باکس</label></th>
+                        <td><input type="text" id="faq_seo_title" name="faq_seo_title" class="large-text" value="<?php echo esc_attr( $faq_opts['seo_title'] ); ?>" placeholder="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>؛ مرجع دانلود فایل‌های مذهبی"></td>
+                    </tr>
+                    <tr>
+                        <th><label for="faq_seo_text">متن</label></th>
+                        <td>
+                            <?php
+                            wp_editor(
+                                $faq_opts['seo_text'],
+                                'faq_seo_text',
+                                array(
+                                    'textarea_name' => 'faq_seo_text',
+                                    'textarea_rows' => 10,
+                                    'media_buttons' => false,
+                                    'teeny'         => true,
+                                )
+                            );
+                            ?>
+                            <p class="description">می‌توانید چند پاراگراف بنویسید؛ تگ‌های ساده مثل <code>&lt;b&gt;</code>، <code>&lt;a&gt;</code> و <code>&lt;ul&gt;</code> پشتیبانی می‌شوند.</p>
+                        </td>
+                    </tr>
+                </table>
             </div>
             <p><button type="submit" name="saro_save_faq" value="1" class="button button-primary button-hero">ذخیره سوالات متداول</button></p>
         </form>

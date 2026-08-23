@@ -20,6 +20,22 @@ get_header();
 
 $saro_hero   = saro_get_header_options();
 $saro_hero_bg = $saro_hero['hero_image'] ?: get_template_directory_uri() . '/assets/img/mihrab-2.jpg';
+
+/* ابعاد واقعیِ تصویر هرو، برای جلوگیری از پرش چیدمان (CLS) هنگام لود.
+   اگر مدیر سایت تصویر دلخواه گذاشته باشد، ابعادش از کتابخانهٔ رسانه خوانده
+   می‌شود؛ در غیر این‌صورت ابعاد تصویر پیش‌فرض قالب استفاده می‌شود. */
+$saro_hero_w = 1024;
+$saro_hero_h = 522;
+if ( $saro_hero['hero_image'] ) {
+    $saro_hero_id = attachment_url_to_postid( $saro_hero['hero_image'] );
+    if ( $saro_hero_id ) {
+        $saro_hero_meta = wp_get_attachment_metadata( $saro_hero_id );
+        if ( ! empty( $saro_hero_meta['width'] ) && ! empty( $saro_hero_meta['height'] ) ) {
+            $saro_hero_w = (int) $saro_hero_meta['width'];
+            $saro_hero_h = (int) $saro_hero_meta['height'];
+        }
+    }
+}
 ?>
 
 <main id="saro-main" dir="rtl">
@@ -55,11 +71,11 @@ $saro_hero_bg = $saro_hero['hero_image'] ?: get_template_directory_uri() . '/ass
         <?php endforeach; ?>
 
         <div class="relative">
-            <img src="<?php echo esc_url( $saro_hero_bg ); ?>" alt="" aria-hidden="true" class="block h-[420px] w-full object-cover md:h-auto" fetchpriority="high" decoding="async" width="1920" height="720" />
+            <img src="<?php echo esc_url( $saro_hero_bg ); ?>" alt="" aria-hidden="true" class="block h-[420px] w-full object-cover lg:h-auto" fetchpriority="high" decoding="async" width="<?php echo (int) $saro_hero_w; ?>" height="<?php echo (int) $saro_hero_h; ?>" />
 
             <!-- سایهٔ ملایم فقط روی موبایل: آنجا تصویر با object-cover برش می‌خورد و
                  تیتر روی بخش روشنِ قوس می‌افتد و کم‌خوان می‌شود. دسکتاپ دست‌نخورده است. -->
-            <div class="pointer-events-none absolute inset-0 bg-gradient-to-b from-teal-ink/45 via-teal-ink/15 to-transparent md:hidden"></div>
+            <div class="pointer-events-none absolute inset-0 bg-gradient-to-b from-teal-ink/45 via-teal-ink/15 to-transparent lg:hidden"></div>
 
             <div class="saro-hero-content absolute inset-0 flex flex-col items-center justify-start gap-3 px-6 pt-16 text-center md:px-[18%]">
                 <h1 class="m-0 font-naskh text-[clamp(22px,3.3vw,44px)] font-bold leading-snug text-gold-soft" style="text-shadow: 0 2px 14px rgba(4,26,29,.35);">
@@ -159,7 +175,8 @@ $saro_hero_bg = $saro_hero['hero_image'] ?: get_template_directory_uri() . '/ass
     <?php
     $saro_home_cats = saro_get_top_level_product_categories( 10 );
     if ( ! empty( $saro_home_cats ) ) :
-        $saro_cat_boxes = array_slice( $saro_home_cats, 0, 5 );
+        // ۶ دستهٔ اصلی: روی موبایل ۳تایی در دو سطر و روی دسکتاپ یک سطرِ ۶تایی.
+        $saro_cat_boxes = array_slice( $saro_home_cats, 0, 6 );
         // طبق درخواست: همیشه «اولین دسته از سمت راست» (یعنی اولین آیتم در
         // چیدمان RTL) قاب طلاییِ متمایز را می‌گیرد، نه قاب میانی.
         $saro_gold_index = 0;
@@ -168,7 +185,7 @@ $saro_hero_bg = $saro_hero['hero_image'] ?: get_template_directory_uri() . '/ass
     <section class="bg-cream py-11">
         <div class="mx-auto max-w-saro px-6">
             <h2 class="saro-heading mb-7 font-naskh text-[27px] font-bold text-teal">دسته‌بندی محصولات</h2>
-            <div class="grid grid-cols-2 items-center gap-3.5 sm:grid-cols-3 lg:grid-cols-5">
+            <div class="grid grid-cols-3 items-center gap-2 sm:gap-3.5 lg:grid-cols-6">
                 <?php foreach ( $saro_cat_boxes as $saro_ci => $saro_cat ) :
                     $saro_is_gold  = ( $saro_ci === $saro_gold_index );
                     $saro_cat_link = get_term_link( $saro_cat );
@@ -178,15 +195,15 @@ $saro_hero_bg = $saro_hero['hero_image'] ?: get_template_directory_uri() . '/ass
                     $saro_cat_thumb_id  = (int) get_term_meta( $saro_cat->term_id, 'thumbnail_id', true );
                     $saro_cat_thumb_url = $saro_cat_thumb_id ? wp_get_attachment_image_url( $saro_cat_thumb_id, 'thumbnail' ) : '';
                     ?>
-                    <a href="<?php echo esc_url( $saro_cat_link ); ?>" class="relative flex min-w-0 flex-col items-center justify-center gap-2 p-4 text-center transition-[filter] hover:brightness-[1.03]" style="aspect-ratio: 240 / 220;">
+                    <a href="<?php echo esc_url( $saro_cat_link ); ?>" class="relative flex min-w-0 flex-col items-center justify-center gap-1.5 p-2 text-center sm:gap-2 sm:p-4 transition-[filter] hover:brightness-[1.03]" style="aspect-ratio: 240 / 220;">
                         <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/' . ( $saro_is_gold ? 'cat-box-gold.svg' : 'cat-box.svg' ) ); ?>" alt="" aria-hidden="true" class="pointer-events-none absolute inset-0 h-full w-full" loading="lazy" width="240" height="220" />
                         <?php if ( $saro_cat_thumb_url ) : ?>
                             <img src="<?php echo esc_url( $saro_cat_thumb_url ); ?>" alt="" aria-hidden="true" class="relative h-10 w-10 rounded-full object-cover" loading="lazy" width="40" height="40" />
                         <?php else : ?>
                             <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="<?php echo $saro_is_gold ? '#fffaf0' : 'currentColor'; ?>" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" class="relative text-teal"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
                         <?php endif; ?>
-                        <span class="relative font-naskh text-[15.5px] font-bold <?php echo $saro_is_gold ? 'text-[#fffaf0]' : 'text-teal'; ?>"><?php echo esc_html( $saro_cat->name ); ?></span>
-                        <span class="relative text-[11px] <?php echo $saro_is_gold ? 'text-[rgba(255,250,240,.85)]' : 'text-muted-foreground'; ?>">مشاهدهٔ محصولات</span>
+                        <span class="relative font-naskh text-[12.5px] font-bold leading-tight sm:text-[14px] lg:text-[15.5px] <?php echo $saro_is_gold ? 'text-[#fffaf0]' : 'text-teal'; ?>"><?php echo esc_html( $saro_cat->name ); ?></span>
+                        <span class="relative hidden text-[11px] sm:block <?php echo $saro_is_gold ? 'text-[rgba(255,250,240,.85)]' : 'text-muted-foreground'; ?>">مشاهدهٔ محصولات</span>
                     </a>
                 <?php endforeach; ?>
             </div>
@@ -274,13 +291,15 @@ $saro_hero_bg = $saro_hero['hero_image'] ?: get_template_directory_uri() . '/ass
             <?php if ( ! empty( $saro_ql['title'] ) ) : ?>
                 <h2 class="saro-heading mb-6 font-naskh text-[27px] font-bold text-teal"><?php echo esc_html( $saro_ql['title'] ); ?></h2>
             <?php endif; ?>
-            <div class="flex flex-wrap justify-center gap-3">
+            <!-- روی موبایل طبق درخواست دو ستونه و زیر هم؛ از sm به بالا همان
+                 نوارِ افقیِ طرح اصلی (flex-wrap وسط‌چین). -->
+            <div class="grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:justify-center sm:gap-3">
                 <?php foreach ( $saro_ql_items as $saro_ql_row ) : ?>
                     <a href="<?php echo esc_url( $saro_ql_row['url'] ); ?>"
-                        class="flex items-center gap-2.5 px-6 py-2.5 text-[13.5px] font-bold transition-colors <?php echo $saro_ql_row['gold'] ? 'text-[#fffaf0] hover:text-white' : 'bg-teal text-gold-soft hover:bg-teal-deep hover:text-white'; ?>"
+                        class="flex min-w-0 items-center justify-center gap-2 px-4 py-2.5 text-center text-[12.5px] font-bold transition-colors sm:justify-start sm:gap-2.5 sm:px-6 sm:text-[13.5px] <?php echo $saro_ql_row['gold'] ? 'text-[#fffaf0] hover:text-white' : 'bg-teal text-gold-soft hover:bg-teal-deep hover:text-white'; ?>"
                         style="clip-path: polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%);<?php echo $saro_ql_row['gold'] ? ' background: linear-gradient(180deg, #d8b56a, var(--gold));' : ''; ?>">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><?php echo $saro_ql_row['icon']; // phpcs:ignore WordPress.Security.EscapeOutput — مسیر SVG از فهرست ثابت و درون‌کدیِ قالب می‌آید ?></svg>
-                        <?php echo esc_html( $saro_ql_row['title'] ); ?>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><?php echo $saro_ql_row['icon']; // phpcs:ignore WordPress.Security.EscapeOutput — مسیر SVG از فهرست ثابت و درون‌کدیِ قالب می‌آید ?></svg>
+                        <span class="min-w-0 truncate"><?php echo esc_html( $saro_ql_row['title'] ); ?></span>
                     </a>
                 <?php endforeach; ?>
             </div>
@@ -388,6 +407,8 @@ $saro_hero_bg = $saro_hero['hero_image'] ?: get_template_directory_uri() . '/ass
     <!-- ═══════════ ۷) سؤالات متداول + دربارهٔ ما ═══════════ -->
     <?php
     $saro_faqs = function_exists( 'saro_get_homepage_faqs' ) ? saro_get_homepage_faqs() : array();
+    $saro_faq_opts   = function_exists( 'saro_get_faq_options' ) ? saro_get_faq_options() : array();
+    $saro_faq_head   = $saro_faq_opts['heading'] ?? 'سؤالات متداول';
     $saro_about_page = get_page_by_path( 'about' );
     ?>
     <?php if ( ! empty( $saro_faqs ) ) : ?>
@@ -395,7 +416,7 @@ $saro_hero_bg = $saro_hero['hero_image'] ?: get_template_directory_uri() . '/ass
         <div class="mx-auto grid max-w-saro gap-10 px-6 lg:grid-cols-2 lg:gap-14">
 
             <div class="flex flex-col gap-4">
-                <h2 class="flex items-center gap-3 font-naskh text-[25px] font-bold text-teal"><span class="text-sm text-gold">✦</span>سؤالات متداول</h2>
+                <h2 class="flex items-center gap-3 font-naskh text-[25px] font-bold text-teal"><span class="text-sm text-gold">✦</span><?php echo esc_html( $saro_faq_head ?: 'سؤالات متداول' ); ?></h2>
                 <?php foreach ( $saro_faqs as $saro_fi => $saro_faq ) : ?>
                 <details class="rounded-[10px] border border-gold-line bg-card px-5 py-3.5"<?php echo 0 === $saro_fi ? ' open' : ''; ?>>
                     <summary class="flex items-center justify-between gap-3 font-naskh text-[15.5px] font-bold text-ink">
@@ -427,6 +448,32 @@ $saro_hero_bg = $saro_hero['hero_image'] ?: get_template_directory_uri() . '/ass
                     }
                     ?>
                 </div>
+            </div>
+        </div>
+    </section>
+    <?php endif; ?>
+
+    <?php
+    /**
+     * ۷-ب) «متن توضیحات پایین سؤالات متداول» — باکس سئوی انتهای صفحهٔ اصلی.
+     * عنوان و متنش کاملاً از پیشخوان → تب «صفحه اصلی (سوالات متداول)» می‌آید و
+     * اگر هر دو خالی باشند، این سکشن اصلاً رندر نمی‌شود.
+     */
+    $saro_seo_title = trim( (string) ( $saro_faq_opts['seo_title'] ?? '' ) );
+    $saro_seo_text  = trim( (string) ( $saro_faq_opts['seo_text'] ?? '' ) );
+    if ( '' !== $saro_seo_title || '' !== $saro_seo_text ) :
+    ?>
+    <section class="border-t border-gold-hair bg-cream-2 py-12">
+        <div class="mx-auto max-w-saro px-6">
+            <div class="rounded-2xl border border-gold-line bg-card p-6 md:p-9">
+                <?php if ( '' !== $saro_seo_title ) : ?>
+                    <h2 class="saro-heading mb-5 font-naskh text-[23px] font-bold text-teal md:text-[26px]"><?php echo esc_html( $saro_seo_title ); ?></h2>
+                <?php endif; ?>
+                <?php if ( '' !== $saro_seo_text ) : ?>
+                    <div class="saro-prose text-justify">
+                        <?php echo wp_kses_post( wpautop( $saro_seo_text ) ); ?>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </section>

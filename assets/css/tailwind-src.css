@@ -495,6 +495,13 @@ details[open] .saro-plus {
 /* محتوای هرو باید از «کتیبهٔ» آویزانِ لوگو فاصله بگیرد، وگرنه تیتر صفحه
    زیر لوگو می‌افتد. چون هر دو از یک متغیر می‌خوانند، با تغییر عدد آویز در
    پیشخوان، فاصلهٔ تیتر هم خودکار هماهنگ می‌شود. */
+@media (max-width: 1023.98px) {
+	.saro-hero-content {
+		/* همان منطق دسکتاپ، با عدد آویزِ موبایل */
+		padding-top: calc(var(--saro-logo-drop-m, 31px) + 3.5rem);
+	}
+}
+
 @media (min-width: 1024px) {
 	.saro-hero-content {
 		/* عدد ثابتِ اضافه، جای خودِ لوگوی آویزان را باز می‌کند: ارتفاع واقعی
@@ -518,7 +525,7 @@ details[open] .saro-plus {
 .saro-footer-frame {
 	position: relative;
 	border-style: solid;
-	border-width: 30px;
+	border-width: 22px;
 	border-image-source: var(--saro-frame);
 	border-image-slice: var(--saro-frame-slice, 140) fill;
 	border-image-width: 1;
@@ -526,10 +533,10 @@ details[open] .saro-plus {
 }
 
 @media (min-width: 640px) {
-	.saro-footer-frame { border-width: 46px; }
+	.saro-footer-frame { border-width: 34px; }
 }
 @media (min-width: 1024px) {
-	.saro-footer-frame { border-width: 64px; }
+	.saro-footer-frame { border-width: 46px; }
 }
 
 /* گل شاه‌عباسی وسط ضلع راست و چپ قاب.
@@ -572,8 +579,24 @@ details[open] .saro-plus {
    (دقیقاً وسط گودیِ بین دو شاخ قوس محراب). مقدار آویز از پیشخوان می‌آید و
    با متغیر --saro-logo-drop تزریق می‌شود؛ چون قوسِ هر تصویری جای متفاوتی
    دارد، این عدد باید قابل تنظیم باشد.
-   در موبایل عمداً هیچ آویزی وجود ندارد: آنجا تصویر هرو کوتاه است و لوگوی
-   آویزان روی متن تیتر می‌افتاد. */
+   در موبایل و تبلت هم همین کتیبه وجود دارد، فقط با عدد آویز کوچک‌تر
+   (--saro-logo-drop-m): آنجا تصویر هرو با object-cover کوتاه‌تر رندر
+   می‌شود و گودیِ قوس بالاتر می‌افتد. */
+@media (max-width: 1023.98px) {
+	.saro-logo-plaque {
+		position: relative;
+		z-index: 2;
+		align-self: start;
+		margin-bottom: calc(-1 * var(--saro-logo-drop-m, 31px));
+		padding: 6px 14px calc(var(--saro-logo-drop-m, 31px) * 0.42);
+		background: #fffdf7;
+		border: 1px solid var(--gold-line);
+		border-top: 0;
+		border-radius: 0 0 24px 24px;
+		box-shadow: 0 10px 20px -12px rgba(43, 36, 23, 0.3);
+	}
+}
+
 @media (min-width: 1024px) {
 	.saro-logo-plaque {
 		position: relative;
@@ -592,7 +615,7 @@ details[open] .saro-plus {
 .saro-logo-slot {
 	display: block;
 	position: relative;
-	width: clamp(120px, 22vw, 190px);
+	width: clamp(132px, 34vw, 156px);
 	height: 44px; /* ارتفاع ثابتِ مرجع؛ هرگز با اندازهٔ فایل لوگو تغییر نمی‌کند */
 	display: flex;
 	align-items: center;
@@ -634,10 +657,26 @@ details[open] .saro-plus {
 	}
 }
 
-/* نسخهٔ فوتر: کمی بزرگ‌تر، چون فضای بیشتری در اختیار دارد */
+/* نسخهٔ فوتر
+   ─────────────────────────────────────────────────────────────────────────
+   اینجا برخلاف هدر، «بیرون‌زدگی» درست نیست: پایینِ لوگو بلافاصله نام سایت و
+   توضیح فوتر است و لوگوی بلند رویشان می‌افتاد. پس همان اسلاتِ ارتفاع‌ثابت
+   می‌ماند (تا فوتر هیچ‌وقت با لوگوی بزرگ کشیده نشود) اما تصویر به‌جای
+   بیرون‌زدن، داخل اسلات کوچک و وسط‌چین می‌شود. */
 .saro-logo-slot-footer {
-	width: clamp(150px, 40vw, 220px);
-	height: 56px;
+	width: clamp(140px, 36vw, 190px);
+	height: 52px;
+	justify-content: center;
+}
+.saro-logo-slot-footer img,
+.saro-logo-slot-footer .custom-logo {
+	position: static;
+	transform: none;
+	width: auto;
+	height: auto;
+	max-width: 100%;
+	max-height: 100%;
+	object-fit: contain;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────

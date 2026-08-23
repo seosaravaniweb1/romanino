@@ -19,7 +19,7 @@ $saro_header_opts = saro_get_header_options();
 $saro_cart_count  = ( function_exists( 'WC' ) && WC()->cart ) ? WC()->cart->get_cart_contents_count() : 0;
 // اگر ووکامرس (به هر دلیلی) فعال نباشد، این توابع تعریف نشده‌اند؛ به‌جای فتال
 // ارور، لینک‌ها به صفحهٔ اصلی برمی‌گردند تا هدر همچنان رندر شود.
-$saro_account_url = function_exists( 'wc_get_page_permalink' ) ? $saro_account_url : home_url( '/' );
+$saro_account_url = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'myaccount' ) : home_url( '/' );
 ?>
 
 <a href="#saro-main" class="sr-only focus:not-sr-only focus:absolute focus:right-4 focus:top-4 focus:z-[120] focus:rounded-lg focus:bg-teal focus:px-4 focus:py-2 focus:text-sm focus:text-gold-soft">پرش به محتوای اصلی</a>

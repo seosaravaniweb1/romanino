@@ -125,8 +125,9 @@ add_action( 'wp_head', 'saro_print_inline_vars', 5 );
 function saro_print_inline_vars(): void {
     $opts = saro_get_header_options();
     printf(
-        '<style id="saro-inline-vars">:root{--saro-logo-drop:%dpx}</style>' . "\n",
-        (int) $opts['logo_drop']
+        '<style id="saro-inline-vars">:root{--saro-logo-drop:%dpx;--saro-logo-drop-m:%dpx}</style>' . "\n",
+        (int) $opts['logo_drop'],
+        (int) $opts['logo_drop_mobile']
     );
 }
 

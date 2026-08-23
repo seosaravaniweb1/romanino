@@ -155,7 +155,7 @@ $saro_has_app_links = ! empty( $saro_footer_opts['app_google'] ) || ! empty( $sa
 $saro_frame_url   = $saro_footer_opts['footer_bg'] ?: get_template_directory_uri() . '/assets/img/footer-frame.svg';
 $saro_frame_slice = (int) ( $saro_footer_opts['footer_bg_slice'] ?: 140 );
 ?>
-<footer dir="rtl" class="bg-cream px-3 pb-8 pt-7 md:px-6">
+<footer dir="rtl" class="bg-cream px-3 pb-5 pt-4 md:px-6">
     <div class="saro-footer-frame mx-auto max-w-saro"
         style="--saro-frame: url('<?php echo esc_url( $saro_frame_url ); ?>'); --saro-frame-slice: <?php echo esc_attr( $saro_frame_slice ); ?>;">
 
@@ -168,12 +168,12 @@ $saro_frame_slice = (int) ( $saro_footer_opts['footer_bg_slice'] ?: 140 );
         </span>
 
         <!-- سه ستون اصلی: لینک‌های مهم | برند | ارتباط و نمادها -->
-        <div class="grid gap-8 md:grid-cols-3 md:gap-6">
+        <div class="grid gap-6 md:grid-cols-3 md:gap-5">
 
             <!-- ═══ ستون راست: لینک‌های مهم ═══ -->
-            <div class="flex flex-col gap-4 md:order-1">
-                <h2 class="saro-heading font-naskh text-[17px] font-bold text-teal">لینک‌های مهم</h2>
-                <div class="grid grid-cols-2 gap-5">
+            <div class="flex flex-col gap-3 md:order-1">
+                <h2 class="saro-heading font-naskh text-[16px] font-bold text-teal">لینک‌های مهم</h2>
+                <div class="grid grid-cols-2 gap-4">
                     <div class="flex flex-col gap-1">
                         <h3 class="mb-1 border-b border-gold-hair pb-2 text-center text-[13px] font-bold text-ink">لینک‌های سایت</h3>
                         <?php saro_footer_nav( 'footer_1', $saro_footer_opts['about_links'] ); ?>
@@ -186,7 +186,7 @@ $saro_frame_slice = (int) ( $saro_footer_opts['footer_bg_slice'] ?: 140 );
             </div>
 
             <!-- ═══ ستون میانی: برند ═══ -->
-            <div class="flex flex-col items-center gap-2.5 border-y border-gold-hair py-6 text-center md:order-2 md:border-x md:border-y-0 md:px-5 md:py-0">
+            <div class="flex flex-col items-center justify-center gap-2 border-y border-gold-hair py-5 text-center md:order-2 md:border-x md:border-y-0 md:px-5 md:py-0">
                 <?php if ( has_custom_logo() ) : ?>
                     <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="saro-logo-slot saro-logo-slot-footer" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?> — صفحه اصلی"><?php echo saro_logo_image(); // phpcs:ignore WordPress.Security.EscapeOutput ?></a>
                 <?php else : ?>
@@ -194,11 +194,11 @@ $saro_frame_slice = (int) ( $saro_footer_opts['footer_bg_slice'] ?: 140 );
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"><path d="M12 3c2.6 2.2 4 4.9 4 7.8 0 3.4-1.7 6.3-4 8.2-2.3-1.9-4-4.8-4-8.2C8 7.9 9.4 5.2 12 3z"></path><path d="M12 21v-8"></path></svg>
                     </span>
                 <?php endif; ?>
-                <span class="font-naskh text-[26px] font-bold leading-tight text-teal"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></span>
+                <span class="font-naskh text-[22px] font-bold leading-tight text-teal"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></span>
                 <?php if ( get_bloginfo( 'description' ) ) : ?>
                     <span class="text-[12px] text-gold"><?php echo esc_html( get_bloginfo( 'description' ) ); ?></span>
                 <?php endif; ?>
-                <p class="mt-1 text-justify text-[12.5px] leading-loose text-muted-foreground"><?php echo esc_html( $saro_footer_opts['footer_description'] ); ?></p>
+                <p class="mt-0.5 text-justify text-[12.5px] leading-relaxed text-muted-foreground"><?php echo esc_html( $saro_footer_opts['footer_description'] ); ?></p>
 
                 <?php if ( ! empty( $saro_footer_opts['social_instagram'] ) || ! empty( $saro_footer_opts['social_telegram'] ) ) : ?>
                 <div class="mt-1 flex items-center gap-3">
@@ -217,9 +217,9 @@ $saro_frame_slice = (int) ( $saro_footer_opts['footer_bg_slice'] ?: 140 );
             </div>
 
             <!-- ═══ ستون چپ: ارتباط با ما + نمادهای اعتماد ═══ -->
-            <div class="flex flex-col gap-5 md:order-3">
-                <div class="flex flex-col gap-3">
-                    <h2 class="saro-heading font-naskh text-[17px] font-bold text-teal">ارتباط با ما</h2>
+            <div class="flex flex-col gap-4 md:order-3">
+                <div class="flex flex-col gap-2.5">
+                    <h2 class="saro-heading font-naskh text-[16px] font-bold text-teal">ارتباط با ما</h2>
 
                     <?php if ( ! empty( $saro_footer_opts['contact_phone'] ) ) : ?>
                     <a href="tel:<?php echo esc_attr( preg_replace( '/[^0-9+]/', '', $saro_footer_opts['contact_phone'] ) ); ?>" class="flex items-center gap-2.5 text-[13px] tabular-nums text-ink hover:text-gold">
@@ -248,14 +248,23 @@ $saro_frame_slice = (int) ( $saro_footer_opts['footer_bg_slice'] ?: 140 );
                 $saro_badges = array_filter( (array) ( $saro_footer_opts['trust_badges'] ?? array() ), static function ( $b ) {
                     return ! empty( $b['title'] ) || ! empty( $b['image'] );
                 } );
-                if ( ! empty( $saro_badges ) || ! empty( $saro_footer_opts['enamad_code'] ) ) :
+                $saro_seals = array_filter( array(
+                    $saro_footer_opts['enamad_code'] ?? '',
+                    $saro_footer_opts['samandehi_code'] ?? '',
+                ) );
+                if ( ! empty( $saro_badges ) || ! empty( $saro_seals ) ) :
                 ?>
-                <div class="flex flex-col gap-3">
-                    <h2 class="saro-heading font-naskh text-[17px] font-bold text-teal">نمادهای اعتماد</h2>
+                <div class="flex flex-col gap-2.5">
+                    <h2 class="saro-heading font-naskh text-[16px] font-bold text-teal">نمادهای اعتماد</h2>
 
-                    <?php if ( ! empty( $saro_footer_opts['enamad_code'] ) ) : ?>
-                        <div id="enamad-container" class="grid place-items-center rounded-[10px] border border-gold-hair bg-card p-2">
-                            <?php echo $saro_footer_opts['enamad_code']; // phpcs:ignore WordPress.Security.EscapeOutput — کد رسمی اینماد شامل <a>/<img> است و باید خام چاپ شود ?>
+                    <?php if ( ! empty( $saro_seals ) ) : ?>
+                        <!-- کدهای رسمی اینماد و ساماندهی؛ کنار هم تا فوتر بی‌جهت بلند نشود -->
+                        <div id="enamad-container" class="grid grid-cols-2 gap-2.5">
+                            <?php foreach ( $saro_seals as $saro_seal ) : ?>
+                                <div class="grid place-items-center rounded-[10px] border border-gold-hair bg-card p-1.5 [&_img]:h-auto [&_img]:max-w-full">
+                                    <?php echo $saro_seal; // phpcs:ignore WordPress.Security.EscapeOutput — کد رسمی اینماد/ساماندهی شامل <a>/<img> است و باید خام چاپ شود ?>
+                                </div>
+                            <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
 
@@ -265,8 +274,8 @@ $saro_frame_slice = (int) ( $saro_footer_opts['footer_bg_slice'] ?: 140 );
                             $saro_badge_tag  = ! empty( $saro_badge['url'] ) ? 'a' : 'span';
                             $saro_badge_href = ! empty( $saro_badge['url'] ) ? ' href="' . esc_url( $saro_badge['url'] ) . '" target="_blank" rel="nofollow noopener"' : '';
                             ?>
-                            <<?php echo $saro_badge_tag . $saro_badge_href; // phpcs:ignore WordPress.Security.EscapeOutput — تگ از دو مقدار ثابت و href از esc_url می‌آید ?> class="flex flex-col items-center gap-1.5 rounded-[10px] border border-gold-hair bg-card p-2 text-center">
-                                <span class="grid h-11 w-11 place-items-center overflow-hidden rounded-lg">
+                            <<?php echo $saro_badge_tag . $saro_badge_href; // phpcs:ignore WordPress.Security.EscapeOutput — تگ از دو مقدار ثابت و href از esc_url می‌آید ?> class="flex flex-col items-center gap-1 rounded-[10px] border border-gold-hair bg-card p-1.5 text-center">
+                                <span class="grid h-9 w-9 place-items-center overflow-hidden rounded-lg">
                                     <?php if ( ! empty( $saro_badge['image'] ) ) : ?>
                                         <img src="<?php echo esc_url( $saro_badge['image'] ); ?>" alt="<?php echo esc_attr( $saro_badge['title'] ); ?>" class="h-full w-full object-contain" loading="lazy" width="44" height="44" />
                                     <?php else : ?>
@@ -288,8 +297,8 @@ $saro_frame_slice = (int) ( $saro_footer_opts['footer_bg_slice'] ?: 140 );
 
         <?php if ( ! empty( $saro_footer_opts['banks'] ) ) : ?>
         <!-- بانک‌های عضو شتاب -->
-        <div class="mt-7 border-t border-gold-hair pt-5">
-            <p class="mb-3 text-center text-[12px] text-muted-foreground">امکان پرداخت با تمامی کارت‌های بانکی عضو شتاب</p>
+        <div class="mt-5 border-t border-gold-hair pt-4">
+            <p class="mb-2.5 text-center text-[12px] text-muted-foreground">امکان پرداخت با تمامی کارت‌های بانکی عضو شتاب</p>
             <div class="flex flex-wrap items-center justify-center gap-2.5">
                 <?php foreach ( $saro_footer_opts['banks'] as $saro_bank ) :
                     if ( empty( $saro_bank['name'] ) && empty( $saro_bank['logo'] ) ) {
@@ -309,7 +318,7 @@ $saro_frame_slice = (int) ( $saro_footer_opts['footer_bg_slice'] ?: 140 );
 
         <?php if ( $saro_has_app_links ) : ?>
         <!-- اپلیکیشن — فقط اگر مدیر سایت دست‌کم یک لینک وارد کرده باشد -->
-        <div class="mt-6 flex flex-wrap items-center justify-center gap-2.5 border-t border-gold-hair pt-5">
+        <div class="mt-4 flex flex-wrap items-center justify-center gap-2.5 border-t border-gold-hair pt-4">
             <span class="ml-1 text-[12.5px] font-bold text-teal">اپلیکیشن <?php echo esc_html( get_bloginfo( 'name' ) ); ?>:</span>
             <?php
             foreach ( array(
@@ -330,12 +339,14 @@ $saro_frame_slice = (int) ( $saro_footer_opts['footer_bg_slice'] ?: 140 );
         <?php endif; ?>
 
         <!-- خط پایانی -->
-        <div class="mt-7 flex flex-col items-center gap-2 border-t border-gold-hair pt-5">
+        <div class="mt-4 flex flex-col items-center gap-1.5 border-t border-gold-hair pt-4">
+            <?php if ( ! empty( $saro_footer_opts['footer_credit'] ) ) : ?>
             <span class="flex items-center gap-3 text-[12.5px] text-muted-foreground">
                 <span class="text-gold" aria-hidden="true">✦</span>
                 <?php echo esc_html( $saro_footer_opts['footer_credit'] ); ?>
                 <span class="text-gold" aria-hidden="true">♥</span>
             </span>
+            <?php endif; ?>
             <span class="text-[11px] text-muted-foreground">© <?php echo esc_html( date_i18n( 'Y' ) ); ?> <?php echo esc_html( $saro_footer_opts['copyright_text'] ); ?></span>
         </div>
     </div>
@@ -423,243 +434,13 @@ get_template_part( 'template-parts/cart/mini-cart' );
     </div>
 </div>
 
-<!-- ══════════ مودال ورود و ثبت‌نام ══════════ -->
-<div id="auth-modal-overlay" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-teal-ink/45 p-4 backdrop-blur-sm">
-    <div class="relative w-full max-w-md overflow-hidden rounded-2xl border border-gold-line bg-card p-6 shadow-[0_24px_60px_rgba(43,36,23,0.3)] md:p-8">
-
-        <button type="button" id="close-auth-modal" aria-label="بستن" class="absolute left-6 top-6 text-muted-foreground hover:text-teal">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18 18 6M6 6l12 12"></path></svg>
-        </button>
-
-        <div class="mb-6 flex flex-col items-center gap-1.5 text-center">
-            <span class="grid h-10 w-10 place-items-center rounded-[50%/58%_58%_42%_42%] border border-gold text-gold">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"><path d="M12 3c2.6 2.2 4 4.9 4 7.8 0 3.4-1.7 6.3-4 8.2-2.3-1.9-4-4.8-4-8.2C8 7.9 9.4 5.2 12 3z"></path><path d="M12 21v-8"></path></svg>
-            </span>
-            <span class="font-naskh text-lg font-bold text-teal"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></span>
-        </div>
-
-        <div id="modal-alert" class="mb-4 hidden rounded-xl px-4 py-3 text-xs"></div>
-
-        <!-- گام ۱: ورود با شماره موبایل -->
-        <div id="step-phone-view" class="auth-view flex flex-col gap-5">
-            <div class="text-right">
-                <h2 class="font-naskh text-lg font-bold text-teal">ورود | ثبت‌نام</h2>
-                <p class="mt-1 text-xs text-muted-foreground">سلام! لطفاً شمارهٔ موبایل خود را وارد کنید.</p>
-            </div>
-            <input type="tel" id="modal-phone-input" placeholder="09xxxxxxxxx" maxlength="11" dir="ltr" class="saro-input text-center font-bold" />
-            <button type="button" id="btn-send-otp" class="saro-btn w-full py-3.5 text-sm">ادامه ›</button>
-            <div class="flex flex-col gap-2 border-t border-gold-hair pt-4 text-xs font-bold">
-                <button type="button" class="switch-view text-right text-teal hover:text-gold" data-target="step-traditional-login">ورود بدون احراز پیامکی</button>
-                <button type="button" class="switch-view text-right text-gold hover:text-teal" data-target="step-traditional-register">ثبت‌نام بدون احراز پیامکی</button>
-            </div>
-        </div>
-
-        <!-- گام ۱.۵: تأیید کد پیامک / تکمیل نام -->
-        <div id="step-otp-view" class="auth-view hidden flex flex-col gap-5">
-            <div class="text-right">
-                <h2 class="font-naskh text-lg font-bold text-teal">تأیید کد پیامک</h2>
-                <p class="mt-1 text-xs text-muted-foreground">کد ارسال‌شده به شمارهٔ <span id="display-sent-phone" class="font-bold text-teal" dir="ltr"></span> را وارد کنید.</p>
-            </div>
-            <div id="otp-code-box">
-                <input type="text" id="modal-otp-input" placeholder="کد ۵ رقمی" maxlength="5" inputmode="numeric" dir="ltr" class="saro-input text-center text-lg font-bold tracking-widest" />
-            </div>
-            <div id="name-input-box" class="hidden">
-                <label for="modal-name-input" class="mb-1 block text-xs font-bold text-ink">نام و نام خانوادگی *</label>
-                <input type="text" id="modal-name-input" placeholder="مثال: محمد حسینی" class="saro-input" />
-            </div>
-            <button type="button" id="btn-verify-otp" class="saro-btn w-full py-3.5 text-sm">تأیید و ورود</button>
-            <button type="button" class="switch-view block w-full text-center text-xs text-muted-foreground hover:text-teal" data-target="step-phone-view">بازگشت</button>
-        </div>
-
-        <!-- گام ۲: ورود با نام کاربری و رمز -->
-        <div id="step-traditional-login" class="auth-view hidden flex flex-col gap-4">
-            <div class="text-right">
-                <h2 class="font-naskh text-lg font-bold text-teal">ورود به حساب کاربری</h2>
-                <p class="mt-1 text-xs text-muted-foreground">اگر به گوشی خود دسترسی ندارید</p>
-            </div>
-            <div>
-                <label for="trad-login-user" class="mb-1 block text-xs font-bold text-ink">شمارهٔ موبایل یا نام کاربری *</label>
-                <input type="text" id="trad-login-user" dir="ltr" class="saro-input text-right" />
-            </div>
-            <div>
-                <label for="trad-login-pass" class="mb-1 block text-xs font-bold text-ink">رمز عبور *</label>
-                <input type="password" id="trad-login-pass" class="saro-input" />
-            </div>
-            <button type="button" id="btn-trad-login" class="saro-btn w-full py-3.5 text-sm">ورود</button>
-            <button type="button" class="switch-view block w-full text-center text-xs font-bold text-teal hover:text-gold" data-target="step-phone-view">‹ بازگشت به ورود با پیامک</button>
-        </div>
-
-        <!-- گام ۳: ثبت‌نام -->
-        <div id="step-traditional-register" class="auth-view hidden flex flex-col gap-3">
-            <div class="text-right">
-                <h2 class="font-naskh text-lg font-bold text-teal">ایجاد حساب کاربری</h2>
-                <p class="mt-1 text-xs text-muted-foreground">ثبت‌نام بدون احراز پیامکی</p>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label for="trad-reg-user" class="mb-1 block text-[11px] font-bold text-ink">نام کاربری *</label>
-                    <input type="text" id="trad-reg-user" dir="ltr" class="saro-input px-3 py-2 text-right text-xs" />
-                </div>
-                <div>
-                    <label for="trad-reg-name" class="mb-1 block text-[11px] font-bold text-ink">نام و نام خانوادگی *</label>
-                    <input type="text" id="trad-reg-name" class="saro-input px-3 py-2 text-xs" />
-                </div>
-            </div>
-            <div>
-                <label for="trad-reg-email" class="mb-1 block text-[11px] font-bold text-ink">ایمیل *</label>
-                <input type="email" id="trad-reg-email" dir="ltr" class="saro-input px-3 py-2 text-right text-xs" />
-            </div>
-            <div>
-                <label for="trad-reg-phone" class="mb-1 block text-[11px] font-bold text-ink">شمارهٔ موبایل *</label>
-                <input type="tel" id="trad-reg-phone" dir="ltr" maxlength="11" class="saro-input px-3 py-2 text-right text-xs" />
-            </div>
-            <div>
-                <label for="trad-reg-pass" class="mb-1 block text-[11px] font-bold text-ink">رمز عبور *</label>
-                <input type="password" id="trad-reg-pass" class="saro-input px-3 py-2 text-xs" />
-            </div>
-            <button type="button" id="btn-trad-register" class="saro-btn w-full py-3 text-sm">تأیید و ثبت‌نام</button>
-            <button type="button" class="switch-view block w-full text-center text-xs font-bold text-teal hover:text-gold" data-target="step-phone-view">‹ بازگشت</button>
-        </div>
-    </div>
-</div>
-
 <?php wp_footer(); ?>
 
 <!-- اسکریپت‌های سراسری -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    // ۱. مدیریت پاپ‌آپ احراز هویت
-    const modal = document.getElementById('auth-modal-overlay');
-    const openBtn = document.getElementById('open-auth-modal-btn');
-    const closeBtn = document.getElementById('close-auth-modal');
-    const alertBox = document.getElementById('modal-alert');
-    let activePhone = '';
-    let isNewUserWithoutName = false;
-
-    if (openBtn && modal) {
-        openBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            modal.classList.remove('hidden');
-        });
-    }
-    function closeAuthModal() {
-        if (modal) modal.classList.add('hidden');
-    }
-    if (closeBtn && modal) {
-        closeBtn.addEventListener('click', closeAuthModal);
-    }
-    if (modal) {
-        modal.addEventListener('click', (e) => { if (e.target === modal) closeAuthModal(); });
-    }
-
-    // جابه‌جایی بین گام‌های مودال. هر «view» هم کلاس flex دارد و هم در حالت
-    // بسته کلاس hidden؛ چون در CSS نهایی «hidden» بعد از «flex» تعریف شده،
-    // صرفِ toggle کردن hidden برای نمایش/پنهان‌کردن کافی است.
-    document.querySelectorAll('.switch-view').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.auth-view').forEach(v => v.classList.add('hidden'));
-            const target = document.getElementById(btn.dataset.target);
-            if (target) target.classList.remove('hidden');
-            if (alertBox) alertBox.classList.add('hidden');
-        });
-    });
-
-    function showAlert(msg, isError = true) {
-        if (!alertBox) return;
-        alertBox.textContent = msg;
-        alertBox.className = 'mb-4 rounded-xl px-4 py-3 text-xs border ' + (isError
-            ? 'bg-[#fdf1f0] text-[#b3261e] border-[#f0d6d3]'
-            : 'bg-[#eef6ef] text-[#1e6b3a] border-[#cfe4d3]');
-        alertBox.classList.remove('hidden');
-    }
-
-    async function postAjax(action, data) {
-        const body = new URLSearchParams({ action, nonce: '<?php echo esc_js( wp_create_nonce( "saro_auth_nonce" ) ); ?>', ...data });
-        const res = await fetch('<?php echo esc_url( admin_url( "admin-ajax.php" ) ); ?>', { method: 'POST', body });
-        return res.json();
-    }
-
-    // ارسال کد یک‌بارمصرف
-    const btnSendOtp = document.getElementById('btn-send-otp');
-    if (btnSendOtp) {
-        btnSendOtp.addEventListener('click', async () => {
-            activePhone = document.getElementById('modal-phone-input').value.trim();
-            if (!/^09\d{9}$/.test(activePhone)) {
-                showAlert('شمارهٔ موبایل معتبر نیست.');
-                return;
-            }
-            btnSendOtp.textContent = 'در حال ارسال...';
-            const res = await postAjax('saro_check_phone', { phone: activePhone });
-            btnSendOtp.textContent = 'ادامه ›';
-
-            if (res.success) {
-                document.getElementById('display-sent-phone').textContent = activePhone;
-                document.querySelectorAll('.auth-view').forEach(v => v.classList.add('hidden'));
-                document.getElementById('step-otp-view').classList.remove('hidden');
-                if (alertBox) alertBox.classList.add('hidden');
-            } else {
-                showAlert(res.data.message);
-            }
-        });
-    }
-
-    // تأیید کد یک‌بارمصرف
-    const btnVerifyOtp = document.getElementById('btn-verify-otp');
-    if (btnVerifyOtp) {
-        btnVerifyOtp.addEventListener('click', async () => {
-            const code = document.getElementById('modal-otp-input').value.trim();
-            const displayName = document.getElementById('modal-name-input').value.trim();
-
-            if (code.length < 5) { showAlert('کد ۵ رقمی را کامل وارد کنید.'); return; }
-            if (isNewUserWithoutName && !displayName) { showAlert('لطفاً نام و نام خانوادگی خود را وارد کنید.'); return; }
-
-            const res = await postAjax('saro_verify_otp', { phone: activePhone, code, display_name: displayName });
-
-            if (res.success) {
-                if (res.data.requires_name) {
-                    isNewUserWithoutName = true;
-                    document.getElementById('otp-code-box').classList.add('hidden');
-                    document.getElementById('name-input-box').classList.remove('hidden');
-                    showAlert('لطفاً نام و نام خانوادگی خود را برای تکمیل ثبت‌نام وارد کنید.', false);
-                } else {
-                    window.location.href = res.data.redirect;
-                }
-            } else {
-                showAlert(res.data.message);
-            }
-        });
-    }
-
-    // ورود با نام کاربری و رمز
-    const btnTradLogin = document.getElementById('btn-trad-login');
-    if (btnTradLogin) {
-        btnTradLogin.addEventListener('click', async () => {
-            const username = document.getElementById('trad-login-user').value.trim();
-            const password = document.getElementById('trad-login-pass').value;
-            const res = await postAjax('saro_traditional_login', { username, password });
-            if (res.success) { window.location.href = res.data.redirect; }
-            else { showAlert(res.data.message); }
-        });
-    }
-
-    // ثبت‌نام
-    const btnTradRegister = document.getElementById('btn-trad-register');
-    if (btnTradRegister) {
-        btnTradRegister.addEventListener('click', async () => {
-            const username = document.getElementById('trad-reg-user').value.trim();
-            const displayName = document.getElementById('trad-reg-name').value.trim();
-            const email = document.getElementById('trad-reg-email').value.trim();
-            const phone = document.getElementById('trad-reg-phone').value.trim();
-            const password = document.getElementById('trad-reg-pass').value;
-
-            const res = await postAjax('saro_traditional_register', { username, display_name: displayName, email, phone, password });
-            if (res.success) { window.location.href = res.data.redirect; }
-            else { showAlert(res.data.message); }
-        });
-    }
-
-    // ۲. جست‌وجوی ایجکسی (در صفحاتی که کادر #ajax-search-input دارند)
+    // ۱. جست‌وجوی ایجکسی (در صفحاتی که کادر #ajax-search-input دارند)
     const searchInput = document.getElementById('ajax-search-input');
     const searchResults = document.getElementById('ajax-search-results');
     let timeout = null;
@@ -712,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ۳. منوی موبایل عمداً اینجا مدیریت نمی‌شود — مسئول آن فقط assets/js/main.js
+    // ۲. منوی موبایل عمداً اینجا مدیریت نمی‌شود — مسئول آن فقط assets/js/main.js
     // است. (وجود همزمان دو listener روی یک دکمه باعث می‌شد کلاس hidden دو بار
     // toggle شود و در عمل «هیچ اتفاقی نیفتد».)
 });
