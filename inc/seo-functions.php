@@ -158,6 +158,12 @@ function saro_meta_description_tag(): void {
         if ( $product ) {
             $description = wp_trim_words( wp_strip_all_tags( $product->get_short_description() ?: $product->get_description() ), 30, '...' );
         }
+    } elseif ( is_product_taxonomy() ) {
+        // آرشیو دسته‌بندی/برچسب/ویژگی: از «توضیح» همان ترم
+        $saro_term = get_queried_object();
+        if ( $saro_term && ! is_wp_error( $saro_term ) ) {
+            $description = wp_trim_words( wp_strip_all_tags( term_description( $saro_term ) ), 30, '...' );
+        }
     }
 
     if ( $description ) {
@@ -310,11 +316,16 @@ function saro_add_sitemap_to_robots( string $output, bool $public ): string {
 
 add_action( 'wp_head', 'saro_archive_schema' );
 function saro_archive_schema(): void {
-    if ( ! is_shop() && ! is_product_category() ) return;
+    // همهٔ آرشیوهای محصول: فروشگاه، دسته‌بندی‌ها، برچسب‌ها و ویژگی‌های محصول
+    if ( ! is_shop() && ! is_product_taxonomy() ) return;
 
-    $name     = is_shop() ? get_bloginfo('name') . ' — فروشگاه آثار' : single_term_title( '', false );
-    $url      = is_shop() ? wc_get_page_permalink('shop') : get_term_link( get_queried_object() );
-    $desc     = is_product_category() ? strip_tags( term_description() ) : get_bloginfo('description');
+    $term = is_shop() ? null : get_queried_object();
+    if ( ! is_shop() && ( ! $term || is_wp_error( $term ) ) ) return;
+
+    $name = is_shop() ? get_bloginfo('name') . ' — فروشگاه آثار' : single_term_title( '', false );
+    $url  = is_shop() ? wc_get_page_permalink('shop') : get_term_link( $term );
+    $desc = is_shop() ? get_bloginfo('description') : wp_strip_all_tags( term_description( $term ) );
+    if ( is_wp_error( $url ) ) return;
 
     $schema = [
         '@context'    => 'https://schema.org',
@@ -336,22 +347,29 @@ add_action( 'wp_head', 'saro_breadcrumb_schema' );
 function saro_breadcrumb_schema(): void {
     $items = array();
 
-    if ( is_product_category() ) {
+    if ( is_product_taxonomy() ) {
+        // دسته‌بندی‌ها، برچسب‌ها و ویژگی‌های محصول — همگی برد‌کرامب می‌گیرند
         $term = get_queried_object();
         if ( ! $term || is_wp_error( $term ) ) return;
+
+        $term_link = get_term_link( $term );
+        if ( is_wp_error( $term_link ) ) return;
 
         $items[] = array( 'name' => 'خانه', 'url' => home_url( '/' ) );
         $items[] = array( 'name' => 'فروشگاه', 'url' => wc_get_page_permalink( 'shop' ) );
 
         // مسیر کامل والد ← فرزند برای دسته‌های تودرتو
-        $ancestors = array_reverse( get_ancestors( $term->term_id, 'product_cat' ) );
+        $ancestors = array_reverse( get_ancestors( $term->term_id, $term->taxonomy ) );
         foreach ( $ancestors as $ancestor_id ) {
-            $ancestor_term = get_term( $ancestor_id, 'product_cat' );
+            $ancestor_term = get_term( $ancestor_id, $term->taxonomy );
             if ( $ancestor_term && ! is_wp_error( $ancestor_term ) ) {
-                $items[] = array( 'name' => $ancestor_term->name, 'url' => get_term_link( $ancestor_term ) );
+                $ancestor_link = get_term_link( $ancestor_term );
+                if ( ! is_wp_error( $ancestor_link ) ) {
+                    $items[] = array( 'name' => $ancestor_term->name, 'url' => $ancestor_link );
+                }
             }
         }
-        $items[] = array( 'name' => $term->name, 'url' => get_term_link( $term ) );
+        $items[] = array( 'name' => $term->name, 'url' => $term_link );
 
     } elseif ( is_singular( 'product' ) ) {
         global $product;

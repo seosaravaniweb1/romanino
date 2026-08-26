@@ -20,7 +20,9 @@ if ( ! function_exists( 'saro_footer_nav' ) ) :
 function saro_footer_nav( $location, $fallback = array() ) {
     // چوران کوچک ابتدای هر لینک، دقیقاً مطابق طرح فوتر
     $chevron    = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" class="shrink-0 text-gold"><path d="m15 6-6 6 6 6"></path></svg>';
-    $link_class = 'flex items-center justify-between gap-2 py-1.5 text-[12.5px] text-ink transition-colors hover:text-gold';
+    /* چوران دقیقاً کنارِ خودِ متن می‌نشیند (نه چسبیده به لبهٔ ستون)، تا در
+       ستون‌های پهنِ فوتر بین متن و علامت فاصلهٔ عجیب نیفتد. */
+    $link_class = 'flex items-center gap-1.5 py-1 text-[12.5px] text-ink transition-colors hover:text-gold';
 
     if ( has_nav_menu( $location ) ) {
         wp_nav_menu( array(
@@ -36,7 +38,7 @@ function saro_footer_nav( $location, $fallback = array() ) {
                 }
                 function start_el( &$output, $item, $depth = 0, $args = null, $id = 0 ) {
                     $output .= '<a href="' . esc_url( $item->url ) . '" class="' . esc_attr( $this->link_class ) . '">'
-                        . '<span>' . esc_html( $item->title ) . '</span>' . $this->chevron . '</a>';
+                        . $this->chevron . '<span class="truncate">' . esc_html( $item->title ) . '</span></a>';
                 }
             },
             'fallback_cb'    => false,
@@ -54,11 +56,11 @@ function saro_footer_nav( $location, $fallback = array() ) {
             continue;
         }
         printf(
-            '<a href="%s" class="%s"><span>%s</span>%s</a>',
+            '<a href="%s" class="%s">%s<span class="truncate">%s</span></a>',
             esc_url( $item['url'] ?: '#' ),
             esc_attr( $link_class ),
-            esc_html( $item['title'] ),
-            $chevron // phpcs:ignore WordPress.Security.EscapeOutput — SVG ثابت و درون‌کدی
+            $chevron, // phpcs:ignore WordPress.Security.EscapeOutput — SVG ثابت و درون‌کدی
+            esc_html( $item['title'] )
         );
     }
 }
@@ -172,14 +174,15 @@ $saro_frame_slice = (int) ( $saro_footer_opts['footer_bg_slice'] ?: 140 );
 
             <!-- ═══ ستون راست: لینک‌های مهم ═══ -->
             <div class="flex flex-col gap-3 md:order-1">
-                <h2 class="saro-heading font-naskh text-[16px] font-bold text-teal">لینک‌های مهم</h2>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="flex flex-col gap-1">
-                        <h3 class="mb-1 border-b border-gold-hair pb-2 text-center text-[13px] font-bold text-ink">لینک‌های سایت</h3>
+                <?php /* تیتر «لینک‌های مهم» طبق درخواست حذف شد؛ خودِ دو ستون
+                         گویا هستند و فاصله‌شان هم جمع‌تر شد. */ ?>
+                <div class="grid grid-cols-[auto_auto] justify-start gap-x-8 gap-y-4 sm:gap-x-12">
+                    <div class="flex min-w-0 flex-col gap-0.5">
+                        <h3 class="mb-1 border-b border-gold-hair pb-2 text-[13px] font-bold text-ink">لینک‌های سایت</h3>
                         <?php saro_footer_nav( 'footer_1', $saro_footer_opts['about_links'] ); ?>
                     </div>
-                    <div class="flex flex-col gap-1">
-                        <h3 class="mb-1 border-b border-gold-hair pb-2 text-center text-[13px] font-bold text-ink">لینک‌های کاربری</h3>
+                    <div class="flex min-w-0 flex-col gap-0.5">
+                        <h3 class="mb-1 border-b border-gold-hair pb-2 text-[13px] font-bold text-ink">لینک‌های کاربری</h3>
                         <?php saro_footer_nav( 'footer_2', saro_footer_user_links( $saro_footer_opts['guide_links'] ) ); ?>
                     </div>
                 </div>
@@ -194,10 +197,18 @@ $saro_frame_slice = (int) ( $saro_footer_opts['footer_bg_slice'] ?: 140 );
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"><path d="M12 3c2.6 2.2 4 4.9 4 7.8 0 3.4-1.7 6.3-4 8.2-2.3-1.9-4-4.8-4-8.2C8 7.9 9.4 5.2 12 3z"></path><path d="M12 21v-8"></path></svg>
                     </span>
                 <?php endif; ?>
-                <span class="font-naskh text-[22px] font-bold leading-tight text-teal"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></span>
-                <?php if ( get_bloginfo( 'description' ) ) : ?>
-                    <span class="text-[12px] text-gold"><?php echo esc_html( get_bloginfo( 'description' ) ); ?></span>
-                <?php endif; ?>
+                <?php
+                /* طبق درخواست: در ستون میانی فقط لوگو و توضیحِ زیرش می‌ماند.
+                   نام سایت و شعارِ متنی حذف شدند چون کنارِ لوگو تکراری بودند و
+                   با لوگوهای بلند روی هم می‌افتادند. نامِ سایت برای موتورهای
+                   جست‌وجو در alt همان لوگو هست. متن زیر از پیشخوان → تنظیمات
+                   قالب → تب فوتر → «توضیح زیر لوگو» می‌آید. */
+                if ( ! has_custom_logo() ) :
+                    ?>
+                    <span class="font-naskh text-[22px] font-bold leading-tight text-teal"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></span>
+                    <?php
+                endif;
+                ?>
                 <p class="mt-0.5 text-justify text-[12.5px] leading-relaxed text-muted-foreground"><?php echo esc_html( $saro_footer_opts['footer_description'] ); ?></p>
 
                 <?php if ( ! empty( $saro_footer_opts['social_instagram'] ) || ! empty( $saro_footer_opts['social_telegram'] ) ) : ?>
@@ -218,9 +229,9 @@ $saro_frame_slice = (int) ( $saro_footer_opts['footer_bg_slice'] ?: 140 );
 
             <!-- ═══ ستون چپ: ارتباط با ما + نمادهای اعتماد ═══ -->
             <div class="flex flex-col gap-4 md:order-3">
+                <?php /* طبق درخواست تیتر «ارتباط با ما» حذف شد؛ فقط خودِ راه‌های
+                         تماس با آیکونشان می‌مانند: شماره، چت پشتیبانی و چت تلگرام. */ ?>
                 <div class="flex flex-col gap-2.5">
-                    <h2 class="saro-heading font-naskh text-[16px] font-bold text-teal">ارتباط با ما</h2>
-
                     <?php if ( ! empty( $saro_footer_opts['contact_phone'] ) ) : ?>
                     <a href="tel:<?php echo esc_attr( preg_replace( '/[^0-9+]/', '', $saro_footer_opts['contact_phone'] ) ); ?>" class="flex items-center gap-2.5 text-[13px] tabular-nums text-ink hover:text-gold">
                         <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-teal text-gold-soft">
@@ -239,14 +250,35 @@ $saro_frame_slice = (int) ( $saro_footer_opts['footer_bg_slice'] ?: 140 );
                     </a>
                     <?php endif; ?>
 
+                    <?php if ( ! empty( $saro_footer_opts['support_chat_url'] ) ) : ?>
+                    <a href="<?php echo esc_url( $saro_footer_opts['support_chat_url'] ); ?>" target="_blank" rel="nofollow noopener" class="flex items-center gap-2.5 text-[13px] text-ink hover:text-gold">
+                        <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-teal text-gold-soft">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.9-.9L3 21l1.9-4.6A8.4 8.4 0 0 1 4 11.5a8.4 8.4 0 0 1 9-8.4 8.4 8.4 0 0 1 8 8.4z"></path></svg>
+                        </span>
+                        چت پشتیبانی
+                    </a>
+                    <?php endif; ?>
+
+                    <?php if ( ! empty( $saro_footer_opts['telegram_chat_url'] ) ) : ?>
+                    <a href="<?php echo esc_url( $saro_footer_opts['telegram_chat_url'] ); ?>" target="_blank" rel="nofollow noopener" class="flex items-center gap-2.5 text-[13px] text-ink hover:text-gold">
+                        <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-teal text-gold-soft">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="m21.5 3.5-19 7.2 5.2 1.9 2 5.9 2.9-3.6 4.6 3.4z"></path></svg>
+                        </span>
+                        چت تلگرام
+                    </a>
+                    <?php endif; ?>
+
                     <?php if ( ! empty( $saro_footer_opts['contact_address'] ) ) : ?>
                     <p class="text-[11.5px] leading-loose text-muted-foreground"><?php echo esc_html( $saro_footer_opts['contact_address'] ); ?></p>
                     <?php endif; ?>
                 </div>
 
                 <?php
+                /* فقط نمادهایی که واقعاً تصویر دارند: طبق درخواست این ستون باید
+                   «فقط آیکون‌ها» باشد، پس ردیف‌های بدون تصویر (که چیزی جز یک
+                   عنوان نداشتند) اصلاً رندر نمی‌شوند. */
                 $saro_badges = array_filter( (array) ( $saro_footer_opts['trust_badges'] ?? array() ), static function ( $b ) {
-                    return ! empty( $b['title'] ) || ! empty( $b['image'] );
+                    return ! empty( $b['image'] );
                 } );
                 $saro_seals = array_filter( array(
                     $saro_footer_opts['enamad_code'] ?? '',
@@ -254,9 +286,9 @@ $saro_frame_slice = (int) ( $saro_footer_opts['footer_bg_slice'] ?: 140 );
                 ) );
                 if ( ! empty( $saro_badges ) || ! empty( $saro_seals ) ) :
                 ?>
+                <?php /* تیتر «نمادهای اعتماد» هم طبق درخواست حذف شد؛ خودِ کدهای
+                         اینماد/ساماندهی و نمادهای تصویری گویا هستند. */ ?>
                 <div class="flex flex-col gap-2.5">
-                    <h2 class="saro-heading font-naskh text-[16px] font-bold text-teal">نمادهای اعتماد</h2>
-
                     <?php if ( ! empty( $saro_seals ) ) : ?>
                         <!-- کدهای رسمی اینماد و ساماندهی؛ کنار هم تا فوتر بی‌جهت بلند نشود -->
                         <div id="enamad-container" class="grid grid-cols-2 gap-2.5">
@@ -274,18 +306,13 @@ $saro_frame_slice = (int) ( $saro_footer_opts['footer_bg_slice'] ?: 140 );
                             $saro_badge_tag  = ! empty( $saro_badge['url'] ) ? 'a' : 'span';
                             $saro_badge_href = ! empty( $saro_badge['url'] ) ? ' href="' . esc_url( $saro_badge['url'] ) . '" target="_blank" rel="nofollow noopener"' : '';
                             ?>
-                            <<?php echo $saro_badge_tag . $saro_badge_href; // phpcs:ignore WordPress.Security.EscapeOutput — تگ از دو مقدار ثابت و href از esc_url می‌آید ?> class="flex flex-col items-center gap-1 rounded-[10px] border border-gold-hair bg-card p-1.5 text-center">
-                                <span class="grid h-9 w-9 place-items-center overflow-hidden rounded-lg">
-                                    <?php if ( ! empty( $saro_badge['image'] ) ) : ?>
-                                        <img src="<?php echo esc_url( $saro_badge['image'] ); ?>" alt="<?php echo esc_attr( $saro_badge['title'] ); ?>" class="h-full w-full object-contain" loading="lazy" width="44" height="44" />
-                                    <?php else : ?>
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" class="text-gold"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 11.5 2 2 4-4"></path></svg>
-                                    <?php endif; ?>
-                                </span>
-                                <span class="text-[10px] font-bold leading-tight text-ink"><?php echo esc_html( $saro_badge['title'] ); ?></span>
-                                <?php if ( ! empty( $saro_badge['subtitle'] ) ) : ?>
-                                    <span class="text-[9px] leading-tight text-muted-foreground"><?php echo esc_html( $saro_badge['subtitle'] ); ?></span>
-                                <?php endif; ?>
+                            <?php /* اگر نماد تصویر دارد، فقط خودِ تصویر نمایش داده
+                                     می‌شود (بدون تیتر، طبق درخواست)؛ عنوان در alt و
+                                     title می‌ماند تا هم دسترس‌پذیر باشد و هم با نگه‌داشتن
+                                     ماوس دیده شود. اگر تصویری نگذاشته باشند، به‌جای یک
+                                     کادرِ بی‌معنی، عنوانِ کوتاه چاپ می‌شود. */ ?>
+                            <<?php echo $saro_badge_tag . $saro_badge_href; // phpcs:ignore WordPress.Security.EscapeOutput — تگ از دو مقدار ثابت و href از esc_url می‌آید ?> title="<?php echo esc_attr( $saro_badge['title'] ); ?>" class="grid place-items-center rounded-[10px] border border-gold-hair bg-card p-1.5 text-center">
+                                <img src="<?php echo esc_url( $saro_badge['image'] ); ?>" alt="<?php echo esc_attr( $saro_badge['title'] ); ?>" class="h-12 w-full object-contain" loading="lazy" width="60" height="48" />
                             </<?php echo $saro_badge_tag; // phpcs:ignore WordPress.Security.EscapeOutput ?>>
                         <?php endforeach; ?>
                     </div>
@@ -338,17 +365,16 @@ $saro_frame_slice = (int) ( $saro_footer_opts['footer_bg_slice'] ?: 140 );
         </div>
         <?php endif; ?>
 
-        <!-- خط پایانی -->
-        <div class="mt-4 flex flex-col items-center gap-1.5 border-t border-gold-hair pt-4">
-            <?php if ( ! empty( $saro_footer_opts['footer_credit'] ) ) : ?>
+        <!-- خط پایانی — طبق درخواست فقط یک خط (متنش از تنظیمات فوتر می‌آید) -->
+        <?php if ( ! empty( $saro_footer_opts['footer_credit'] ) ) : ?>
+        <div class="mt-4 flex items-center justify-center border-t border-gold-hair pt-4">
             <span class="flex items-center gap-3 text-[12.5px] text-muted-foreground">
                 <span class="text-gold" aria-hidden="true">✦</span>
                 <?php echo esc_html( $saro_footer_opts['footer_credit'] ); ?>
-                <span class="text-gold" aria-hidden="true">♥</span>
+                <span class="text-gold" aria-hidden="true">✦</span>
             </span>
-            <?php endif; ?>
-            <span class="text-[11px] text-muted-foreground">© <?php echo esc_html( date_i18n( 'Y' ) ); ?> <?php echo esc_html( $saro_footer_opts['copyright_text'] ); ?></span>
         </div>
+        <?php endif; ?>
     </div>
 </footer>
 

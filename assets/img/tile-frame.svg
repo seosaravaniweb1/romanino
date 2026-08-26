@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+<!--
+  قاب «کاشیِ» سنتی — برای کارت محصول و باکس‌های عمومی قالب.
+  ─────────────────────────────────────────────────────────────────────────
+  مثل قاب فوتر، این فایل هم به شکل «۹ تکه» (border-image / 9-slice) استفاده
+  می‌شود: ۳۰ پیکسل از هر طرف = گوشه‌ها (برشِ هشت‌ضلعی + نگارهٔ ریز)، ضلع‌ها
+  فقط خطوط افقی/عمودی دارند تا با کشیده‌شدن تغییر شکل ندهند، و وسط زمینهٔ
+  کاغذی است که آزادانه کش می‌آید.
+
+  چون تنها چیزی که در تکه‌های ضلع کشیده می‌شود خطِ صاف است، این قاب در هر
+  اندازه‌ای — از یک باکس کوچک تا یک کارت بلند — درست می‌نشیند.
+-->
+<defs>
+  <linearGradient id="tilePaper" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#fffdf8"></stop>
+    <stop offset="1" stop-color="#fbf5e9"></stop>
+  </linearGradient>
+  <clipPath id="tileOct">
+    <!-- هشت‌ضلعی با برش ۲۸ پیکسلی در چهار گوشه (کاملاً داخل تکهٔ گوشه) -->
+    <polygon points="28,0 172,0 200,28 200,172 172,200 28,200 0,172 0,28"></polygon>
+  </clipPath>
+</defs>
+
+<!-- زمینهٔ کاغذی داخل هشت‌ضلعی -->
+<g clip-path="url(#tileOct)">
+  <rect width="200" height="200" fill="url(#tilePaper)"></rect>
+</g>
+
+<!-- خط اصلی طلایی روی خودِ هشت‌ضلعی -->
+<polygon points="28,0 172,0 200,28 200,172 172,200 28,200 0,172 0,28"
+  fill="none" stroke="#c9a24b" stroke-width="1.6"></polygon>
+
+<!-- خط موییِ داخلی؛ در تکه‌های ضلع فقط قطعهٔ صاف کشیده می‌شود -->
+<g fill="none" stroke="#c9a24b" stroke-width=".8" opacity=".5">
+  <path d="M34 6 H166"></path>
+  <path d="M34 194 H166"></path>
+  <path d="M6 34 V166"></path>
+  <path d="M194 34 V166"></path>
+  <path d="M6 34 L34 6"></path>
+  <path d="M166 6 L194 34"></path>
+  <path d="M194 166 L166 194"></path>
+  <path d="M34 194 L6 166"></path>
+</g>
+
+<!-- نگارهٔ گوشه: لوزیِ کوچک با دو برگ اسلیمی، چهار بار آینه‌ای -->
+<defs>
+  <g id="tileCorner">
+    <path d="M12 19 L19 12 L26 19 L19 26 Z" fill="none" stroke="#c9a24b" stroke-width="1" opacity=".8"></path>
+    <circle cx="19" cy="19" r="2" fill="#c9a24b" opacity=".7"></circle>
+    <path d="M26 19 C33 17 38 13 40 6" fill="none" stroke="#c9a24b" stroke-width=".9" stroke-linecap="round" opacity=".55"></path>
+    <path d="M19 26 C17 33 13 38 6 40" fill="none" stroke="#c9a24b" stroke-width=".9" stroke-linecap="round" opacity=".55"></path>
+  </g>
+</defs>
+<use href="#tileCorner"></use>
+<use href="#tileCorner" transform="translate(200,0) scale(-1,1)"></use>
+<use href="#tileCorner" transform="translate(0,200) scale(1,-1)"></use>
+<use href="#tileCorner" transform="translate(200,200) scale(-1,-1)"></use>
+</svg>

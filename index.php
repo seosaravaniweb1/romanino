@@ -117,14 +117,13 @@ if ( $saro_hero['hero_image'] ) {
                 <?php wp_reset_postdata(); endif; ?>
             </div>
             <!-- نوار اعتماد
-                 روی md به بالا کاملاً «داخل» تصویر هرو و چسبیده به لبهٔ پایینش
-                 می‌نشیند (همان جای طرح تأییدشده). چون absolute است، تصویر هر
-                 ارتفاعی که داشته باشد نوار همیشه روی خودِ تصویر است و دیگر
-                 نصفه‌بیرون نمی‌افتد و زیرش نوار خالی نمی‌ماند.
-                 روی موبایل عمداً absolute نیست: آنجا تصویر کوتاه است و نوار
-                 روی کادر جست‌وجو می‌افتاد، پس در جریان عادی و کمی روی تصویر
-                 (margin منفی) می‌نشیند. -->
-            <div class="relative z-[5] mx-auto -mt-10 grid w-[92%] max-w-[1020px] grid-cols-2 items-start gap-1 rounded-2xl border border-gold-line bg-[rgba(253,251,245,.94)] px-2 py-4 shadow-[0_10px_26px_rgba(43,36,23,.12)] backdrop-blur-sm md:absolute md:inset-x-0 md:bottom-5 md:mt-0 md:w-[78%] md:grid-cols-4 lg:bottom-7">
+                 دقیقاً وسطِ «نوار روشنِ پایین تصویر محراب» می‌نشیند: مرکز آن
+                 روی درصدی از ارتفاع تصویر قفل است که از پیشخوان (تب هدر)
+                 تنظیم می‌شود. چون درصدی است، در هر عرض صفحه — از موبایل تا
+                 مانیتور عریض — همان‌جای تصویر می‌ماند و هیچ‌وقت نصفه بیرون
+                 نمی‌افتد. توضیحِ زیر هر آیتم فقط از lg به بالا نمایش داده
+                 می‌شود، چون در عرض‌های کوچک نوار روشن کوتاه‌تر است. -->
+            <div class="saro-trustbar z-[5] mx-auto grid w-[94%] max-w-[1020px] grid-cols-2 items-center gap-1 rounded-2xl border border-gold-line bg-[rgba(253,251,245,.94)] px-2 py-2.5 shadow-[0_10px_26px_rgba(43,36,23,.12)] backdrop-blur-sm md:w-[88%] md:grid-cols-4 lg:w-[80%] xl:w-[78%] xl:py-4">
                 <?php
                 $saro_trust_items = array(
                     array(
@@ -159,17 +158,15 @@ if ( $saro_hero['hero_image'] ) {
                     $saro_divider .= ( $saro_i >= 2 ) ? ' border-t border-gold-hair md:border-t-0' : '';
                     $saro_divider .= ( $saro_i > 0 ) ? ' md:border-r md:border-gold-hair' : ' md:border-r-0';
                     ?>
-                    <div class="flex min-w-0 flex-col items-center gap-1.5 px-3 py-2 text-center<?php echo esc_attr( $saro_divider ); ?>">
-                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" class="text-teal"><?php echo $saro_trust['icon']; // phpcs:ignore WordPress.Security.EscapeOutput — مسیر SVG ثابت و درون‌کدی است ?></svg>
-                        <span class="font-naskh text-[15px] font-bold text-teal"><?php echo esc_html( $saro_trust['title'] ); ?></span>
-                        <span class="text-[11.5px] leading-loose text-muted-foreground"><?php echo esc_html( $saro_trust['text'] ); ?></span>
+                    <div class="flex min-w-0 items-center justify-center gap-2 px-2 py-1.5 text-center lg:flex-col lg:gap-1.5 lg:px-3 lg:py-2<?php echo esc_attr( $saro_divider ); ?>">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-teal lg:h-[26px] lg:w-[26px]"><?php echo $saro_trust['icon']; // phpcs:ignore WordPress.Security.EscapeOutput — مسیر SVG ثابت و درون‌کدی است ?></svg>
+                        <span class="min-w-0 font-naskh text-[12px] font-bold leading-tight text-teal md:text-[13px] lg:text-[15px]"><?php echo esc_html( $saro_trust['title'] ); ?></span>
+                        <span class="hidden text-[11.5px] leading-loose text-muted-foreground xl:block"><?php echo esc_html( $saro_trust['text'] ); ?></span>
                     </div>
                 <?php endforeach; ?>
             </div>
         </div>
 
-        <!-- روی موبایل نوار اعتماد در جریان عادی است، پس ته سکشن کمی فاصله می‌خواهد -->
-        <div class="h-8 md:hidden"></div>
     </section>
 
     <?php
@@ -195,7 +192,7 @@ if ( $saro_hero['hero_image'] ) {
                     $saro_cat_thumb_id  = (int) get_term_meta( $saro_cat->term_id, 'thumbnail_id', true );
                     $saro_cat_thumb_url = $saro_cat_thumb_id ? wp_get_attachment_image_url( $saro_cat_thumb_id, 'thumbnail' ) : '';
                     ?>
-                    <a href="<?php echo esc_url( $saro_cat_link ); ?>" class="relative flex min-w-0 flex-col items-center justify-center gap-1.5 p-2 text-center sm:gap-2 sm:p-4 transition-[filter] hover:brightness-[1.03]" style="aspect-ratio: 240 / 220;">
+                    <a href="<?php echo esc_url( $saro_cat_link ); ?>" class="relative mx-auto flex w-full min-w-0 max-w-[168px] flex-col items-center justify-center gap-1.5 p-2 text-center transition-[filter] hover:brightness-[1.03] sm:gap-2 sm:p-4 lg:max-w-[178px]" style="aspect-ratio: 240 / 220;">
                         <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/' . ( $saro_is_gold ? 'cat-box-gold.svg' : 'cat-box.svg' ) ); ?>" alt="" aria-hidden="true" class="pointer-events-none absolute inset-0 h-full w-full" loading="lazy" width="240" height="220" />
                         <?php if ( $saro_cat_thumb_url ) : ?>
                             <img src="<?php echo esc_url( $saro_cat_thumb_url ); ?>" alt="" aria-hidden="true" class="relative h-10 w-10 rounded-full object-cover" loading="lazy" width="40" height="40" />
@@ -295,9 +292,11 @@ if ( $saro_hero['hero_image'] ) {
                  نوارِ افقیِ طرح اصلی (flex-wrap وسط‌چین). -->
             <div class="grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:justify-center sm:gap-3">
                 <?php foreach ( $saro_ql_items as $saro_ql_row ) : ?>
+                    <?php /* چیپ هشت‌ضلعیِ برش‌خورده با حاشیهٔ طلایی (‎.saro-oct‎) —
+                             به‌جای مستطیلِ کج، هم‌سبک با کاشی‌های دسته‌بندی. */ ?>
                     <a href="<?php echo esc_url( $saro_ql_row['url'] ); ?>"
-                        class="flex min-w-0 items-center justify-center gap-2 px-4 py-2.5 text-center text-[12.5px] font-bold transition-colors sm:justify-start sm:gap-2.5 sm:px-6 sm:text-[13.5px] <?php echo $saro_ql_row['gold'] ? 'text-[#fffaf0] hover:text-white' : 'bg-teal text-gold-soft hover:bg-teal-deep hover:text-white'; ?>"
-                        style="clip-path: polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%);<?php echo $saro_ql_row['gold'] ? ' background: linear-gradient(180deg, #d8b56a, var(--gold));' : ''; ?>">
+                        class="saro-oct flex min-w-0 items-center justify-center gap-2 px-4 py-2.5 text-center text-[12.5px] font-bold transition-[filter] hover:brightness-110 sm:justify-start sm:gap-2.5 sm:px-6 sm:text-[13.5px] <?php echo $saro_ql_row['gold'] ? 'bg-teal text-[#fffaf0]' : 'bg-gold text-gold-soft'; ?>"
+                        style="--oct: 11px;<?php echo $saro_ql_row['gold'] ? ' --saro-oct-fill: linear-gradient(180deg, #d8b56a, var(--gold));' : ' --saro-oct-fill: var(--teal);'; ?>">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><?php echo $saro_ql_row['icon']; // phpcs:ignore WordPress.Security.EscapeOutput — مسیر SVG از فهرست ثابت و درون‌کدیِ قالب می‌آید ?></svg>
                         <span class="min-w-0 truncate"><?php echo esc_html( $saro_ql_row['title'] ); ?></span>
                     </a>

@@ -36,7 +36,10 @@ $saro_loop_index  = isset( $args['saro_loop_index'] ) ? (int) $args['saro_loop_i
 $saro_img_loading = $saro_loop_index < 4 ? 'eager' : 'lazy';
 ?>
 
-<article class="saro-hover-lift flex min-w-0 flex-col gap-2.5 rounded-xl border border-gold-line bg-card p-2.5">
+<?php /* قاب کاشیِ تذهیب‌دار (‎.saro-tile‎) به‌جای مستطیل ساده — هم‌سبک با
+         باکس‌های هشت‌ضلعی دسته‌بندی‌ها. زمینه و خطوط قاب از خودِ تصویرِ ۹ تکه
+         می‌آید، پس این عنصر عمداً background و border جدا ندارد. */ ?>
+<article class="saro-tile saro-hover-lift flex min-w-0 flex-col gap-2.5">
 
 	<div class="flex items-center justify-between gap-1.5">
 		<?php if ( $saro_cat ) : ?>

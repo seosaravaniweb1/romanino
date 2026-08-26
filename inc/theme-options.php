@@ -28,6 +28,9 @@ function saro_footer_defaults() {
         'contact_phone'    => '',
         'contact_email'    => '',
         'contact_telegram' => '',
+        // لینکِ «چت پشتیبانی» و «چت تلگرام» ستون ارتباط با ما در فوتر
+        'support_chat_url' => '',
+        'telegram_chat_url' => '',
         'contact_address'  => '',
         // ستون راستِ فوتر: «لینک‌های سایت»
         'about_links'      => array(
@@ -52,7 +55,7 @@ function saro_footer_defaults() {
             array( 'image' => '', 'title' => 'ستاد ساماندهی',          'subtitle' => 'پایگاه‌های اینترنتی', 'url' => '' ),
             array( 'image' => '', 'title' => 'درگاه پرداخت امن',       'subtitle' => 'درگاه پرداخت بانکی', 'url' => '' ),
         ),
-        'footer_credit'    => 'طراحی و توسعه با عشق در مسیر معرفت',
+        'footer_credit'    => 'طراحی و توسعه توسط مرکز علوم غریبه وطن',
         'app_google'  => '',
         'app_bazaar'  => '',
         'app_myket'   => '',
@@ -85,7 +88,10 @@ function saro_header_defaults() {
         // کوتاه‌تر رندر می‌شود و گودیِ قوس بالاتر می‌افتد، پس آویز باید
         // کمتر باشد؛ اگر یک عدد مشترک می‌گذاشتیم، لوگو در یکی از دو حالت
         // بیرون از گودی می‌نشست.
-        'logo_drop_mobile'      => 31,
+        'logo_drop_mobile'      => 36,
+        // مرکز «نوار آیکون‌های اعتماد» روی چند درصدِ ارتفاع تصویر هرو بنشیند.
+        // ۸۷٪ = وسط نوار روشنِ پایین تصویر محراب پیش‌فرض قالب.
+        'trust_pos'             => 87,
     );
 }
 
@@ -387,6 +393,8 @@ add_action( 'admin_init', function () {
             'contact_phone'      => sanitize_text_field( wp_unslash( $_POST['contact_phone'] ?? '' ) ),
             'contact_email'      => sanitize_email( wp_unslash( $_POST['contact_email'] ?? '' ) ),
             'contact_telegram'   => sanitize_text_field( wp_unslash( $_POST['contact_telegram'] ?? '' ) ),
+            'support_chat_url'   => esc_url_raw( trim( wp_unslash( $_POST['support_chat_url'] ?? '' ) ) ),
+            'telegram_chat_url'  => esc_url_raw( trim( wp_unslash( $_POST['telegram_chat_url'] ?? '' ) ) ),
             'contact_address'    => sanitize_text_field( wp_unslash( $_POST['contact_address'] ?? '' ) ),
             'footer_bg'          => esc_url_raw( trim( wp_unslash( $_POST['footer_bg'] ?? '' ) ) ),
             // بازهٔ منطقی برای اسلایس: کمتر از ۲۰ یعنی گوشه‌ای دیده نمی‌شود و
@@ -421,7 +429,8 @@ add_action( 'admin_init', function () {
             'hero_subtitle'       => sanitize_textarea_field( wp_unslash( $_POST['hero_subtitle'] ?? '' ) ),
             'hero_image'          => esc_url_raw( trim( wp_unslash( $_POST['hero_image'] ?? '' ) ) ),
             'logo_drop'           => max( 0, min( 220, absint( $_POST['logo_drop'] ?? 46 ) ) ),
-            'logo_drop_mobile'    => max( 0, min( 220, absint( $_POST['logo_drop_mobile'] ?? 31 ) ) ),
+            'logo_drop_mobile'    => max( 0, min( 220, absint( $_POST['logo_drop_mobile'] ?? 36 ) ) ),
+            'trust_pos'           => max( 30, min( 100, absint( $_POST['trust_pos'] ?? 87 ) ) ),
             'notification_enabled' => isset( $_POST['notification_enabled'] ) ? 1 : 0,
             'notification_text'    => wp_kses_post( wp_unslash( $_POST['notification_text'] ?? '' ) ),
         );
@@ -654,6 +663,17 @@ function saro_render_options_page() {
                         <td><input type="text" id="contact_telegram" name="contact_telegram" class="regular-text" value="<?php echo esc_attr( $footer['contact_telegram'] ); ?>" placeholder="@saropub" dir="ltr"></td>
                     </tr>
                     <tr>
+                        <th><label for="support_chat_url">لینک چت پشتیبانی</label></th>
+                        <td>
+                            <input type="url" id="support_chat_url" name="support_chat_url" class="large-text" dir="ltr" value="<?php echo esc_attr( $footer['support_chat_url'] ); ?>" placeholder="https://...">
+                            <p class="description">لینک چتِ آنلاین یا واتساپ پشتیبانی. خالی = نمایش داده نمی‌شود.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="telegram_chat_url">لینک چت تلگرام</label></th>
+                        <td><input type="url" id="telegram_chat_url" name="telegram_chat_url" class="large-text" dir="ltr" value="<?php echo esc_attr( $footer['telegram_chat_url'] ); ?>" placeholder="https://t.me/..."></td>
+                    </tr>
+                    <tr>
                         <th><label for="contact_address">نشانی</label></th>
                         <td><input type="text" id="contact_address" name="contact_address" class="large-text" value="<?php echo esc_attr( $footer['contact_address'] ); ?>" placeholder="تهران، خیابان ..."></td>
                     </tr>
@@ -709,9 +729,11 @@ function saro_render_options_page() {
             </div>
 
             <div class="saro-box">
-                <h2>۵-ب. نمادهای اعتماد فوتر <span class="description">(ستون «نمادهای اعتماد»)</span></h2>
+                <h2>۵-ب. نمادهای اعتماد تصویری <span class="description">(ستون سمت چپ فوتر)</span></h2>
                 <p class="description">
-                    سه نماد ستون چپ فوتر. برای هر کدام تصویر، عنوان، زیرعنوان و لینک بگذارید.
+                    نمادهای تصویریِ ستون چپ فوتر (کنارِ کدهای اینماد و ساماندهی). طبق طرح، اینجا فقط خودِ تصویرِ نماد
+                    نمایش داده می‌شود و عنوان صرفاً برای alt و tooltip استفاده می‌گردد؛ به همین دلیل ردیفی که تصویر
+                    نداشته باشد اصلاً در فوتر چاپ نمی‌شود.
                     اگر تصویری انتخاب نکنید، آیکون پیش‌فرض قالب نمایش داده می‌شود. ردیف‌های خالی ذخیره نمی‌شوند.
                 </p>
                 <div id="saro-repeater-badges" class="saro-repeater">
@@ -808,14 +830,10 @@ function saro_render_options_page() {
                         <td><input type="text" id="gateway_2_label" name="gateway_2_label" class="regular-text" value="<?php echo esc_attr( $footer['gateway_2_label'] ); ?>"></td>
                     </tr>
                     <tr>
-                        <th><label for="copyright_text">متن کپی‌رایت</label></th>
-                        <td><input type="text" id="copyright_text" name="copyright_text" class="large-text" value="<?php echo esc_attr( $footer['copyright_text'] ); ?>"></td>
-                    </tr>
-                    <tr>
                         <th><label for="footer_credit">متن پایانی فوتر («طراحی و توسعه با عشق…»)</label></th>
                         <td>
-                            <input type="text" id="footer_credit" name="footer_credit" class="large-text" value="<?php echo esc_attr( $footer['footer_credit'] ); ?>" placeholder="طراحی و توسعه با عشق در مسیر معرفت">
-                            <p class="description">همان خطی که در پایین‌ترین بخش فوتر، بین دو نگارهٔ طلایی نمایش داده می‌شود. خالی بگذارید تا حذف شود.</p>
+                            <input type="text" id="footer_credit" name="footer_credit" class="large-text" value="<?php echo esc_attr( $footer['footer_credit'] ); ?>" placeholder="طراحی و توسعه توسط مرکز علوم غریبه وطن">
+                            <p class="description">تنها خطِ پایین فوتر، بین دو نگارهٔ طلایی. خالی بگذارید تا حذف شود.</p>
                         </td>
                     </tr>
                 </table>
@@ -868,13 +886,24 @@ function saro_render_options_page() {
                         </td>
                     </tr>
                     <tr>
+                        <th><label for="trust_pos">جای نوار آیکون‌های اعتماد (درصد از بالای تصویر)</label></th>
+                        <td>
+                            <input type="number" id="trust_pos" name="trust_pos" min="30" max="100" value="<?php echo esc_attr( $header['trust_pos'] ); ?>" style="width:120px;">
+                            <p class="description">
+                                نوار «خرید مطمئن / دانلود آنی / …» دقیقاً وسطِ نوار روشنِ پایین تصویر محراب می‌نشیند.
+                                این عدد یعنی مرکز آن نوار روی چند درصدِ ارتفاع تصویر باشد (پیش‌فرض: ۸۷).
+                                اگر تصویر هرو را عوض کردید و نوار سرِ جای درست ننشست، همین عدد را کم/زیاد کنید.
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
                         <th><label for="logo_drop_mobile">آویز لوگو در موبایل و تبلت (پیکسل)</label></th>
                         <td>
                             <input type="number" id="logo_drop_mobile" name="logo_drop_mobile" min="0" max="220" value="<?php echo esc_attr( $header['logo_drop_mobile'] ); ?>" style="width:120px;">
                             <p class="description">
                                 همان تنظیم بالا، اما برای عرض‌های کمتر از ۱۰۲۴ پیکسل. در موبایل تصویر هرو کوتاه‌تر
                                 رندر می‌شود و گودیِ قوس بالاتر می‌افتد، پس این عدد معمولاً کمتر از عدد دسکتاپ است
-                                (۰ = بدون آویز، لوگو کاملاً داخل هدر می‌ماند؛ پیش‌فرض: ۳۱).
+                                (۰ = بدون آویز، لوگو کاملاً داخل هدر می‌ماند؛ پیش‌فرض: ۳۶).
                             </p>
                         </td>
                     </tr>

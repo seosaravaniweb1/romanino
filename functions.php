@@ -125,9 +125,10 @@ add_action( 'wp_head', 'saro_print_inline_vars', 5 );
 function saro_print_inline_vars(): void {
     $opts = saro_get_header_options();
     printf(
-        '<style id="saro-inline-vars">:root{--saro-logo-drop:%dpx;--saro-logo-drop-m:%dpx}</style>' . "\n",
+        '<style id="saro-inline-vars">:root{--saro-logo-drop:%dpx;--saro-logo-drop-m:%dpx;--saro-trust-pos:%d%%}</style>' . "\n",
         (int) $opts['logo_drop'],
-        (int) $opts['logo_drop_mobile']
+        (int) $opts['logo_drop_mobile'],
+        (int) $opts['trust_pos']
     );
 }
 
@@ -305,7 +306,7 @@ function saro_product_specs_metabox_content( WP_Post $post ): void {
     if ( empty( $features ) ) {
         $features = array( '' ); // همیشه دست‌کم یک ردیف خالی برای شروع
     }
-    $file_size   = get_post_meta( $post->ID, 'file_size', true );
+    $saro_specs  = saro_get_product_spec_fields( $post->ID );
     $sample_url  = get_post_meta( $post->ID, 'sample_download_url', true );
     ?>
     <div style="padding:12px; font-family: Tahoma, sans-serif;">
@@ -326,16 +327,30 @@ function saro_product_specs_metabox_content( WP_Post $post ): void {
         </div>
         <button type="button" class="button button-secondary" id="saro-features-add">+ افزودن ویژگی</button>
 
-        <div style="border-top:1px solid #ddd; margin-top:16px; padding-top:14px; display:grid; grid-template-columns:1fr 1fr; gap:14px;">
-            <div>
-                <label style="font-weight:bold; display:block; margin-bottom:5px;">حجم فایل</label>
-                <input type="text" name="file_size" value="<?php echo esc_attr( $file_size ); ?>" placeholder="مثال: 2.4 MB" style="width:100%;" dir="ltr" />
-                <small style="color:#666;">فقط برای اسکیمای Schema.org (contentSize) استفاده می‌شود و در صفحهٔ محصول چاپ نمی‌شود.</small>
-            </div>
-            <div>
-                <label style="font-weight:bold; display:block; margin-bottom:5px;">لینک فایل نمونهٔ رایگان</label>
-                <input type="url" name="sample_download_url" value="<?php echo esc_url( $sample_url ); ?>" placeholder="https://..." dir="ltr" style="width:100%;" />
-                <small style="color:#666;">اگر پر باشد، دکمهٔ «دریافت نمونهٔ رایگان» در صفحهٔ محصول ظاهر می‌شود.</small>
+        <div style="border-top:1px solid #ddd; margin-top:18px; padding-top:14px;">
+            <p style="margin:0 0 10px; font-weight:bold;">مشخصات اثر</p>
+            <p style="margin:0 0 12px; color:#666;">
+                این‌ها برخلاف ویژگی‌های بالا <strong>با عنوان</strong> و در جدول «مشخصات» صفحهٔ محصول نمایش داده می‌شوند.
+                هر کدام را خالی بگذارید، همان سطر اصلاً چاپ نمی‌شود.
+            </p>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
+                <?php foreach ( saro_product_spec_field_map() as $saro_key => $saro_field ) : ?>
+                <div>
+                    <label for="<?php echo esc_attr( $saro_key ); ?>" style="font-weight:bold; display:block; margin-bottom:5px;"><?php echo esc_html( $saro_field['label'] ); ?></label>
+                    <input type="text" id="<?php echo esc_attr( $saro_key ); ?>" name="<?php echo esc_attr( $saro_key ); ?>"
+                        value="<?php echo esc_attr( $saro_specs[ $saro_key ] ); ?>"
+                        placeholder="<?php echo esc_attr( $saro_field['placeholder'] ); ?>"
+                        style="width:100%;"<?php echo ! empty( $saro_field['ltr'] ) ? ' dir="ltr"' : ''; ?> />
+                    <?php if ( ! empty( $saro_field['hint'] ) ) : ?>
+                        <small style="color:#666;"><?php echo esc_html( $saro_field['hint'] ); ?></small>
+                    <?php endif; ?>
+                </div>
+                <?php endforeach; ?>
+                <div>
+                    <label style="font-weight:bold; display:block; margin-bottom:5px;">لینک فایل نمونهٔ رایگان</label>
+                    <input type="url" name="sample_download_url" value="<?php echo esc_url( $sample_url ); ?>" placeholder="https://..." dir="ltr" style="width:100%;" />
+                    <small style="color:#666;">اگر پر باشد، دکمهٔ «دریافت نمونهٔ رایگان» در صفحهٔ محصول ظاهر می‌شود.</small>
+                </div>
             </div>
         </div>
     </div>
@@ -368,6 +383,67 @@ function saro_product_specs_metabox_content( WP_Post $post ): void {
     });
     </script>
     <?php
+}
+
+/**
+ * مشخصات اثر — فیلدهای «عنوان‌دار» صفحهٔ محصول.
+ * ─────────────────────────────────────────────────────────────────────────
+ * برخلاف «ویژگی‌های اثر» (که متن آزادند و بدون هیچ عنوانی به‌صورت چیپ چاپ
+ * می‌شوند)، این پنج فیلد عنوان دارند و در جدول «مشخصات» صفحهٔ محصول کنار
+ * ویژگی‌های ووکامرس نمایش داده می‌شوند. کلیدِ آرایه = نامِ متا و نامِ input.
+ *
+ * «حجم فایل» عمداً همان کلید قدیمیِ file_size را نگه داشته تا مقدارهایی که
+ * قبلاً وارد شده‌اند از بین نروند (این مقدار در اسکیمای contentSize هم به کار
+ * می‌رود).
+ */
+function saro_product_spec_field_map(): array {
+    return array(
+        'saro_author_name' => array(
+            'label'       => 'نام نویسنده',
+            'placeholder' => 'مثال: شیخ بهایی',
+        ),
+        'saro_file_format' => array(
+            'label'       => 'فرمت فایل',
+            'placeholder' => 'مثال: PDF',
+        ),
+        'saro_page_count' => array(
+            'label'       => 'تعداد صفحات',
+            'placeholder' => 'مثال: ۲۴۸',
+        ),
+        'saro_book_format' => array(
+            'label'       => 'فرمت کتاب',
+            'placeholder' => 'مثال: وزیری',
+        ),
+        'file_size' => array(
+            'label'       => 'حجم فایل',
+            'placeholder' => 'مثال: 2.4 MB',
+            'ltr'         => true,
+            'hint'        => 'در اسکیمای Schema.org (contentSize) هم استفاده می‌شود.',
+        ),
+    );
+}
+
+/** مقدار خامِ همهٔ فیلدهای مشخصات (کلید → مقدار، حتی اگر خالی باشند). */
+function saro_get_product_spec_fields( int $post_id ): array {
+    $out = array();
+    foreach ( array_keys( saro_product_spec_field_map() ) as $key ) {
+        $out[ $key ] = (string) get_post_meta( $post_id, $key, true );
+    }
+    return $out;
+}
+
+/** فقط مشخصاتِ پرشده، به شکل «عنوان => مقدار» و آمادهٔ نمایش. */
+function saro_get_product_specs_for_display( int $post_id ): array {
+    $map  = saro_product_spec_field_map();
+    $vals = saro_get_product_spec_fields( $post_id );
+    $out  = array();
+    foreach ( $map as $key => $field ) {
+        $value = trim( $vals[ $key ] );
+        if ( '' !== $value ) {
+            $out[ $field['label'] ] = $value;
+        }
+    }
+    return $out;
 }
 
 /**
@@ -404,7 +480,9 @@ function saro_save_product_specs_meta( int $post_id ): void {
     }
     update_post_meta( $post_id, 'saro_features', $features );
 
-    update_post_meta( $post_id, 'file_size', sanitize_text_field( wp_unslash( $_POST['file_size'] ?? '' ) ) );
+    foreach ( array_keys( saro_product_spec_field_map() ) as $saro_spec_key ) {
+        update_post_meta( $post_id, $saro_spec_key, sanitize_text_field( wp_unslash( $_POST[ $saro_spec_key ] ?? '' ) ) );
+    }
     update_post_meta( $post_id, 'sample_download_url', esc_url_raw( wp_unslash( $_POST['sample_download_url'] ?? '' ) ) );
 }
 
@@ -488,6 +566,28 @@ function saro_extend_rankmath_product_schema( $entity ) {
             'contentSize'    => sanitize_text_field( $file_size ),
             'encodingFormat' => 'application/pdf',
         );
+    }
+
+    // مشخصات عنوان‌دار → فیلدهای استانداردِ متناظر در Schema.org
+    $specs = saro_get_product_spec_fields( $post_id );
+    if ( ! empty( $specs['saro_author_name'] ) && empty( $entity['author'] ) ) {
+        $entity['author'] = array(
+            '@type' => 'Person',
+            'name'  => sanitize_text_field( $specs['saro_author_name'] ),
+        );
+    }
+    if ( ! empty( $specs['saro_page_count'] ) ) {
+        // فقط رقم‌ها: ورودی ممکن است فارسی یا همراه با «صفحه» نوشته شده باشد
+        $pages = (int) preg_replace( '/\D+/', '', saro_fa_to_en_digits( $specs['saro_page_count'] ) );
+        if ( $pages > 0 ) {
+            $entity['numberOfPages'] = $pages;
+        }
+    }
+    if ( ! empty( $specs['saro_file_format'] ) ) {
+        $entity['fileFormat'] = sanitize_text_field( $specs['saro_file_format'] );
+    }
+    if ( ! empty( $specs['saro_book_format'] ) ) {
+        $entity['bookEdition'] = sanitize_text_field( $specs['saro_book_format'] );
     }
 
     // نمونهٔ رایگان (در صورت وجود)

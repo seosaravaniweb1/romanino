@@ -104,7 +104,7 @@ $saro_account_url = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_per
              کشیده نمی‌شود و لوگو در صورت بزرگ‌بودن از کادر هدر بیرون می‌زند
              (دقیقاً همان رفتار خواسته‌شده). قوانین اندازه در tailwind-src.css
              زیر کلاس .saro-logo-slot تعریف شده‌اند. -->
-        <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="saro-logo-plaque col-start-2 justify-self-center px-4 py-1.5" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?> — صفحه اصلی">
+        <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="saro-logo-plaque px-4 py-1.5 lg:col-start-2 lg:justify-self-center" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?> — صفحه اصلی">
             <?php if ( has_custom_logo() ) : ?>
                 <span class="saro-logo-slot"><?php echo saro_logo_image(); // phpcs:ignore WordPress.Security.EscapeOutput — خروجی wp_get_attachment_image از قبل escape شده است ?></span>
             <?php else : ?>
@@ -126,8 +126,8 @@ $saro_account_url = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_per
         <div class="col-start-3 flex min-w-0 flex-wrap items-center justify-end gap-1.5">
 
             <!-- سبد خرید: کشوی سبد را باز می‌کند (assets/js/mini-cart.js به همین id گوش می‌دهد) -->
-            <button type="button" id="cart-open-btn" class="relative flex items-center gap-2.5 rounded-[10px] border border-gold-line py-1.5 pl-1.5 pr-3 text-sm text-ink hover:border-gold">
-                <span class="hidden text-[12.5px] text-muted-foreground sm:block">سبد خرید</span>
+            <button type="button" id="cart-open-btn" class="relative flex items-center gap-2.5 rounded-[10px] border-0 p-0 text-sm text-ink lg:border lg:border-gold-line lg:py-1.5 lg:pl-1.5 lg:pr-3 lg:hover:border-gold">
+                <span class="hidden text-[12.5px] text-muted-foreground lg:block">سبد خرید</span>
                 <span class="grid h-[30px] w-[30px] place-items-center rounded-lg bg-teal text-gold-soft">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"></circle><circle cx="18" cy="20" r="1.4"></circle><path d="M2 3h2.2l2.2 11.2a2 2 0 0 0 2 1.6h8.5a2 2 0 0 0 2-1.5L21 7H5.5"></path></svg>
                 </span>
@@ -136,12 +136,15 @@ $saro_account_url = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_per
                 </span>
             </button>
 
-            <span class="mx-1.5 hidden h-[26px] w-px bg-gold-hair sm:block"></span>
+            <span class="mx-1.5 hidden h-[26px] w-px bg-gold-hair lg:block"></span>
 
-            <!-- ورود / پنل کاربری -->
+            <!-- ورود / پنل کاربری
+                 زیر sm پنهان است: آنجا جای هدر تنگ است و اگر بماند، «کتیبهٔ»
+                 لوگو دقیقاً وسط قوس محراب نمی‌نشیند. همین لینک در منوی
+                 موبایل (پایین همین فایل) به‌صورت یک دکمهٔ کامل وجود دارد. -->
             <?php if ( is_user_logged_in() ) : ?>
-                <a href="<?php echo esc_url( $saro_account_url ); ?>" class="flex items-center gap-2 whitespace-nowrap rounded-[10px] border border-gold-line py-1 pl-1 pr-3 text-[13px] font-bold text-teal hover:border-gold">
-                    <span class="hidden sm:block">پنل کاربری</span>
+                <a href="<?php echo esc_url( $saro_account_url ); ?>" class="hidden items-center gap-2 whitespace-nowrap rounded-[10px] border border-gold-line py-1 pl-1 pr-3 text-[13px] font-bold text-teal hover:border-gold sm:flex">
+                    <span class="hidden lg:block">پنل کاربری</span>
                     <span class="grid h-7 w-7 place-items-center rounded-lg bg-cream-2 text-xs font-bold text-teal">
                         <?php
                         $saro_user = wp_get_current_user();
@@ -150,9 +153,9 @@ $saro_account_url = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_per
                     </span>
                 </a>
             <?php else : ?>
-                <a href="<?php echo esc_url( $saro_account_url ); ?>" class="flex items-center gap-2 whitespace-nowrap px-1.5 text-[13.5px] text-ink hover:text-teal">
+                <a href="<?php echo esc_url( $saro_account_url ); ?>" class="hidden items-center gap-2 whitespace-nowrap px-1.5 text-[13.5px] text-ink hover:text-teal sm:flex">
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="text-gold"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                    <span class="hidden sm:block">ورود / ثبت‌نام</span>
+                    <span class="hidden lg:block">ورود / ثبت‌نام</span>
                 </a>
             <?php endif; ?>
 
@@ -171,7 +174,7 @@ $saro_account_url = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_per
             ?>
             <a href="tel:<?php echo esc_attr( preg_replace( '/[^0-9+]/', '', $saro_support_phone ) ); ?>"
                 title="<?php echo esc_attr( 'پشتیبانی: ' . $saro_support_phone ); ?>"
-                class="grid h-9 w-9 place-items-center rounded-lg text-ink hover:bg-cream-2 hover:text-teal">
+                class="hidden h-9 w-9 place-items-center rounded-lg text-ink hover:bg-cream-2 hover:text-teal lg:grid">
                 <span class="sr-only">تماس با پشتیبانی</span>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
             </a>
@@ -179,7 +182,7 @@ $saro_account_url = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_per
 
             <!-- زنگولهٔ اطلاع‌رسانی — متن آن از پیشخوان → تنظیمات قالب سرو → تب «هدر» -->
             <?php if ( ! empty( $saro_header_opts['notification_enabled'] ) && ! empty( $saro_header_opts['notification_text'] ) ) : ?>
-            <div class="relative">
+            <div class="relative hidden lg:block">
                 <button type="button" id="saro-notif-btn" aria-haspopup="true" aria-expanded="false" title="اطلاعیه"
                     class="relative grid h-9 w-9 place-items-center rounded-lg text-ink hover:bg-cream-2 hover:text-teal">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.7 21a2 2 0 0 1-3.4 0"></path></svg>
@@ -255,6 +258,27 @@ $saro_account_url = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_per
 // نوار جست‌وجوی کشویی هدر + پنل زنگوله. (منوی موبایل توسط assets/js/main.js
 // مدیریت می‌شود؛ عمداً اینجا تکرار نشده تا دو listener روی یک دکمه، اثر
 // همدیگر را خنثی نکنند.)
+// مگامنو: نگه‌داشتن منو هنگام عبور ماوس از فاصلهٔ بین دکمه و پنل.
+(function () {
+    var wrap = document.querySelector('.saro-mega-wrap');
+    if (!wrap) { return; }
+    var timer = null;
+    function open() { clearTimeout(timer); wrap.classList.add('is-open'); }
+    function close() {
+        clearTimeout(timer);
+        // ~۳۰۰ms فرصت تا ماوس از نوار خالیِ بین دکمه و پنل رد شود و به پنل برسد
+        timer = setTimeout(function () { wrap.classList.remove('is-open'); }, 300);
+    }
+    wrap.addEventListener('mouseenter', open);
+    wrap.addEventListener('mouseleave', close);
+    wrap.addEventListener('focusin', open);
+    wrap.addEventListener('focusout', close);
+    // با Esc بسته شود
+    wrap.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { clearTimeout(timer); wrap.classList.remove('is-open'); }
+    });
+})();
+
 (function () {
     var searchBtn = document.getElementById('saro-search-btn');
     var searchBar = document.getElementById('saro-search-bar');

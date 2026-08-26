@@ -378,7 +378,14 @@ input[type="search"]::-webkit-search-cancel-button {
 
 /* ─────────────────────────────────────────────────────────────────────────
    مگامنوی هدر — با hover/focus باز می‌شود (بدون جاوااسکریپت)
-   ───────────────────────────────────────────────────────────────────────── */
+   ─────────────────────────────────────────────────────────────────────────
+   نکتهٔ مهم: پنل مگامنو از «کف ردیف هدر» باز می‌شود، نه از کف دکمه؛ پس
+   بین دکمه و پنل یک نوار چندپیکسلی خالی می‌ماند. ماوس هنگام پایین‌آمدن
+   از این نوار رد می‌شود، :hover قطع می‌شود و منو درست قبل از کلیک بسته
+   می‌شد. برای همین علاوه بر :hover یک کلاس .is-open هم داریم که اسکریپت
+   کوچک هدر با تأخیر ~۳۰۰ms برش می‌دارد؛ در این فاصله ماوس به پنل می‌رسد
+   و منو باز می‌ماند. (اگر جاوااسکریپت غیرفعال باشد، :hover هنوز کار
+   می‌کند و فقط همان رفتار قبلی را دارد.) */
 .saro-mega {
 	opacity: 0;
 	visibility: hidden;
@@ -387,7 +394,8 @@ input[type="search"]::-webkit-search-cancel-button {
 	pointer-events: none;
 }
 .saro-mega-wrap:hover .saro-mega,
-.saro-mega-wrap:focus-within .saro-mega {
+.saro-mega-wrap:focus-within .saro-mega,
+.saro-mega-wrap.is-open .saro-mega {
 	opacity: 1;
 	visibility: visible;
 	transform: translateY(0);
@@ -498,7 +506,7 @@ details[open] .saro-plus {
 @media (max-width: 1023.98px) {
 	.saro-hero-content {
 		/* همان منطق دسکتاپ، با عدد آویزِ موبایل */
-		padding-top: calc(var(--saro-logo-drop-m, 31px) + 3.5rem);
+		padding-top: calc(var(--saro-logo-drop-m, 36px) + 3.5rem);
 	}
 }
 
@@ -510,6 +518,88 @@ details[open] .saro-plus {
 		   باز هم تداخل داشت، کافی است عدد «آویز لوگو» را در پیشخوان کم کنید. */
 		padding-top: calc(var(--saro-logo-drop, 46px) + 7.5rem);
 	}
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   شکل‌های سنتی قالب: «کاشیِ» تذهیب‌دار و هشت‌ضلعیِ برش‌خورده
+   ─────────────────────────────────────────────────────────────────────────
+   قالب یک قالب مذهبی/سنتی است و باکس‌های مستطیلیِ ساده به آن نمی‌خورند.
+   دو ابزار اینجا داریم:
+
+   ۱) .saro-tile — قابِ تذهیب‌دار برای باکس‌های بزرگ (مثل کارت محصول).
+      با border-image به شکل ۹ تکه رسم می‌شود، پس گوشه‌های نگاره‌دار در هیچ
+      اندازه‌ای کشیده نمی‌شوند و فقط ضلع‌ها (که خط ساده‌اند) کش می‌آیند.
+      خودِ تصویر زمینهٔ کاغذی را هم می‌آورد (fill)، برای همین این عنصر نباید
+      background جدا داشته باشد وگرنه گوشه‌های برش‌خورده پر می‌شوند.
+
+   ۲) .saro-oct — هشت‌ضلعیِ برش‌خورده برای عنصرهای کوچک و رنگی (چیپ‌ها).
+      خط طلاییِ دور با یک لایهٔ زیرین ساخته می‌شود: خودِ عنصر طلایی است و
+      شبه‌عنصر ::before با ۱٫۵ پیکسل تورفتگی رنگِ اصلی را می‌گذارد؛ نتیجه یک
+      حاشیهٔ طلاییِ یکدست دور هشت‌ضلعی است (border معمولی روی clip-path
+      گوشه‌ها را ناقص می‌گذاشت).
+   ───────────────────────────────────────────────────────────────────────── */
+.saro-tile {
+	border-style: solid;
+	/* رنگ شفاف = اگر به هر دلیلی تصویر قاب لود نشد، حاشیهٔ سیاه پیش‌فرض نبینیم */
+	border-color: transparent;
+	border-width: 12px;
+	border-image-source: url('../img/tile-frame.svg');
+	border-image-slice: 30 fill;
+	border-image-width: 1;
+	border-image-repeat: stretch;
+}
+@media (min-width: 1024px) {
+	.saro-tile { border-width: 14px; }
+}
+
+.saro-oct {
+	--oct: 12px;
+	position: relative;
+	clip-path: polygon(
+		var(--oct) 0,
+		calc(100% - var(--oct)) 0,
+		100% var(--oct),
+		100% calc(100% - var(--oct)),
+		calc(100% - var(--oct)) 100%,
+		var(--oct) 100%,
+		0 calc(100% - var(--oct)),
+		0 var(--oct)
+	);
+}
+/* لایهٔ داخلی: رنگِ اصلی عنصر را با ۱٫۵px تورفتگی می‌گذارد تا دورش طلایی بماند */
+.saro-oct::before {
+	content: '';
+	position: absolute;
+	inset: 1.5px;
+	z-index: 0;
+	background: var(--saro-oct-fill, var(--teal));
+	clip-path: polygon(
+		calc(var(--oct) - 1.5px) 0,
+		calc(100% - var(--oct) + 1.5px) 0,
+		100% calc(var(--oct) - 1.5px),
+		100% calc(100% - var(--oct) + 1.5px),
+		calc(100% - var(--oct) + 1.5px) 100%,
+		calc(var(--oct) - 1.5px) 100%,
+		0 calc(100% - var(--oct) + 1.5px),
+		0 calc(var(--oct) - 1.5px)
+	);
+}
+.saro-oct > * {
+	position: relative;
+	z-index: 1;
+}
+
+/* نوار آیکون‌های اعتماد — قفل روی «نوار روشنِ پایین تصویر محراب»
+   ─────────────────────────────────────────────────────────────────────────
+   مرکز نوار روی درصدی از ارتفاع تصویر می‌نشیند (پیش‌فرض ۸۷٪ که مرکز نوار
+   روشنِ تصویر پیش‌فرض قالب است). چون واحد درصدی است، در هر عرض صفحه دقیقاً
+   همان نقطهٔ تصویر می‌ماند. اگر مدیر سایت تصویر هرو را عوض کند، این عدد از
+   پیشخوان → تب هدر قابل تنظیم است. */
+.saro-trustbar {
+	position: absolute;
+	inset-inline: 0;
+	top: var(--saro-trust-pos, 87%);
+	transform: translateY(-50%);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -583,12 +673,18 @@ details[open] .saro-plus {
    (--saro-logo-drop-m): آنجا تصویر هرو با object-cover کوتاه‌تر رندر
    می‌شود و گودیِ قوس بالاتر می‌افتد. */
 @media (max-width: 1023.98px) {
+	/* در موبایل کتیبه از جریانِ گرید بیرون کشیده می‌شود و دقیقاً وسطِ ردیف
+	   هدر می‌نشیند. دلیلش: ستون سمت راست (دکمهٔ منو) و ستون سمت چپ (سبد و
+	   جست‌وجو) هم‌عرض نیستند، پس ستون میانیِ گرید خودش وسطِ هدر نیست و لوگو
+	   به یک سمت متمایل می‌شد. چون کتیبه در حالت عادی هم کوتاه‌تر از دکمه‌های
+	   کنارش است، بیرون‌کشیدنش از جریان هیچ تغییری در ارتفاع هدر نمی‌دهد. */
 	.saro-logo-plaque {
-		position: relative;
-		z-index: 2;
-		align-self: start;
-		margin-bottom: calc(-1 * var(--saro-logo-drop-m, 31px));
-		padding: 6px 14px calc(var(--saro-logo-drop-m, 31px) * 0.42);
+		position: absolute;
+		z-index: 3;
+		top: 10px; /* برابر با padding بالای ردیف هدر (py-2.5) */
+		left: 50%;
+		transform: translateX(-50%);
+		padding: 6px 10px calc(var(--saro-logo-drop-m, 36px) * 0.42);
 		background: #fffdf7;
 		border: 1px solid var(--gold-line);
 		border-top: 0;
@@ -615,7 +711,7 @@ details[open] .saro-plus {
 .saro-logo-slot {
 	display: block;
 	position: relative;
-	width: clamp(132px, 34vw, 156px);
+	width: clamp(96px, 30vw, 156px);
 	height: 44px; /* ارتفاع ثابتِ مرجع؛ هرگز با اندازهٔ فایل لوگو تغییر نمی‌کند */
 	display: flex;
 	align-items: center;

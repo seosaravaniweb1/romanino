@@ -309,9 +309,29 @@ function saro_render_product_menu( string $layout = 'mega' ): void {
     endif;
 
     // ── مگامنوی دسکتاپ ──
+    /* اگر هیچ دسته‌ای زیرشاخه نداشته باشد، همهٔ دسته‌ها در یک ستون «سایر
+       بخش‌ها» جمع می‌شدند و پنل پهنِ مگامنو تقریباً خالی می‌ماند. اینجا آن
+       ستونِ بلند بین ستون‌های خالی پخش می‌شود تا پنل پر و متوازن دیده شود. */
+    $saro_mega_cols = array();
+    foreach ( $columns as $column ) {
+        if ( null === $column['term'] && count( $column['children'] ) > 4 ) {
+            $slots = max( 1, 4 - count( $saro_mega_cols ) );
+            $per   = (int) ceil( count( $column['children'] ) / $slots );
+            foreach ( array_chunk( $column['children'], $per ) as $chunk_i => $chunk ) {
+                $saro_mega_cols[] = array(
+                    'term'     => null,
+                    'children' => $chunk,
+                    'label'    => 0 === $chunk_i ? 'سایر بخش‌ها' : '',
+                );
+            }
+        } else {
+            $column['label']  = 'سایر بخش‌ها';
+            $saro_mega_cols[] = $column;
+        }
+    }
     ?>
-    <div class="grid gap-6" style="grid-template-columns: repeat(<?php echo (int) max( 1, count( $columns ) ); ?>, minmax(0, 1fr));">
-        <?php foreach ( $columns as $column ) :
+    <div class="grid gap-x-6 gap-y-2" style="grid-template-columns: repeat(<?php echo (int) max( 1, count( $saro_mega_cols ) ); ?>, minmax(0, 1fr));">
+        <?php foreach ( $saro_mega_cols as $column ) :
             $parent = $column['term'];
             ?>
             <div class="flex min-w-0 flex-col gap-2">
@@ -319,11 +339,17 @@ function saro_render_product_menu( string $layout = 'mega' ): void {
                     <a href="<?php echo esc_url( get_term_link( $parent ) ); ?>" class="border-b border-gold-hair pb-2 font-naskh text-[15px] font-bold text-teal hover:text-gold">
                         <?php echo esc_html( $parent->name ); ?>
                     </a>
+                <?php elseif ( ! empty( $column['label'] ) ) : ?>
+                    <span class="border-b border-gold-hair pb-2 font-naskh text-[15px] font-bold text-teal"><?php echo esc_html( $column['label'] ); ?></span>
                 <?php else : ?>
-                    <span class="border-b border-gold-hair pb-2 font-naskh text-[15px] font-bold text-teal">سایر بخش‌ها</span>
+                    <!-- ستون ادامهٔ همان فهرست: خط بالای ستون برای هم‌ترازی می‌ماند اما تیتر تکرار نمی‌شود -->
+                    <span class="border-b border-gold-hair pb-2 font-naskh text-[15px] font-bold text-transparent" aria-hidden="true">&nbsp;</span>
                 <?php endif; ?>
                 <?php foreach ( $column['children'] as $child ) : ?>
-                    <a href="<?php echo esc_url( get_term_link( $child ) ); ?>" class="truncate text-[13px] text-ink hover:text-gold"><?php echo esc_html( $child->name ); ?></a>
+                    <a href="<?php echo esc_url( get_term_link( $child ) ); ?>" class="flex min-w-0 items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] text-ink hover:bg-cream-2 hover:text-gold">
+                        <span class="text-[8px] text-gold" aria-hidden="true">◆</span>
+                        <span class="truncate"><?php echo esc_html( $child->name ); ?></span>
+                    </a>
                 <?php endforeach; ?>
             </div>
         <?php endforeach; ?>
@@ -464,4 +490,16 @@ function saro_flush_top_cats_cache(): void {
     global $wpdb;
     $wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", '\_transient\_saro\_top\_cats\_%' ) );
     $wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", '\_transient\_timeout\_saro\_top\_cats\_%' ) );
+}
+
+/**
+ * تبدیل رقم‌های فارسی/عربی به لاتین.
+ * جایی لازم می‌شود که مقداری را که مدیر سایت با کیبورد فارسی نوشته (مثلاً
+ * «۲۴۸» برای تعداد صفحات) باید به عدد تبدیل کنیم.
+ */
+function saro_fa_to_en_digits( string $value ): string {
+    $fa = array( '۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹' );
+    $ar = array( '٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩' );
+    $en = array( '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' );
+    return str_replace( array_merge( $fa, $ar ), array_merge( $en, $en ), $value );
 }

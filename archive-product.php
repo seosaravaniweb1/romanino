@@ -34,11 +34,27 @@ if ( $saro_is_taxonomy && $saro_queried ) {
     <section class="relative overflow-hidden border-b border-gold-hair bg-cream-2">
         <div class="saro-arabesque pointer-events-none absolute inset-0 opacity-50" style="mask-image: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent); -webkit-mask-image: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent);"></div>
         <div class="relative mx-auto max-w-saro px-6 pb-8 pt-6">
+            <?php
+            /* مسیر صفحه: برای برچسب‌ها و ویژگی‌های محصول یک پلهٔ میانی هم
+               اضافه می‌شود («برچسب» یا نامِ همان ویژگی) تا کاربر و گوگل
+               بدانند این آرشیو از چه نوعی است. */
+            $saro_crumb_mid = '';
+            if ( is_tax( 'product_tag' ) ) {
+                $saro_crumb_mid = 'برچسب';
+            } elseif ( $saro_is_taxonomy && $saro_queried && ! empty( $saro_queried->taxonomy )
+                && 0 === strpos( $saro_queried->taxonomy, 'pa_' ) ) {
+                $saro_crumb_mid = wc_attribute_label( $saro_queried->taxonomy );
+            }
+            ?>
             <nav aria-label="مسیر صفحه" class="flex flex-wrap items-center gap-2 text-[12.5px] text-muted-foreground">
                 <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="text-muted-foreground hover:text-gold">خانه</a>
                 <span class="text-gold">/</span>
                 <?php if ( ! is_shop() ) : ?>
                     <a href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>" class="text-muted-foreground hover:text-gold">فروشگاه</a>
+                    <span class="text-gold">/</span>
+                <?php endif; ?>
+                <?php if ( $saro_crumb_mid ) : ?>
+                    <span class="text-muted-foreground"><?php echo esc_html( $saro_crumb_mid ); ?></span>
                     <span class="text-gold">/</span>
                 <?php endif; ?>
                 <span class="text-teal"><?php echo esc_html( woocommerce_page_title( false ) ); ?></span>

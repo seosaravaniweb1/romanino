@@ -79,6 +79,15 @@ foreach ( $product->get_attributes() as $saro_attr ) {
 		$saro_attributes[ wc_attribute_label( $saro_attr->get_name(), $product ) ] = implode( '، ', $saro_attr_values );
 	}
 }
+/* مشخصاتِ عنوان‌دارِ خودِ قالب (نام نویسنده، فرمت فایل، تعداد صفحات، فرمت
+   کتاب، حجم فایل) اول جدول می‌آیند و بعد ویژگی‌های ووکامرس. مقدارشان متن
+   ساده است و چون این آرایه در خروجی با wp_kses_post چاپ می‌شود (به‌خاطر
+   لینک‌دارِ بودن ویژگی‌های تکسونومی ووکامرس)، همین‌جا escape می‌شوند. */
+$saro_theme_specs = array();
+foreach ( saro_get_product_specs_for_display( get_the_ID() ) as $saro_spec_label => $saro_spec_value ) {
+	$saro_theme_specs[ $saro_spec_label ] = esc_html( $saro_spec_value );
+}
+$saro_attributes = $saro_theme_specs + $saro_attributes;
 ?>
 
 <main id="saro-main" dir="rtl" class="saro-font">
