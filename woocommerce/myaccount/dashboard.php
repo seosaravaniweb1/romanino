@@ -13,24 +13,20 @@ $romanino_myacc_opts = function_exists( 'romanino_get_myaccount_options' ) ? rom
     </h2>
     <p class="mb-6 text-sm text-muted-foreground">به پنل کاربری رمانینو خوش آمدید.</p>
 
-    <?php if ( ! empty( $romanino_myacc_opts['dashboard_enabled'] ) && ( ! empty( $romanino_myacc_opts['dashboard_text'] ) || ! empty( $romanino_myacc_opts['dashboard_coupon'] ) ) ) : ?>
-    <!-- FIX: پیام/کد تخفیف قابل‌ویرایش از پیشخوان → تنظیمات قالب رمانینو → تب «پیشخوان مشتری» -->
-    <div class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary/10 p-4">
-        <?php if ( ! empty( $romanino_myacc_opts['dashboard_text'] ) ) : ?>
-            <div class="text-sm leading-relaxed text-foreground"><?php echo wp_kses_post( $romanino_myacc_opts['dashboard_text'] ); ?></div>
-        <?php endif; ?>
-        <?php if ( ! empty( $romanino_myacc_opts['dashboard_coupon'] ) ) : ?>
-            <span class="rounded-lg border border-dashed border-primary/50 bg-background px-3 py-1.5 text-sm font-bold text-primary" dir="ltr"><?php echo esc_html( $romanino_myacc_opts['dashboard_coupon'] ); ?></span>
-        <?php endif; ?>
-    </div>
-    <?php endif; ?>
+    <?php
+    /* بنر «پیام / کد تخفیف» عمداً اینجا نیست.
+       قبلاً هم این فایل و هم my-account.php هرکدام یک بنر می‌ساختند؛ نتیجه
+       این بود که در صفحه‌ی پیشخوان دو بنر پشت‌سرهم دیده می‌شد (یکی از
+       تنظیمات و یکی هاردکد). حالا تنها جای رندر آن my-account.php است تا در
+       همه‌ی صفحه‌های حساب کاربری یکسان و بدون تکرار نمایش داده شود. */
+    ?>
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div class="rounded-xl border border-border bg-secondary/30 p-4">
+        <div class="rounded-xl border border-border bg-secondary p-4">
             <p class="text-xs text-muted-foreground">تعداد سفارش‌ها</p>
             <p class="mt-1 text-xl font-extrabold text-foreground"><?php echo esc_html( $orders_count ); ?></p>
         </div>
-        <div class="rounded-xl border border-border bg-secondary/30 p-4">
+        <div class="rounded-xl border border-border bg-secondary p-4">
             <p class="text-xs text-muted-foreground">فایل‌های قابل دانلود</p>
             <p class="mt-1 text-xl font-extrabold text-foreground"><?php echo count( wc_get_customer_available_downloads( get_current_user_id() ) ); ?></p>
         </div>

@@ -5,9 +5,11 @@
         <header class="mb-8 text-center">
             <h1 class="text-2xl font-extrabold text-foreground md:text-3xl">
                 <?php
-                if ( is_search() ) {
-                    printf( 'نتایج جست‌وجو برای: «%s»', esc_html( get_search_query() ) );
-                } elseif ( is_category() ) {
+                /* FIX (کد مرده): شاخه‌ی is_search() از اینجا حذف شد. سلسله‌مراتب
+                   تمپلیت وردپرس برای هر جست‌وجویی همیشه search.php را انتخاب
+                   می‌کند و هرگز به archive.php نمی‌رسد، پس آن شاخه هیچ‌وقت
+                   اجرا نمی‌شد. */
+                if ( is_category() ) {
                     single_cat_title();
                 } elseif ( is_tag() ) {
                     single_tag_title();
@@ -16,8 +18,11 @@
                 }
                 ?>
             </h1>
-            <?php if ( ! is_search() ) : ?>
-                <p class="mt-2 text-sm text-muted-foreground"><?php the_archive_description(); ?></p>
+            <?php
+            $romanino_archive_desc = get_the_archive_description();
+            if ( $romanino_archive_desc ) :
+                ?>
+                <div class="mt-2 text-sm text-muted-foreground"><?php echo wp_kses_post( $romanino_archive_desc ); ?></div>
             <?php endif; ?>
         </header>
 

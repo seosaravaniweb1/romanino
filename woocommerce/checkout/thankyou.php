@@ -41,12 +41,12 @@ defined( 'ABSPATH' ) || exit;
 				</div>
 
 				<?php if ( ! empty( $guidance_steps ) ) : ?>
-					<div class="mx-auto mt-8 max-w-md rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-right">
-						<h2 class="mb-3 text-sm font-bold text-white">چرا این اتفاق می‌افتد و چه‌کار کنم؟</h2>
+					<div class="mx-auto mt-8 max-w-md rounded-2xl border border-ink/10 bg-ink/[0.03] p-5 text-right">
+						<h2 class="mb-3 text-sm font-bold text-ink">چرا این اتفاق می‌افتد و چه‌کار کنم؟</h2>
 						<ol class="space-y-2.5">
 							<?php foreach ( $guidance_steps as $i => $step ) : ?>
-								<li class="flex items-start gap-2.5 text-xs leading-relaxed text-slate-300">
-									<span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/10 text-[10px] font-bold text-slate-300"><?php echo esc_html( $i + 1 ); ?></span>
+								<li class="flex items-start gap-2.5 text-xs leading-relaxed text-ink-3">
+									<span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-ink/10 text-[10px] font-bold text-ink-3"><?php echo esc_html( $i + 1 ); ?></span>
 									<?php echo esc_html( $step ); ?>
 								</li>
 							<?php endforeach; ?>
@@ -67,17 +67,17 @@ defined( 'ABSPATH' ) || exit;
 				<p class="mt-2 text-sm text-muted-foreground">از خرید شما سپاسگزاریم. فایل‌های رمان شما هم‌اکنون آماده‌ی دانلود است.</p>
 
 				<!-- جزئیات سریع تراکنش -->
-				<div class="mt-8 flex flex-wrap justify-center gap-6 border-t border-white/10 pt-6 text-sm">
+				<div class="mt-8 flex flex-wrap justify-center gap-6 border-t border-ink/10 pt-6 text-sm">
 					<div class="flex flex-col items-center">
 						<span class="text-[11px] text-muted-foreground">شماره سفارش</span>
 						<strong class="font-mono text-gold mt-1">#<?php echo esc_html( $order->get_order_number() ); ?></strong>
 					</div>
-					<div class="h-8 w-px bg-white/10"></div>
+					<div class="h-8 w-px bg-ink/10"></div>
 					<div class="flex flex-col items-center">
 						<span class="text-[11px] text-muted-foreground">تاریخ</span>
 						<strong class="mt-1 text-foreground"><?php echo wc_format_datetime( $order->get_date_created() ); ?></strong>
 					</div>
-					<div class="h-8 w-px bg-white/10"></div>
+					<div class="h-8 w-px bg-ink/10"></div>
 					<div class="flex flex-col items-center">
 						<span class="text-[11px] text-muted-foreground">مبلغ پرداختی</span>
 						<strong class="mt-1 text-emerald-400"><?php echo wp_kses_post( $order->get_formatted_order_total() ); ?></strong>
@@ -87,7 +87,7 @@ defined( 'ABSPATH' ) || exit;
 
 			<!-- باکس دانلود فایل‌ها -->
 			<div class="mb-8">
-				<h2 class="mb-4 flex items-center gap-2 text-lg font-extrabold text-white">
+				<h2 class="mb-4 flex items-center gap-2 text-lg font-extrabold text-ink">
 					<span class="text-gold">📥</span> لینک‌های دانلود شما
 				</h2>
 				
@@ -108,16 +108,16 @@ defined( 'ABSPATH' ) || exit;
 						?>
 						<div class="glass flex flex-col justify-between gap-3 rounded-2xl p-4 transition-transform hover:-translate-y-1">
 							<div class="flex gap-3">
-								<img src="<?php echo esc_url( $image_url ); ?>" class="h-16 w-12 rounded bg-slate-900 object-cover shadow-sm" alt="">
+								<img src="<?php echo esc_url( $image_url ); ?>" class="h-16 w-12 rounded bg-slate-900 object-cover shadow-sm" alt="" loading="lazy" decoding="async" width="48" height="64">
 								<div class="min-w-0">
 									<h3 class="truncate text-sm font-bold text-foreground"><?php echo esc_html( $download['product_name'] ); ?></h3>
 									<p class="mt-1 text-[11px] text-muted-foreground">فایل: <?php echo esc_html( $download['download_name'] ); ?></p>
-									<span class="mt-1 inline-block rounded bg-cyan-glow/10 px-2 py-0.5 text-[10px] text-cyan-glow"><?php echo $format_label; ?></span>
+									<span class="mt-1 inline-block rounded bg-cyan-glow/10 px-2 py-0.5 text-[10px] text-cyan-glow"><?php echo esc_html( $format_label ); ?></span>
 								</div>
 							</div>
 							
 							<!-- استفاده از download attribute برای جلوگیری از باز شدن ناخواسته فایل در تب مرورگر -->
-							<a href="<?php echo esc_url( $download['download_url'] ); ?>" download rel="noopener noreferrer" class="flex w-full items-center justify-center gap-2 rounded-xl bg-gold py-2.5 text-xs font-bold text-background transition-all hover:brightness-110">
+							<a href="<?php echo esc_url( $download['download_url'] ); ?>" download rel="noopener noreferrer" class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-xs font-bold text-primary-foreground transition-all hover:brightness-110">
 								دانلود مستقیم
 							</a>
 						</div>
@@ -131,6 +131,54 @@ defined( 'ABSPATH' ) || exit;
 					<div class="glass rounded-2xl p-6 text-center text-sm text-muted-foreground">
 						سفارش شما در حال بررسی است. پس از تأیید نهایی، لینک‌های دانلود در <a href="<?php echo esc_url( wc_get_account_endpoint_url( 'downloads' ) ); ?>" class="text-primary hover:underline">پنل کاربری شما</a> قرار می‌گیرند.
 					</div>
+				<?php endif; ?>
+			</div>
+
+			<?php
+			/* ═════════════════════════════════════════════════════════════════
+			   شبکه‌ی ایمنی دسترسی به فایل
+			   ─────────────────────────────────────────────────────────────────
+			   چرا لازم است: صفحه‌ی جاری تنها جایی است که کاربر بلافاصله پس از
+			   پرداخت می‌بیند و معمولاً همین را می‌بندد. دو مسیر دیگر هم
+			   می‌توانند هم‌زمان بسته باشند:
+
+			     • ایمیل: کاربرانی که با کد پیامکی ثبت‌نام کرده‌اند ایمیل واقعی
+			       ندارند و آدرسشان ساختگی است، پس ایمیل حاوی لینک به جایی
+			       نمی‌رسد.
+			     • پنل کاربری: بعضی درگاه‌ها کاربر را با POST بین‌دامنه‌ای
+			       برمی‌گردانند و در آن حالت کوکی ورود ارسال نمی‌شود، پس کاربر
+			       اینجا «مهمان» دیده می‌شود.
+
+			   بنابراین اینجا صراحتاً یک لینک دائمیِ بدون‌نیاز‌به‌ورود به همین
+			   سفارش داده می‌شود، و اگر کاربر لاگین نیست راهنمایی می‌شود.
+			   ═════════════════════════════════════════════════════════════════ */
+			$romanino_order_link = function_exists( 'romanino_order_permalink' )
+				? romanino_order_permalink( $order )
+				: $order->get_checkout_order_received_url();
+			?>
+			<div class="glass rounded-2xl p-5 text-sm leading-relaxed text-ink-3">
+				<p class="mb-3 font-bold text-ink">این صفحه را برای خودتان نگه دارید</p>
+				<p class="mb-3">
+					آدرس زیر لینک دائمی همین سفارش است و برای دریافت فایل‌ها
+					<strong class="text-ink">نیازی به ورود دوباره ندارد</strong>.
+					آن را ذخیره کنید یا برای خودتان بفرستید:
+				</p>
+				<code class="mb-4 block select-all overflow-x-auto whitespace-nowrap rounded-lg border border-ink/10 bg-ink/5 px-3 py-2 text-xs" dir="ltr"><?php echo esc_html( $romanino_order_link ); ?></code>
+
+				<?php if ( is_user_logged_in() ) : ?>
+					<a href="<?php echo esc_url( wc_get_account_endpoint_url( 'downloads' ) ); ?>" class="font-bold text-gold hover:underline">
+						همه‌ی فایل‌های من در پنل کاربری ←
+					</a>
+				<?php else : ?>
+					<p class="mb-3 rounded-lg border border-ink/10 bg-ink/5 px-3 py-2 text-xs">
+						توجه: به‌نظر می‌رسد هنگام بازگشت از درگاه پرداخت از حساب خود خارج شده‌اید.
+						این موضوع روی خرید شما هیچ تأثیری ندارد و لینک‌های بالا کار می‌کنند.
+						برای دیدن همیشگی فایل‌ها می‌توانید دوباره وارد شوید.
+					</p>
+					<a href="<?php echo esc_url( add_query_arg( 'redirect_to', rawurlencode( wc_get_account_endpoint_url( 'downloads' ) ), wc_get_page_permalink( 'myaccount' ) ) ); ?>"
+						class="font-bold text-gold hover:underline">
+						ورود به حساب کاربری ←
+					</a>
 				<?php endif; ?>
 			</div>
 

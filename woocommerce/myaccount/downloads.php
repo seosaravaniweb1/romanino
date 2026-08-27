@@ -31,7 +31,7 @@ $has_downloads = ! empty( $downloads );
 
 		<!-- حالت خالی -->
 		<div class="glass flex flex-col items-center gap-4 rounded-2xl px-6 py-14 text-center">
-			<span class="flex h-16 w-16 items-center justify-center rounded-2xl bg-gold/10 text-gold ring-1 ring-gold/30">
+			<span class="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-gold ring-1 ring-primary/30">
 				<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
 			</span>
 			<p class="text-sm font-semibold text-foreground">هیچ دانلودی در دسترس نیست.</p>
@@ -39,7 +39,7 @@ $has_downloads = ! empty( $downloads );
 				بعد از خرید هر رمان، فایل پی‌دی‌اف یا نسخه‌ی صوتی آن همین‌جا در دسترس شما قرار می‌گیرد.
 			</p>
 			<a href="<?php echo esc_url( get_post_type_archive_link( 'product' ) ); ?>"
-				class="glow-gold mt-2 rounded-xl bg-gold px-6 py-2.5 text-sm font-bold text-background transition-all hover:brightness-110">
+				class="glow-gold mt-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground transition-all hover:brightness-110">
 				مرور محصولات
 			</a>
 		</div>
@@ -71,7 +71,7 @@ $has_downloads = ! empty( $downloads );
 					</div>
 
 					<a href="<?php echo esc_url( $download['download_url'] ); ?>"
-						class="flex items-center justify-center gap-2 rounded-xl bg-gold py-2.5 text-xs font-bold text-background transition-all hover:brightness-110">
+						class="flex items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-xs font-bold text-primary-foreground transition-all hover:brightness-110">
 						<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
 						دانلود فایل
 					</a>

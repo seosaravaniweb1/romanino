@@ -48,5 +48,15 @@
     background: #fff;
     padding: 2px;
 }
+/* ردیف شبکه اجتماعی: عنوان کوتاه، لینک بلند، بعد آپلودر آیکون */
+.romanino-repeater-row-social input[type="text"]:first-child { flex: 1 1 160px; }
+.romanino-repeater-row-social input[type="text"]:nth-child(2) { flex: 2 1 260px; }
+
+/* پنل تب‌ها — جابه‌جایی سمت کلاینت، بدون بارگذاری مجدد صفحه.
+   استفاده از خودِ صفت hidden به‌جای یک کلاس سفارشی یعنی اگر جاوااسکریپت
+   اجرا نشود، مرورگر همچنان پنل‌های غیرفعال را پنهان نگه می‌دارد. */
+.romanino-admin-wrap [data-romanino-panel][hidden] { display: none; }
+.romanino-admin-wrap .romanino-tab-nav .nav-tab { cursor: pointer; }
+
 .romanino-repeater-row .button-hero,
 .romanino-admin-form .button-hero { margin-top: 10px; }

@@ -42,7 +42,7 @@
                 </div>
             <?php endif; ?>
 
-            <div class="prose prose-sm md:prose-base max-w-none text-justify leading-loose text-foreground">
+            <div class="rmn-prose text-justify">
                 <?php the_content(); ?>
             </div>
 

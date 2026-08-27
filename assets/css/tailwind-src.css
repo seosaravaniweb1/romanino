@@ -44,28 +44,118 @@
 	font-display: swap;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════
+   توکن‌های رنگ — تنها منبع حقیقت
+   ─────────────────────────────────────────────────────────────────────────
+   هر رنگ دو نمایش دارد:
+
+     --c-xxx   کانال‌های خام RGB («234 179 8»). این چیزی است که
+               tailwind.config.js با placeholder <alpha-value> مصرف می‌کند.
+               بدون این فرمت، Tailwind هیچ کلاسی با اصلاح‌گر شفافیت تولید
+               نمی‌کند — دلیل اینکه پیش از این هر ۸۳ کاربردِ الگوهایی مثل
+               bg-primary/90 و ring-primary/40 در قالب کاملاً بی‌اثر بودند.
+
+     --xxx     رنگ آماده‌ی مصرف («rgb(234 179 8)») برای CSS دست‌نویسِ همین
+               فایل. از روی همان کانال مشتق می‌شود، پس هیچ‌وقت از هم جدا
+               نمی‌افتند.
+
+   حالت روشن فقط همین کانال‌ها را بازتعریف می‌کند (بخش html.light پایین‌تر).
+   ═════════════════════════════════════════════════════════════════════════ */
+
 :root {
 	color-scheme: dark;
-	--background: #0b0514;
-	--foreground: #f8fafc;
-	--card: rgba(15, 7, 38, 0.75);
-	--popover: #0f0726;
-	--primary: #eab308;
-	--primary-foreground: #1a1206;
-	--gold: #eab308;
-	--cyan-glow: #06b6d4;
-	--emerald-glow: #10b981;
-	--secondary: rgba(255, 255, 255, 0.06);
-	--secondary-foreground: #f8fafc;
-	--muted: rgba(255, 255, 255, 0.05);
-	--muted-foreground: #94a3b8;
-	--accent: rgba(255, 255, 255, 0.08);
-	--accent-foreground: #f8fafc;
-	--border: rgba(255, 255, 255, 0.1);
-	--input: rgba(255, 255, 255, 0.08);
-	--ring: #eab308;
-	--destructive: #ef4444;
-	--destructive-foreground: #fef2f2;
+
+	/* ── پایه ─────────────────────────────────────────────────────────── */
+	--c-background: 11 5 20;
+	--c-foreground: 248 250 252;
+	--c-popover: 15 7 38;
+	--c-primary: 234 179 8;
+	--c-primary-foreground: 26 18 6;
+	--c-secondary: 255 255 255;
+	--c-secondary-foreground: 248 250 252;
+	--c-muted: 255 255 255;
+	--c-muted-foreground: 148 163 184;
+	--c-accent: 255 255 255;
+	--c-accent-foreground: 248 250 252;
+	--c-border: 255 255 255;
+	--c-input: 255 255 255;
+	--c-ring: 234 179 8;
+	--c-destructive: 239 68 68;
+	--c-destructive-foreground: 254 242 242;
+
+	/* ── برند ─────────────────────────────────────────────────────────── */
+	--c-gold: 234 179 8;
+	--c-cyan-glow: 6 182 212;
+	--c-emerald-glow: 16 185 129;
+
+	/* ── مقیاس سطوح (همان رنگ‌های ثابتِ قبلیِ تمپلیت‌ها) ─────────────────── */
+	--c-surface: 11 5 20;              /* #0b0514 */
+	--c-surface-card: 15 7 38;         /* #0f0726 */
+	--c-surface-nav: 10 4 24;          /* #0a0418 */
+	--c-surface-deep: 8 3 15;          /* #08030f */
+	--c-surface-alt: 21 10 43;         /* #150a2b */
+	--c-surface-input: 26 14 53;       /* #1a0e35 */
+	--c-surface-input-focus: 35 19 71; /* #231347 */
+
+	/* ── مقیاس مرکب: متن روی سطوح + خطوط و لایه‌های شفاف ─────────────────── */
+	--c-ink: 255 255 255;
+	--c-ink-2: 226 232 240;   /* slate-200 */
+	--c-ink-3: 203 213 225;   /* slate-300 */
+	--c-ink-muted: 148 163 184;  /* slate-400 */
+	--c-ink-faint: 100 116 139;  /* slate-500 */
+	--c-ink-fainter: 71 85 105;  /* slate-600 */
+
+	/* ── نسخه‌ی آماده‌ی مصرف برای CSS دست‌نویس ──────────────────────────── */
+	--background: rgb(var(--c-background));
+	--foreground: rgb(var(--c-foreground));
+	--popover: rgb(var(--c-popover));
+	--primary: rgb(var(--c-primary));
+	--primary-foreground: rgb(var(--c-primary-foreground));
+	--gold: rgb(var(--c-gold));
+	--cyan-glow: rgb(var(--c-cyan-glow));
+	--emerald-glow: rgb(var(--c-emerald-glow));
+	--muted-foreground: rgb(var(--c-muted-foreground));
+	--destructive: rgb(var(--c-destructive));
+	--ring: rgb(var(--c-ring));
+
+	/* توکن‌هایی که ذاتاً نیمه‌شفاف‌اند */
+	--card: rgb(var(--c-surface-card) / 0.75);
+	--secondary: rgb(var(--c-secondary) / 0.06);
+	--muted: rgb(var(--c-muted) / 0.05);
+	--accent: rgb(var(--c-accent) / 0.08);
+	--border: rgb(var(--c-border) / 0.1);
+	--input: rgb(var(--c-input) / 0.08);
+
+	/* سطوح و مرکب — نسخه‌ی آماده */
+	--surface-base: rgb(var(--c-surface));
+	--surface-card: rgb(var(--c-surface-card));
+	--surface-nav: rgb(var(--c-surface-nav));
+	--surface-deep: rgb(var(--c-surface-deep));
+	--surface-alt: rgb(var(--c-surface-alt));
+	--surface-input: rgb(var(--c-surface-input));
+	--surface-input-focus: rgb(var(--c-surface-input-focus));
+
+	--on-surface: rgb(var(--c-ink));
+	--on-surface-2: rgb(var(--c-ink-2));
+	--on-surface-3: rgb(var(--c-ink-3));
+	--on-surface-muted: rgb(var(--c-ink-muted));
+	--on-surface-faint: rgb(var(--c-ink-faint));
+	--on-surface-fainter: rgb(var(--c-ink-fainter));
+
+	--hairline: rgb(var(--c-ink) / 0.1);
+	--hairline-soft: rgb(var(--c-ink) / 0.05);
+	--tint-1: rgb(var(--c-ink) / 0.03);
+	--tint-2: rgb(var(--c-ink) / 0.05);
+	--tint-3: rgb(var(--c-ink) / 0.1);
+
+	--glass-bg: rgb(var(--c-surface-card) / 0.6);
+	--glass-border: rgb(var(--c-ink) / 0.1);
+
+	/* رنگ برند وقتی «متن» است (در حالت روشن تیره‌تر می‌شود) */
+	--brand-gold-text: rgb(var(--c-gold));
+	--brand-cyan-text: rgb(var(--c-cyan-glow));
+	--brand-emerald-text: rgb(var(--c-emerald-glow));
+
 	--radius: 1rem;
 }
 
@@ -188,10 +278,839 @@ input[type="search"]::-webkit-search-cancel-button {
 	display: none;
 }
 
-/* FIX (Task 1.3 — سوییچ روشن/تاریک): نسخه‌ی منبع همان قانون‌های اضافه‌شده
-   به tailwind-build.css؛ اگر روزی build دوباره اجرا شود، این بخش هم باید
-   با آن هماهنگ باشد (این فایل توسط فرآیند build بازتولید می‌شود، پس این
-   بلوک را عیناً هم به‌عنوان مرجع نگه می‌داریم). */
+/* ═════════════════════════════════════════════════════════════════════════
+   تایپوگرافی محتوا (.rmn-prose)
+   ─────────────────────────────────────────────────────────────────────────
+   FIX (باگ قابل‌مشاهده): سه تمپلیت (single.php، archive-product.php،
+   taxonomy-product_cat.php) از کلاس‌های «prose prose-sm / prose-base»
+   استفاده می‌کردند. آن کلاس‌ها متعلق به افزونه‌ی @tailwindcss/typography
+   هستند که «نه در package.json نصب است و نه در tailwind.config.js به
+   plugins اضافه شده». یعنی هیچ‌کدام از آن کلاس‌ها اصلاً در CSS ساخته
+   نمی‌شد و کاملاً بی‌اثر بودند.
+
+   نتیجه‌ی عملی: خروجی the_content() — یعنی متن هر نوشته‌ی وبلاگ و توضیحات
+   سئوی هر آرشیو — با تایپوگرافی پیش‌فرض مرورگر رندر می‌شد: پاراگراف‌ها
+   بدون فاصله، لیست‌ها بدون بولت، هدینگ‌ها با اندازه‌ی پیش‌فرض، و لینک‌ها
+   آبیِ پیش‌فرض روی پس‌زمینه‌ی تیره (کنتراست بسیار پایین).
+
+   به‌جای اضافه‌کردن یک وابستگی npm جدید (که حجم بیلد را زیاد می‌کند و
+   پالت خودش را می‌آورد)، این کامپوننت سبک نوشته شد. چون همه‌ی رنگ‌هایش از
+   متغیرهای سطح می‌آید، در هر دو حالت تیره و روشن درست کار می‌کند.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.rmn-prose {
+	color: var(--on-surface-3);
+	font-size: 0.9375rem;
+	line-height: 2.1;
+	word-break: break-word;
+}
+.rmn-prose > :first-child { margin-top: 0; }
+.rmn-prose > :last-child { margin-bottom: 0; }
+
+.rmn-prose p { margin: 0 0 1.15em; }
+
+.rmn-prose h1,
+.rmn-prose h2,
+.rmn-prose h3,
+.rmn-prose h4,
+.rmn-prose h5,
+.rmn-prose h6 {
+	color: var(--on-surface);
+	font-weight: 800;
+	line-height: 1.6;
+	margin: 1.8em 0 0.7em;
+}
+.rmn-prose h1 { font-size: 1.6em; }
+.rmn-prose h2 { font-size: 1.35em; }
+.rmn-prose h3 { font-size: 1.15em; }
+.rmn-prose h4,
+.rmn-prose h5,
+.rmn-prose h6 { font-size: 1em; }
+
+.rmn-prose a {
+	color: #eab308;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	text-decoration-thickness: 1px;
+	transition: color 0.15s;
+}
+.rmn-prose a:hover { color: #06b6d4; }
+html.light .rmn-prose a { color: var(--brand-gold-text); }
+html.light .rmn-prose a:hover { color: var(--brand-cyan-text); }
+
+.rmn-prose strong,
+.rmn-prose b { color: var(--on-surface); font-weight: 700; }
+
+.rmn-prose ul,
+.rmn-prose ol { margin: 0 0 1.15em; padding-right: 1.4em; padding-left: 0; }
+.rmn-prose ul { list-style: disc; }
+.rmn-prose ol { list-style: decimal; }
+.rmn-prose li { margin-bottom: 0.45em; }
+.rmn-prose li::marker { color: #eab308; }
+.rmn-prose ul ul,
+.rmn-prose ol ol { margin-top: 0.45em; margin-bottom: 0; }
+
+.rmn-prose blockquote {
+	margin: 1.5em 0;
+	padding: 0.85em 1.15em;
+	border-right: 3px solid #eab308;
+	border-radius: 0 0.75rem 0.75rem 0;
+	background: var(--tint-2);
+	color: var(--on-surface-2);
+}
+.rmn-prose blockquote p:last-child { margin-bottom: 0; }
+
+.rmn-prose img,
+.rmn-prose figure { max-width: 100%; height: auto; border-radius: 0.85rem; margin: 1.5em auto; }
+.rmn-prose figcaption {
+	margin-top: 0.6em;
+	font-size: 0.8em;
+	color: var(--on-surface-faint);
+	text-align: center;
+}
+
+.rmn-prose hr { margin: 2em 0; border: 0; border-top: 1px solid var(--hairline); }
+
+/* جدول‌ها روی موبایل باید افقی اسکرول شوند، نه اینکه صفحه را بشکنند */
+.rmn-prose table {
+	width: 100%;
+	margin: 1.5em 0;
+	border-collapse: collapse;
+	font-size: 0.9em;
+	display: block;
+	overflow-x: auto;
+}
+.rmn-prose th,
+.rmn-prose td {
+	padding: 0.6em 0.85em;
+	border: 1px solid var(--hairline);
+	text-align: right;
+}
+.rmn-prose th { background: var(--tint-2); color: var(--on-surface); font-weight: 700; }
+
+.rmn-prose code {
+	padding: 0.15em 0.4em;
+	border-radius: 0.35rem;
+	background: var(--tint-3);
+	color: #eab308;
+	font-size: 0.875em;
+	direction: ltr;
+	display: inline-block;
+}
+.rmn-prose pre {
+	margin: 1.5em 0;
+	padding: 1em 1.15em;
+	border-radius: 0.85rem;
+	background: var(--surface-input);
+	border: 1px solid var(--hairline);
+	overflow-x: auto;
+	direction: ltr;
+	text-align: left;
+}
+.rmn-prose pre code { background: none; padding: 0; color: var(--on-surface-2); }
+
+/* نسخه‌ی کوچک‌تر برای باکس توضیحات سئو در آرشیوها */
+.rmn-prose-sm { font-size: 0.875rem; line-height: 2; }
+.rmn-prose-sm h2 { font-size: 1.2em; }
+.rmn-prose-sm h3 { font-size: 1.05em; }
+
+/* ═════════════════════════════════════════════════════════════════════════
+   متن جمع‌شونده با محو تدریجی (.rmn-collapse)
+   ─────────────────────────────────────────────────────────────────────────
+   برای متن‌های طولانیِ سئو که نباید اسکرول صفحه را بلند کنند.
+
+   نکته‌ی طراحی: به‌جای گذاشتن یک لایه‌ی گرادیانِ رنگی روی متن (که باید رنگش
+   دقیقاً با پس‌زمینه یکی باشد و در حالت روشن/تیره و روی .glass نیمه‌شفاف
+   عملاً غیرممکن است)، از mask-image استفاده می‌شود: خودِ متن به‌تدریج شفاف
+   می‌شود. نتیجه در هر دو تم و روی هر پس‌زمینه‌ای درست است.
+
+   وضعیت پیش‌فرض «باز» است؛ جمع‌شدن فقط با data-rmn-collapsed="true" فعال
+   می‌شود که جاوااسکریپت بعد از اندازه‌گیری ارتفاع واقعی می‌گذارد. پس اگر JS
+   اجرا نشود، متن کامل و بدون محو دیده می‌شود.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+/* هم‌رنگ‌کردن متن با طراحی قبلی این باکس (text-ink-muted / leading-relaxed).
+   لازم است چون .rmn-prose بعد از لایه‌ی utilities تعریف شده و رنگ خودش را
+   روی کلاس‌های Tailwind هم‌سطح (مثل text-ink-muted) تحمیل می‌کند. */
+.rmn-prose.rmn-prose-muted {
+	color: var(--on-surface-muted);
+	line-height: 1.9;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   فرم انتخاب نسخه در محصول متغیر (.romanino-variations)
+   ─────────────────────────────────────────────────────────────────────────
+   مارک‌آپ این فرم را خود ووکامرس می‌سازد (جدول .variations، انتخابگرها،
+   قیمت پویا و دکمه‌ی افزودن)، پس نمی‌شود رویش کلاس Tailwind گذاشت و باید
+   از اینجا استایل بگیرد. رنگ‌ها از توکن‌های سطح می‌آیند تا در حالت روشن و
+   تیره درست باشند.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.romanino-variations .variations {
+	width: 100%;
+	border-collapse: collapse;
+	margin-bottom: 1rem;
+}
+.romanino-variations .variations tr { display: block; margin-bottom: 0.85rem; }
+.romanino-variations .variations th,
+.romanino-variations .variations td { display: block; padding: 0; text-align: right; }
+
+.romanino-variations .variations th.label label {
+	display: block;
+	margin-bottom: 0.4rem;
+	font-size: 0.8125rem;
+	font-weight: 700;
+	color: var(--on-surface-2);
+}
+
+.romanino-variations .variations select {
+	width: 100%;
+	padding: 0.7rem 0.9rem;
+	border: 1px solid var(--hairline);
+	border-radius: 0.75rem;
+	background-color: var(--surface-input);
+	color: var(--on-surface);
+	font-family: inherit;
+	font-size: 0.875rem;
+	outline: none;
+	transition: border-color 0.15s, background-color 0.15s;
+}
+.romanino-variations .variations select:focus {
+	border-color: rgb(var(--c-primary) / 0.6);
+	background-color: var(--surface-input-focus);
+}
+
+.romanino-variations .reset_variations {
+	display: inline-block;
+	margin-top: 0.35rem;
+	font-size: 0.75rem;
+	color: var(--on-surface-muted);
+	text-decoration: none;
+}
+.romanino-variations .reset_variations:hover { color: var(--brand-gold-text); }
+
+/* قیمت تنوع انتخاب‌شده (ووکامرس با جاوااسکریپت پرش می‌کند) */
+.romanino-variations .woocommerce-variation-price {
+	margin-bottom: 0.85rem;
+	font-size: 1.35rem;
+	font-weight: 800;
+	color: var(--brand-gold-text);
+}
+.romanino-variations .woocommerce-variation-availability {
+	margin-bottom: 0.7rem;
+	font-size: 0.8125rem;
+	color: var(--on-surface-muted);
+}
+.romanino-variations .woocommerce-variation-description {
+	font-size: 0.8125rem;
+	line-height: 1.9;
+	color: var(--on-surface-muted);
+}
+
+/* تعداد را پنهان می‌کنیم: هر رمان دیجیتال یک‌بار خریده می‌شود. */
+.romanino-variations .quantity { display: none; }
+
+.romanino-variations .single_add_to_cart_button {
+	display: block;
+	width: 100%;
+	padding: 0.9rem 1rem;
+	border: 0;
+	border-radius: 0.85rem;
+	background: rgb(var(--c-primary));
+	color: rgb(var(--c-primary-foreground));
+	font-family: inherit;
+	font-weight: 800;
+	font-size: 0.9375rem;
+	cursor: pointer;
+	transition: filter 0.15s, transform 0.1s;
+	box-shadow: 0 0 24px -8px rgb(var(--c-primary) / 0.6);
+}
+.romanino-variations .single_add_to_cart_button:hover { filter: brightness(1.08); }
+.romanino-variations .single_add_to_cart_button:active { transform: scale(0.99); }
+.romanino-variations .single_add_to_cart_button.disabled,
+.romanino-variations .single_add_to_cart_button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	box-shadow: none;
+}
+
+/* پیام «این ترکیب موجود نیست» */
+.romanino-variations .stock.out-of-stock,
+.romanino-variations .wc-no-matching-variations {
+	padding: 0.7rem 0.9rem;
+	border-radius: 0.65rem;
+	background: rgb(239 68 68 / 0.1);
+	color: #fca5a5;
+	font-size: 0.8125rem;
+}
+html.light .romanino-variations .stock.out-of-stock,
+html.light .romanino-variations .wc-no-matching-variations {
+	background: rgb(220 38 38 / 0.08);
+	color: #7f1d1d;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   دکمه‌ی «خروج از حساب» (.rmn-logout-btn)
+   ─────────────────────────────────────────────────────────────────────────
+   FIX (گزارش‌شده: «دکمه‌ی خروج اصلاً نیست»): دکمه از قبل وجود داشت، ولی با
+   کلاس‌های ثابت text-red-400 روی bg-red-500/10 ساخته شده بود. در حالت تیره
+   خوانا بود (کنتراست ۶٫۵۸) اما در حالت روشن به ۲٫۳۹ می‌رسید — یعنی عملاً
+   نامرئی. کاربر فکر می‌کرد چنین دکمه‌ای وجود ندارد.
+   حالا رنگ‌ها برای هر دو حالت صریح تعریف می‌شوند.
+   ═════════════════════════════════════════════════════════════════════════ */
+.rmn-logout-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+	border: 1px solid rgb(239 68 68 / 0.35);
+	background-color: rgb(239 68 68 / 0.12);
+	color: #fca5a5;               /* red-300 روی زمینه‌ی تیره */
+	transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+.rmn-logout-btn:hover {
+	background-color: rgb(239 68 68 / 0.2);
+	border-color: rgb(239 68 68 / 0.55);
+	color: #fecaca;
+}
+html.light .rmn-logout-btn {
+	border-color: rgb(153 27 27 / 0.35);
+	background-color: rgb(220 38 38 / 0.07);
+	/* red-800 نه red-700: با red-700 کنتراست ۴٫۲۱ می‌شد که هنوز زیر حد
+	   استاندارد ۴٫۵ است. با این مقدار به ۶٫۲ می‌رسد. */
+	color: #7f1d1d;
+}
+html.light .rmn-logout-btn:hover {
+	background-color: rgb(220 38 38 / 0.13);
+	border-color: rgb(153 27 27 / 0.55);
+	color: #641414;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   چک‌اوت یک‌صفحه‌ای — استایل مارک‌آپی که خودِ ووکامرس تولید می‌کند
+   ─────────────────────────────────────────────────────────────────────────
+   جدول جمع سفارش و لیست درگاه‌ها را ووکامرس می‌سازد، نه تمپلیت قالب. پس
+   نمی‌شود روی آن‌ها کلاس Tailwind گذاشت و باید از این‌جا استایل بگیرند.
+   همه‌ی رنگ‌ها از توکن‌های سطح می‌آیند تا در حالت روشن و تیره درست باشند.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+/* ── جدول جمع سفارش ─────────────────────────────────────────────────────── */
+.romanino-order-review table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.875rem;
+}
+
+/* ردیف‌های تک‌تک رمان‌ها عمداً پنهان می‌شوند: سبد خرید همین بالا و با تصویر
+   نمایش داده شده و تکرارش فقط صفحه را شلوغ می‌کند. اینجا فقط مبالغ می‌ماند. */
+.romanino-order-review thead,
+.romanino-order-review tr.cart_item {
+	display: none;
+}
+
+.romanino-order-review th,
+.romanino-order-review td {
+	padding: 0.7rem 0;
+	text-align: right;
+	border-bottom: 1px solid var(--hairline-soft);
+	color: var(--on-surface-2);
+	font-weight: 500;
+}
+.romanino-order-review td { text-align: left; }
+
+.romanino-order-review tr:last-child th,
+.romanino-order-review tr:last-child td {
+	border-bottom: 0;
+	padding-bottom: 0;
+}
+
+.romanino-order-review tr.order-total th,
+.romanino-order-review tr.order-total td {
+	padding-top: 0.9rem;
+	border-top: 1px solid var(--hairline);
+	color: var(--on-surface);
+	font-weight: 800;
+	font-size: 1rem;
+}
+.romanino-order-review tr.order-total td { color: var(--brand-gold-text); }
+.romanino-order-review .woocommerce-Price-amount { white-space: nowrap; }
+
+/* ── لیست درگاه‌های پرداخت ───────────────────────────────────────────────── */
+.romanino-order-review #payment ul.wc_payment_methods {
+	list-style: none;
+	margin: 0 0 1rem;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+}
+
+.romanino-order-review #payment li.wc_payment_method {
+	border: 1px solid var(--hairline);
+	border-radius: 0.85rem;
+	background: var(--tint-1);
+	padding: 0.9rem 1rem;
+	transition: border-color 0.15s, background-color 0.15s;
+}
+.romanino-order-review #payment li.wc_payment_method:hover {
+	border-color: rgb(var(--c-primary) / 0.4);
+}
+
+.romanino-order-review #payment li.wc_payment_method label {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	cursor: pointer;
+	font-weight: 700;
+	color: var(--on-surface);
+	margin: 0;
+}
+.romanino-order-review #payment li.wc_payment_method input[type='radio'] {
+	accent-color: rgb(var(--c-primary));
+	width: 1.05rem;
+	height: 1.05rem;
+	flex-shrink: 0;
+}
+.romanino-order-review #payment li.wc_payment_method label img {
+	max-height: 28px;
+	width: auto;
+	margin-right: auto;   /* لوگوی درگاه به لبه‌ی مقابل می‌چسبد */
+}
+
+/* توضیح هر درگاه */
+.romanino-order-review #payment .payment_box {
+	margin: 0.7rem 0 0;
+	padding: 0.7rem 0.9rem;
+	border-radius: 0.65rem;
+	background: var(--tint-2);
+	font-size: 0.8125rem;
+	line-height: 1.9;
+	color: var(--on-surface-muted);
+}
+.romanino-order-review #payment .payment_box p:last-child { margin-bottom: 0; }
+
+/* متن حریم خصوصی ووکامرس */
+.romanino-order-review #payment .woocommerce-privacy-policy-text {
+	font-size: 0.75rem;
+	line-height: 1.9;
+	color: var(--on-surface-muted);
+	margin-bottom: 1rem;
+}
+.romanino-order-review #payment .woocommerce-privacy-policy-text a { color: var(--brand-gold-text); }
+
+/* ── دکمه‌ی پرداخت نهایی ─────────────────────────────────────────────────── */
+.romanino-order-review #payment #place_order {
+	display: block;
+	width: 100%;
+	padding: 0.95rem 1rem;
+	border: 0;
+	border-radius: 0.85rem;
+	background: rgb(var(--c-primary));
+	color: rgb(var(--c-primary-foreground));
+	font-weight: 800;
+	font-size: 0.95rem;
+	cursor: pointer;
+	transition: filter 0.15s, transform 0.1s;
+	box-shadow: 0 0 24px -8px rgb(var(--c-primary) / 0.6);
+}
+.romanino-order-review #payment #place_order:hover { filter: brightness(1.08); }
+.romanino-order-review #payment #place_order:active { transform: scale(0.99); }
+.romanino-order-review #payment #place_order:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ═════════════════════════════════════════════════════════════════════════
+   باکس هشدار قرمز (.rmn-danger-note) — مثل «درخواست حذف اثر»
+   ─────────────────────────────────────────────────────────────────────────
+   FIX (گزارش‌شده): این باکس با کلاس‌های ثابت text-red-200 روی bg-red-500/10
+   ساخته شده بود. در حالت تیره درست بود، ولی در حالت روشن پس‌زمینه یک صورتیِ
+   بسیار کم‌رنگ روی سفید می‌شد و متنِ red-200 روی آن عملاً نامرئی بود.
+
+   نمی‌شد با واریانت dark: تیلویند حلش کرد، چون این قالب حالت پیش‌فرضش تیره
+   است و حالت روشن با کلاس html.light اعمال می‌شود (نه با prefers-color-scheme
+   و نه با کلاس dark). پس رنگ‌ها باید صریحاً برای هر دو حالت تعریف شوند.
+   ═════════════════════════════════════════════════════════════════════════ */
+.rmn-danger-note {
+	border-color: rgb(239 68 68 / 0.25);
+	background-color: rgb(239 68 68 / 0.10);
+	color: #fecaca; /* red-200 — خوانا روی زمینه‌ی تیره */
+}
+html.light .rmn-danger-note {
+	border-color: rgb(185 28 28 / 0.25);
+	background-color: rgb(220 38 38 / 0.07);
+	color: #991b1b; /* red-800 — کنتراست کافی روی زمینه‌ی روشن */
+}
+
+.rmn-collapse {
+	overflow: hidden;
+	transition: max-height 0.4s ease;
+}
+
+.rmn-collapse[data-rmn-collapsed='true'] {
+	-webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+	        mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.rmn-collapse { transition: none; }
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   لینک «پرش به محتوا» — دسترس‌پذیری
+   ─────────────────────────────────────────────────────────────────────────
+   تا وقتی فوکوس نگرفته کاملاً از دید پنهان است، ولی برای کاربر کیبورد و
+   صفحه‌خوان اولین عنصر قابل فوکوس صفحه است؛ بدون آن، رسیدن به محتوا نیازمند
+   عبور از کل هدر و مگامنو با Tab بود.
+   ═════════════════════════════════════════════════════════════════════════ */
+.romanino-skip-link {
+	position: absolute;
+	right: 1rem;
+	top: -100%;
+	z-index: 100;
+	padding: 0.7rem 1.25rem;
+	border-radius: 0 0 0.75rem 0.75rem;
+	background: #eab308;
+	color: #1a1206;
+	font-weight: 700;
+	font-size: 0.875rem;
+	text-decoration: none;
+	transition: top 0.15s;
+}
+.romanino-skip-link:focus { top: 0; }
+
+/* ═════════════════════════════════════════════════════════════════════════
+   نقد و بررسی محصول — بازطراحی UI فرم و لیست
+   ─────────────────────────────────────────────────────────────────────────
+   قالب‌های مربوطه: woocommerce/single-product-reviews.php و
+   woocommerce/single-product/review.php
+   ویجت انتخاب امتیاز همان ویجت استاندارد ووکامرس است (p.stars که با
+   wc-single-product.js ساخته می‌شود)؛ اینجا فقط بزرگ‌تر و طلایی می‌شود.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.romanino-reviews { color: var(--on-surface-3); }
+
+/* ── خلاصه‌ی امتیاز بالای لیست ── */
+.romanino-review-summary {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	padding: 1rem 1.25rem;
+	margin-bottom: 1.25rem;
+	border: 1px solid var(--hairline);
+	border-radius: 1rem;
+	background: var(--tint-2);
+}
+.romanino-review-summary__score {
+	display: flex;
+	align-items: baseline;
+	gap: 0.25rem;
+	padding-left: 1rem;
+	border-left: 1px solid var(--hairline);
+}
+.romanino-review-summary__score strong {
+	font-size: 2rem;
+	font-weight: 900;
+	color: #eab308;
+	line-height: 1;
+}
+.romanino-review-summary__score span { font-size: 0.75rem; color: var(--on-surface-muted); }
+.romanino-review-summary__meta { display: flex; flex-direction: column; gap: 0.35rem; }
+.romanino-review-summary__count { font-size: 0.75rem; color: var(--on-surface-muted); }
+
+/* ── لیست نقدها ── */
+.romanino-review-list { list-style: none; margin: 0; padding: 0; }
+.romanino-review { margin-bottom: 0.85rem; }
+.romanino-review .children { list-style: none; margin: 0.85rem 1.5rem 0 0; padding: 0; }
+
+.romanino-review__container {
+	display: flex;
+	gap: 0.85rem;
+	padding: 1rem;
+	border: 1px solid var(--hairline);
+	border-radius: 1rem;
+	background: var(--tint-1);
+	transition: border-color 0.2s;
+}
+.romanino-review__container:hover { border-color: rgba(234, 179, 8, 0.3); }
+
+.romanino-review__avatar img {
+	width: 44px;
+	height: 44px;
+	border-radius: 999px;
+	border: 1px solid var(--hairline);
+}
+.romanino-review__body { flex: 1; min-width: 0; }
+.romanino-review__head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem;
+	margin-bottom: 0.5rem;
+}
+.romanino-review__author { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.romanino-review__author strong { color: var(--on-surface); font-size: 0.875rem; }
+.romanino-review__date { font-size: 0.7rem; color: var(--on-surface-faint); }
+.romanino-review__text { font-size: 0.875rem; line-height: 2; color: var(--on-surface-3); }
+.romanino-review__text p:last-child { margin-bottom: 0; }
+.romanino-review__pending { font-size: 0.8rem; color: var(--on-surface-muted); }
+
+.romanino-review-empty {
+	padding: 1.25rem;
+	border-radius: 0.75rem;
+	background: var(--tint-2);
+	text-align: center;
+	font-size: 0.875rem;
+	color: var(--on-surface-muted);
+}
+.romanino-review-pagination ol,
+.romanino-review-pagination ul { display: flex; gap: 0.4rem; justify-content: center; list-style: none; padding: 0; }
+.romanino-review-pagination a,
+.romanino-review-pagination span {
+	display: flex; align-items: center; justify-content: center;
+	min-width: 2rem; height: 2rem; padding: 0 0.6rem;
+	border: 1px solid var(--hairline); border-radius: 0.6rem;
+	font-size: 0.8rem; color: var(--on-surface-3); text-decoration: none;
+}
+.romanino-review-pagination .current { background: #eab308; color: #1a1206; border-color: #eab308; font-weight: 700; }
+
+/* ── فرم ثبت نقد ── */
+.romanino-review-form {
+	margin-top: 1.5rem;
+	padding: 1.25rem;
+	border: 1px solid var(--hairline);
+	border-radius: 1rem;
+	background: var(--tint-2);
+}
+.romanino-review-form__title {
+	display: block;
+	font-size: 1rem;
+	font-weight: 800;
+	color: var(--on-surface);
+	margin-bottom: 1rem;
+}
+.romanino-review-form .comment-reply-title small { font-size: 0.75rem; font-weight: 400; margin-right: 0.5rem; }
+
+.romanino-field { margin-bottom: 0.9rem; }
+.romanino-field label {
+	display: block;
+	margin-bottom: 0.4rem;
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: var(--on-surface-2);
+}
+.romanino-field .required { color: #f87171; }
+.romanino-field__hint { margin: -0.5rem 0 0.9rem; font-size: 0.7rem; color: var(--on-surface-faint); }
+
+.romanino-review-form input[type="text"],
+.romanino-review-form input[type="email"],
+.romanino-review-form textarea {
+	width: 100%;
+	padding: 0.7rem 0.9rem;
+	border: 1px solid var(--hairline);
+	border-radius: 0.75rem;
+	background: var(--surface-input);
+	color: var(--on-surface);
+	font-family: inherit;
+	font-size: 0.875rem;
+	line-height: 1.9;
+	outline: none;
+	transition: border-color 0.15s, box-shadow 0.15s;
+}
+.romanino-review-form textarea { resize: vertical; min-height: 7rem; }
+.romanino-review-form input[type="text"]:focus,
+.romanino-review-form input[type="email"]:focus,
+.romanino-review-form textarea:focus {
+	border-color: rgba(234, 179, 8, 0.6);
+	box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.15);
+}
+.romanino-review-form ::placeholder { color: var(--on-surface-faint); }
+
+/* دو ستون شدن نام و ایمیل روی صفحه‌های بزرگ‌تر */
+@media (min-width: 640px) {
+	.romanino-review-form .comment-form-author,
+	.romanino-review-form .comment-form-email {
+		display: inline-block;
+		width: calc(50% - 0.45rem);
+		vertical-align: top;
+	}
+	.romanino-review-form .comment-form-author { margin-left: 0.8rem; }
+}
+
+/* ── ویجت انتخاب امتیاز (p.stars ساخته‌شده توسط ووکامرس) ── */
+.romanino-rating-field { margin-bottom: 0.9rem; }
+.romanino-rating-field > label {
+	display: block;
+	margin-bottom: 0.4rem;
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: var(--on-surface-2);
+}
+.romanino-rating-field .required { color: #f87171; }
+
+.romanino-review-form p.stars {
+	display: inline-flex;
+	gap: 0.15rem;
+	margin: 0 0 0.25rem;
+	font-size: 1.5rem;
+	line-height: 1;
+}
+.romanino-review-form p.stars a {
+	color: var(--on-surface-fainter);
+	text-decoration: none;
+	transition: color 0.12s, transform 0.12s;
+}
+.romanino-review-form p.stars a:hover { transform: scale(1.12); }
+.romanino-review-form p.stars:hover a,
+.romanino-review-form p.stars.selected a.active,
+.romanino-review-form p.stars.selected a:not(.active) { color: #eab308; }
+.romanino-review-form p.stars.selected a.active ~ a { color: var(--on-surface-fainter); }
+
+/* ── دکمه ثبت ── */
+.romanino-review-form .romanino-review-submit,
+.romanino-review-form input[type="submit"] {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0.8rem 1.75rem;
+	border: 0;
+	border-radius: 0.85rem;
+	background: #eab308;
+	color: #1a1206;
+	font-family: inherit;
+	font-size: 0.875rem;
+	font-weight: 800;
+	cursor: pointer;
+	transition: filter 0.15s, transform 0.15s, box-shadow 0.15s;
+	box-shadow: 0 6px 18px -8px rgba(234, 179, 8, 0.8);
+}
+.romanino-review-form .romanino-review-submit:hover,
+.romanino-review-form input[type="submit"]:hover {
+	filter: brightness(1.08);
+	transform: translateY(-1px);
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   حالت روشن (Light Mode) — معماری مبتنی بر CSS Variables
+   ─────────────────────────────────────────────────────────────────────────
+   مسئله‌ی نسخه‌ی قبلی: سوییچ روشن/تاریک فقط رنگ دو دکمه‌ی هدر را عوض می‌کرد.
+   علتش این بود که بخش بزرگی از تمپلیت‌ها (هدر، فوتر، صفحه اصلی، صفحه محصول)
+   به‌جای توکن‌های قالب (bg-background / text-foreground / border-border) از
+   رنگ ثابت استفاده می‌کنند: bg-[#0b0514]، text-white، border-white/10 و…
+   این کلاس‌ها ذاتاً «تیره» هستند و هیچ متغیری پشتشان نیست.
+
+   راهکار بدون دست‌زدن به حتی یک تمپلیت (یعنی صفر ریسک برای طراحی تیره‌ی
+   فعلی که مورد تأیید است):
+
+     ۱) یک «مقیاس سطح» (surface scale) به‌صورت متغیر تعریف می‌شود که در حالت
+        تیره دقیقاً همان مقادیر فعلی را دارد.
+     ۲) زیر html.light همان متغیرها با پالت روشن بازتعریف می‌شوند.
+     ۳) یک لایه‌ی نگاشت، کلاس‌های رنگ‌ثابتِ موجود را — فقط وقتی html.light
+        فعال است — به این متغیرها وصل می‌کند.
+
+   چون هیچ قانونی خارج از html.light نوشته نشده، خروجی حالت تیره بایت‌به‌بایت
+   مثل قبل می‌ماند.
+
+   ⚠️ راه‌حل ریشه‌ای‌تر: مهاجرت آن تمپلیت‌ها از رنگ ثابت به توکن‌ها. آن‌وقت
+   این لایه‌ی نگاشت کاملاً حذف می‌شود و حالت روشن فقط چند متغیر خواهد بود.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+
+html.light {
+	color-scheme: light;
+
+	/* فقط «کانال‌ها» بازتعریف می‌شوند؛ همه‌ی رنگ‌های آماده و همه‌ی کلاس‌های
+	   Tailwind خودکار از همین‌ها مشتق می‌شوند. */
+
+	/* ── پایه ─────────────────────────────────────────────────────────── */
+	--c-background: 245 246 251;
+	--c-foreground: 15 23 42;
+	--c-popover: 255 255 255;
+	--c-primary: 234 179 8;              /* طلایی برند در هر دو حالت یکسان */
+	--c-primary-foreground: 26 18 6;
+	--c-secondary: 15 23 42;
+	--c-secondary-foreground: 15 23 42;
+	--c-muted: 15 23 42;
+	--c-muted-foreground: 100 116 139;
+	--c-accent: 15 23 42;
+	--c-accent-foreground: 15 23 42;
+	--c-border: 15 23 42;
+	--c-input: 15 23 42;
+	--c-ring: 202 138 4;
+	--c-destructive: 220 38 38;
+	--c-destructive-foreground: 254 242 242;
+
+	/* ── سطوح ─────────────────────────────────────────────────────────── */
+	--c-surface: 245 246 251;
+	--c-surface-card: 255 255 255;
+	--c-surface-nav: 255 255 255;
+	--c-surface-deep: 233 236 244;
+	--c-surface-alt: 238 241 248;
+	--c-surface-input: 238 241 247;
+	--c-surface-input-focus: 227 232 242;
+
+	/* ── مرکب: متن، خطوط و لایه‌های شفاف ────────────────────────────────── */
+	--c-ink: 15 23 42;
+	--c-ink-2: 30 41 59;
+	--c-ink-3: 51 65 85;
+	--c-ink-muted: 100 116 139;
+	--c-ink-faint: 124 136 153;
+	--c-ink-fainter: 148 163 184;
+
+	/* ── مقادیری که صرفاً مشتق نیستند و باید صراحتاً عوض شوند ──────────── */
+	--card: rgb(var(--c-surface-card) / 0.85);
+	--glass-bg: rgb(var(--c-surface-card) / 0.75);
+	--glass-border: rgb(var(--c-ink) / 0.08);
+	--hairline-soft: rgb(var(--c-ink) / 0.06);
+	--tint-1: rgb(var(--c-ink) / 0.02);
+	--tint-2: rgb(var(--c-ink) / 0.04);
+	--tint-3: rgb(var(--c-ink) / 0.07);
+
+	/* رنگ برند وقتی «متن» است — روی سفید باید تیره‌تر شود وگرنه کنتراست
+	   به حد استاندارد WCAG نمی‌رسد. */
+	--brand-gold-text: #a16207;    /* amber-700 */
+	--brand-cyan-text: #0e7490;    /* cyan-700 */
+	--brand-emerald-text: #047857; /* emerald-700 */
+	--gold: var(--brand-gold-text);
+	--cyan-glow: var(--brand-cyan-text);
+	--emerald-glow: var(--brand-emerald-text);
+	--c-gold: 161 98 7;
+	--c-cyan-glow: 14 116 144;
+	--c-emerald-glow: 4 120 87;
+}
+
+/* ── کلاس‌های سفارشی قالب: به متغیر وصل می‌شوند تا هر دو حالت را بگیرند ── */
+.glass,
+.glass-box {
+	background-color: var(--glass-bg);
+	border-color: var(--glass-border);
+}
+
+html.light .footer-tab-btn { color: var(--on-surface-muted); }
+html.light .footer-tab-btn.is-active { background: #eab308; color: #1a1206; }
+
+/* سایه‌های درخشان در حالت روشن باید ملایم‌تر باشند وگرنه مثل لکه دیده می‌شوند */
+html.light .glow-gold { box-shadow: 0 4px 16px -6px rgba(234, 179, 8, 0.55); }
+html.light .glow-cyan { box-shadow: 0 4px 16px -6px rgba(6, 182, 212, 0.45); }
+html.light .glow-emerald { box-shadow: 0 4px 16px -6px rgba(16, 185, 129, 0.45); }
+html.light .rmn-cta { animation: none; box-shadow: 0 6px 18px -8px rgba(234, 179, 8, 0.7); }
+
+/* ── لایه‌ی نگاشت: حذف شد ────────────────────────────────────────────────
+   پیش‌تر اینجا حدود ۴۰ قانون بود که کلاس‌های رنگ‌ثابتِ تمپلیت‌ها
+   (bg-[#0b0514]، text-white، border-white/10 و…) را زیر html.light به
+   متغیرها وصل می‌کرد. آن لایه یک راه‌حل موقت بود.
+
+   حالا خودِ تمپلیت‌ها به توکن مهاجرت کرده‌اند (۳۳۰ جایگزینی در ۲۵ فایل)، پس
+   کلاس‌ها مستقیماً از متغیرهای کانالی می‌خوانند و لایه‌ی واسط بی‌معنی شد.
+   نتیجه: افزودن هر بخش جدید به قالب، خودکار در هر دو حالت درست کار می‌کند و
+   دیگر لازم نیست کسی یادش باشد قانون نگاشت متناظرش را هم اضافه کند.
+
+   تنها رنگ‌هایی که هنوز ثابت‌اند، عمداً ثابت‌اند:
+     • text-[#0f0726] و text-[#0b0514] — متن تیره روی دکمه‌ی طلایی؛ در حالت
+       روشن هم باید تیره بماند وگرنه روی طلایی ناخواناست.
+     • from-[#0b0514]/80 و مشابه — اورلی گرادیان روی کاور رمان؛ باید تیره
+       بماند تا متن روی تصویر خوانا باشد.
+     • رنگ‌های تزئینی یک‌باره (#ff6955 قلب فوتر، #a855f7 بلاب بنفش).
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* هدر: سوییچ تم و آیکون سبد — همان قانون قبلی، حالا بخشی از سیستم */
 html.light #romanino-theme-toggle,
 html.light #cart-open-btn {
 	color: #b45309;
@@ -200,12 +1119,20 @@ html.light #cart-open-btn {
 html.light #romanino-theme-toggle:hover,
 html.light #cart-open-btn:hover {
 	color: #92400e;
-	background-color: rgba(234, 179, 8, 0.22);
+	background-color: rgba(234, 179, 8, 0.2);
 }
 html.light #cart-open-btn .cart-count-badge {
 	background-color: #f59e0b;
 	color: #1c1917;
 }
+
+/* بلاب‌های نوری پس‌زمینه در حالت روشن آزاردهنده‌اند — کم‌رنگ می‌شوند */
+html.light .blur-3xl,
+html.light .blur-\[110px\],
+html.light .blur-\[120px\] { opacity: 0.35; }
+
+/* پنل‌های شیشه‌ای روی تصویر (اورلی گرادیان کارت محصول) عمداً تیره می‌مانند
+   تا متن روی کاور رمان همچنان خوانا باشد. */
 
 /* ─────────────────────────────────────────────────────────────────────────
    FIX (لوگوی بزرگ روی هدر): علاوه بر تنظیم height/width در
@@ -228,6 +1155,30 @@ html.light #cart-open-btn .cart-count-badge {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
+   FIX (لوگوی بزرگ در فوتر): علت دقیقاً همان علت هدر بود، ولی فوتر از قلم
+   افتاده بود — footer.php تابع the_custom_logo() را «بدون هیچ wrapper»
+   صدا می‌زد. وردپرس لوگو را همیشه در اندازه‌ی «full» چاپ می‌کند (آرگومان‌های
+   height/width در add_theme_support فقط راهنمای برش در سفارشی‌ساز هستند،
+   نه سقف خروجی)، پس یک فایل ۱۵۰۰px عیناً با همان عرض رندر می‌شد.
+   سقف اینجا بزرگ‌تر از هدر است چون فوتر فضای بیشتری دارد: حداکثر ۲۰۰×۱۰۰
+   پیکسل، با حفظ نسبت ابعاد.
+   ───────────────────────────────────────────────────────────────────────── */
+.romanino-footer-logo {
+	display: inline-flex;
+	align-items: center;
+	max-width: 200px;
+	max-height: 100px;
+}
+.romanino-footer-logo img,
+.romanino-footer-logo .custom-logo {
+	max-width: 200px;
+	max-height: 100px;
+	width: auto;
+	height: auto;
+	object-fit: contain;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
    FIX (سبد خرید بازِ پیش‌فرض): کشوی سبد (#cart-drawer) با کلاس
    «-translate-x-full» باید پیش‌فرض بیرون از صفحه (سمت چپ) پنهان باشد.
    این قانون یک fallback تدافعی است: حتی اگر به هر دلیلی (مثلاً build
@@ -243,3 +1194,137 @@ html.light #cart-open-btn .cart-count-badge {
 #cart-overlay.hidden {
 	display: none;
 }
+
+/* ==========================================================================
+   جلدهای یک رمان + پخش‌کننده‌ی تحلیل صوتی
+   ─────────────────────────────────────────────────────────────────────────
+   با توکن‌های سطح/متن نوشته شده‌اند تا در هر دو حالت روشن و تاریک بدون
+   قانون جداگانه درست دیده شوند.
+   ========================================================================== */
+
+.romanino-volume-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	counter-reset: none;
+}
+
+.romanino-volume-item {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 0.7rem 0.85rem;
+	border-radius: 0.75rem;
+	border: 1px solid rgb(var(--c-ink) / 0.08);
+	background: rgb(var(--c-ink) / 0.03);
+	text-decoration: none;
+	transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.romanino-volume-item.is-linked:hover {
+	border-color: rgb(var(--c-gold) / 0.5);
+	background: rgb(var(--c-gold) / 0.07);
+}
+
+.romanino-volume-num {
+	flex-shrink: 0;
+	width: 1.65rem;
+	height: 1.65rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 0.5rem;
+	background: rgb(var(--c-gold) / 0.15);
+	color: var(--brand-gold-text);
+	font-size: 0.72rem;
+	font-weight: 800;
+}
+
+.romanino-volume-title {
+	flex: 1 1 auto;
+	min-width: 0;
+	font-size: 0.85rem;
+	font-weight: 700;
+	color: var(--on-surface);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.romanino-volume-item.is-linked:hover .romanino-volume-title { color: var(--brand-gold-text); }
+
+.romanino-volume-pages {
+	flex-shrink: 0;
+	font-size: 0.72rem;
+	font-weight: 600;
+	color: var(--on-surface-muted);
+}
+
+.romanino-volume-cta {
+	flex-shrink: 0;
+	font-size: 0.7rem;
+	font-weight: 700;
+	color: var(--brand-gold-text);
+}
+
+/* ── پخش‌کننده‌ی صوتی ─────────────────────────────────────────────────── */
+
+.romanino-audio-review {
+	padding: 1rem 1.1rem;
+	border-radius: 1rem;
+	border: 1px solid rgb(var(--c-ink) / 0.1);
+	background: rgb(var(--c-ink) / 0.04);
+}
+
+.romanino-audio-head {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin-bottom: 0.7rem;
+}
+
+.romanino-audio-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 2rem;
+	height: 2rem;
+	border-radius: 0.6rem;
+	background: rgb(var(--c-gold) / 0.15);
+	color: var(--brand-gold-text);
+	flex-shrink: 0;
+}
+
+.romanino-audio-title {
+	font-size: 0.88rem;
+	font-weight: 800;
+	color: var(--on-surface);
+}
+
+/* راهنمای کوچک کنار عنوان. در موبایل حذف می‌شود تا سطر نشکند. */
+.romanino-audio-hint {
+	margin-right: auto;
+	font-size: 0.68rem;
+	font-weight: 600;
+	color: var(--on-surface-muted);
+	white-space: nowrap;
+}
+
+@media (max-width: 380px) {
+	.romanino-audio-hint { display: none; }
+}
+
+.romanino-audio-player {
+	width: 100%;
+	height: 2.5rem;
+	display: block;
+}
+
+/* رنگ کنترل‌های پخش‌کننده عمداً دست‌کاری نمی‌شود.
+   قالب از قبل روی :root مقدار color-scheme را (dark و در html.light مقدار
+   light) تعیین کرده، و مرورگر بر همان اساس کنترل‌های بومی را تیره یا روشن
+   رندر می‌کند. یک بار اینجا filter: invert امتحان شد و نتیجه‌اش برعکس بود:
+   پخش‌کننده‌ی از قبل تیره را روشن می‌کرد و وسط کارت تیره می‌نشست. */

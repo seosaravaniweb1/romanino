@@ -39,7 +39,7 @@ $queried_object = get_queried_object();
                     <form role="search" method="get" action="<?php echo esc_url( home_url('/') ); ?>">
                         <input type="search" name="s" value="<?php echo esc_attr( get_search_query() ); ?>"
                             placeholder="نام رمان یا نویسنده..."
-                            class="w-full rounded-xl border border-border bg-secondary/30 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring" />
+                            class="w-full rounded-xl border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring" />
                         <input type="hidden" name="post_type" value="product" />
                         <button type="submit" class="mt-2 w-full rounded-xl bg-primary py-2 text-sm font-semibold text-[#0b0514] hover:bg-primary/90">جست‌وجو</button>
                     </form>
@@ -104,10 +104,10 @@ $queried_object = get_queried_object();
                 
                 <!-- مرتب‌سازی -->
                 <form method="get">
-                    <?php 
-                    foreach ( $_GET as $k => $v ) {
-                        if ( $k !== 'orderby' ) echo '<input type="hidden" name="' . esc_attr($k) . '" value="' . esc_attr($v) . '" />';
-                    } 
+                    <?php
+                    // FIX: قبلاً کل $_GET بازتاب داده می‌شد؛ حالا فقط پارامترهای
+                    // مجاز (inc/misc-functions.php :: romanino_preserved_query_args).
+                    romanino_render_preserved_query_fields( array( 'orderby' ) );
                     ?>
                     <select name="orderby" onchange="this.form.submit()"
                         class="rounded-xl border border-border bg-card px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring lg:text-sm">
@@ -139,49 +139,26 @@ $queried_object = get_queried_object();
             ?>
             <section aria-label="توضیحات <?php echo esc_attr( woocommerce_page_title( false ) ); ?>" class="relative mb-6 rounded-2xl border border-border bg-card p-5">
                 <div id="seo-content-wrap" class="relative overflow-hidden transition-[max-height] duration-500 ease-in-out" style="max-height: 85px;">
-                    <div class="prose prose-sm max-w-none text-justify text-sm leading-loose text-muted-foreground pb-2">
+                    <div class="rmn-prose rmn-prose-sm text-justify pb-2">
                         <?php echo wp_kses_post( $seo_description ); ?>
                     </div>
-                    <div id="seo-fade-layer" class="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#0f0726] to-transparent transition-opacity duration-300"></div>
+                    <div id="seo-fade-layer" class="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-surface-card to-transparent transition-opacity duration-300"></div>
                 </div>
 
                 <div class="relative z-10 mt-2 flex justify-center">
-                    <button type="button" id="seo-read-more-btn" class="flex items-center gap-1.5 rounded-lg bg-secondary/50 px-4 py-2 text-xs font-bold text-foreground transition-all hover:bg-secondary">
+                    <button type="button" id="seo-read-more-btn" class="flex items-center gap-1.5 rounded-lg bg-secondary px-4 py-2 text-xs font-bold text-foreground transition-all hover:bg-secondary">
                         مشاهده بیشتر
                         <svg class="h-4 w-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
                 </div>
             </section>
 
-            <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const wrap = document.getElementById('seo-content-wrap');
-                const fade = document.getElementById('seo-fade-layer');
-                const btn = document.getElementById('seo-read-more-btn');
-
-                if (wrap && wrap.scrollHeight <= 90) {
-                    if (btn) btn.style.display = 'none';
-                    if (fade) fade.style.display = 'none';
-                    wrap.style.maxHeight = 'none';
-                } else if (btn && wrap) {
-                    btn.addEventListener('click', function() {
-                        const isExpanded = wrap.style.maxHeight !== '85px';
-                        if (!isExpanded) {
-                            wrap.style.maxHeight = wrap.scrollHeight + 'px';
-                            fade.style.opacity = '0';
-                            btn.innerHTML = 'بستن <svg class="w-4 h-4 rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>';
-                        } else {
-                            wrap.style.maxHeight = '85px';
-                            fade.style.opacity = '1';
-                            btn.innerHTML = 'مشاهده بیشتر <svg class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>';
-                        }
-                    });
-                }
-            });
-            </script>
             <?php endif; ?>
 
             <?php if ( have_posts() ) : ?>
+            <?php romanino_wc_before_shop_loop(); ?>
+            <?php /* سئو/دسترس‌پذیری: بدون این عنوان، ساختار هدینگ صفحه از h1 مستقیم به h3ِ کارت‌های رمان می‌پرید (یک سطح جاافتاده). این عنوان فقط برای صفحه‌خوان و موتور جست‌وجوست و هیچ اثر بصری ندارد. */ ?>
+            <h2 class="sr-only">فهرست رمان‌ها</h2>
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
                 <?php
                 $romanino_loop_index = 0;
@@ -191,6 +168,8 @@ $queried_object = get_queried_object();
                 endwhile;
                 ?>
             </div>
+
+            <?php romanino_wc_after_shop_loop(); ?>
 
             <nav class="mt-8 flex justify-center lg:mt-10">
                 <?php echo paginate_links([ 'prev_text' => '&raquo; قبلی', 'next_text' => 'بعدی &laquo;', 'type' => 'list' ]); ?>

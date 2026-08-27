@@ -27,7 +27,7 @@ if ( is_user_logged_in() ) {
 }
 ?>
 <!DOCTYPE html>
-<html <?php language_attributes(); ?> dir="rtl">
+<html <?php language_attributes(); ?>>
 <head>
 	<meta charset="<?php bloginfo( 'charset' ); ?>">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -49,7 +49,7 @@ if ( is_user_logged_in() ) {
 				<span class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-primary ring-1 ring-primary/40">
 					<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
 				</span>
-				<span class="text-lg font-bold tracking-tight text-foreground">رمان<span class="text-primary">سرا</span></span>
+				<span class="text-lg font-bold tracking-tight text-foreground"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></span>
 			</a>
 			<button type="button" id="btn-back" class="hidden rounded-lg p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground" aria-label="بازگشت">
 				<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
@@ -57,6 +57,30 @@ if ( is_user_logged_in() ) {
 		</div>
 
 		<div id="auth-alert" class="mb-4 hidden rounded-xl px-4 py-3 text-sm"></div>
+
+		<?php
+		/* مقصد پس از ورود/ثبت‌نام
+		   ─────────────────────────────────────────────────────────────────
+		   FIX: تا پیش از این، مقصد فقط از روی هدر Referer درخواست ایجکس
+		   تشخیص داده می‌شد. هدر Referer قابل اتکا نیست — بعضی افزونه‌های
+		   امنیتی، پراکسی‌ها و سیاست‌های Referrer-Policy آن را حذف می‌کنند یا
+		   تا حد «فقط دامنه» کوتاه می‌کنند (که یعنی پارامتر redirect_to گم
+		   می‌شود). در آن حالت کاربری که وسط خرید برای ثبت‌نام فرستاده شده
+		   بود، به‌جای برگشتن به ادامه‌ی خرید سر از پیشخوان درمی‌آورد.
+
+		   حالا مقصد صریحاً در همین صفحه چاپ و همراه هر درخواست ایجکس ارسال
+		   می‌شود. سمت سرور romanino_get_post_auth_redirect_url() همچنان
+		   اعتبارسنجی می‌کند که آدرس داخلی باشد و حلقه‌ی ورود نسازد. */
+		$romanino_redirect_to = '';
+		if ( ! empty( $_GET['redirect_to'] ) ) {
+			$romanino_redirect_to = esc_url_raw( wp_unslash( $_GET['redirect_to'] ) );
+		} elseif ( function_exists( 'WC' ) && WC()->cart && ! WC()->cart->is_empty() ) {
+			// کاربر سبد پر دارد ولی مستقیم وارد صفحه‌ی ورود شده؛ بعد از ورود
+			// منطقی است به ادامه‌ی خرید برگردد.
+			$romanino_redirect_to = wc_get_checkout_url();
+		}
+		?>
+		<input type="hidden" id="romanino-redirect-to" value="<?php echo esc_attr( $romanino_redirect_to ); ?>" />
 
 		<!-- ═══ مرحله ۱: شماره موبایل (تشخیص خودکار ورود/ثبت‌نام) ═══ -->
 		<div id="step-phone">
@@ -66,10 +90,10 @@ if ( is_user_logged_in() ) {
 			<div class="mt-6">
 				<label class="mb-1.5 block text-sm font-medium text-foreground">شماره موبایل</label>
 				<input type="tel" id="phone-input" inputmode="numeric" dir="ltr" maxlength="11" placeholder="09121234567"
-					class="w-full rounded-xl border border-border bg-secondary/30 px-4 py-3 text-center text-sm tracking-wider outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+					class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-center text-sm tracking-wider outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 			</div>
 
-			<button type="button" id="btn-check-phone" class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-background transition-all hover:brightness-110 active:scale-[0.98]">
+			<button type="button" id="btn-check-phone" class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground transition-all hover:brightness-110 active:scale-[0.98]">
 				ادامه
 			</button>
 
@@ -94,10 +118,10 @@ if ( is_user_logged_in() ) {
 
 			<div class="mt-6">
 				<label class="mb-1.5 block text-sm font-medium text-foreground">رمز عبور</label>
-				<input type="password" id="password-input" class="w-full rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+				<input type="password" id="password-input" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 			</div>
 
-			<button type="button" id="btn-login-password" class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-background transition-all hover:brightness-110 active:scale-[0.98]">
+			<button type="button" id="btn-login-password" class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground transition-all hover:brightness-110 active:scale-[0.98]">
 				ورود
 			</button>
 
@@ -115,11 +139,11 @@ if ( is_user_logged_in() ) {
 
 			<div class="mt-6 flex justify-center gap-2" dir="ltr">
 				<?php for ( $i = 0; $i < 5; $i++ ) : ?>
-				<input type="text" inputmode="numeric" maxlength="1" class="otp-digit h-14 w-12 rounded-xl border border-border bg-secondary/30 text-center text-lg font-bold outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+				<input type="text" inputmode="numeric" maxlength="1" class="otp-digit h-14 w-12 rounded-xl border border-border bg-secondary text-center text-lg font-bold outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 				<?php endfor; ?>
 			</div>
 
-			<button type="button" id="btn-verify-otp" class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-background transition-all hover:brightness-110 active:scale-[0.98]">
+			<button type="button" id="btn-verify-otp" class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground transition-all hover:brightness-110 active:scale-[0.98]">
 				تأیید و ورود
 			</button>
 
@@ -139,15 +163,15 @@ if ( is_user_logged_in() ) {
 			<div class="mt-6 grid grid-cols-2 gap-3">
 				<div>
 					<label class="mb-1.5 block text-sm font-medium text-foreground">نام</label>
-					<input type="text" id="name-first-input" class="w-full rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+					<input type="text" id="name-first-input" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 				</div>
 				<div>
 					<label class="mb-1.5 block text-sm font-medium text-foreground">نام‌خانوادگی</label>
-					<input type="text" id="name-last-input" class="w-full rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+					<input type="text" id="name-last-input" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 				</div>
 			</div>
 
-			<button type="button" id="btn-save-name" class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-background transition-all hover:brightness-110 active:scale-[0.98]">
+			<button type="button" id="btn-save-name" class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground transition-all hover:brightness-110 active:scale-[0.98]">
 				تکمیل ثبت‌نام
 			</button>
 		</div>
@@ -160,16 +184,53 @@ if ( is_user_logged_in() ) {
 			<div class="mt-6 space-y-4">
 				<div>
 					<label class="mb-1.5 block text-sm font-medium text-foreground">شماره موبایل یا نام‌کاربری یا ایمیل را وارد کنید</label>
-					<input type="text" id="manual-identifier-input" dir="ltr" class="w-full rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+					<input type="text" id="manual-identifier-input" dir="ltr" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 				</div>
 				<div>
 					<label class="mb-1.5 block text-sm font-medium text-foreground">رمز عبور خود را وارد کنید</label>
-					<input type="password" id="manual-password-input" class="w-full rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+					<input type="password" id="manual-password-input" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 				</div>
 			</div>
 
-			<button type="button" id="btn-manual-login" class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-background transition-all hover:brightness-110 active:scale-[0.98]">
+			<button type="button" id="btn-manual-login" class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground transition-all hover:brightness-110 active:scale-[0.98]">
 				ورود
+			</button>
+
+			<?php
+			/* بازیابی رمز عبور — عمداً با پیامک، نه با ایمیل.
+			   دلیل: اکثر کاربران این سایت با کد پیامکی ثبت‌نام می‌کنند و ایمیل
+			   واقعی ندارند (سیستم برایشان یک ایمیل ساختگی از روی شماره می‌سازد).
+			   بازیابی ایمیلیِ استاندارد وردپرس برای آن‌ها به جایی نمی‌رسد. پس
+			   مسیر بازیابی همان چیزی است که قطعاً در دسترسشان است: شماره موبایل. */
+			?>
+			<button type="button" id="link-forgot-password" class="mt-4 w-full text-center text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
+				رمز عبور خود را فراموش کرده‌ام
+			</button>
+		</div>
+
+		<!-- ═══ مرحله: تعیین رمز عبور تازه (بعد از تأیید کد پیامکی) ═══ -->
+		<div id="step-set-password" class="hidden">
+			<h1 class="text-xl font-extrabold text-foreground">رمز عبور تازه</h1>
+			<p class="mt-1 text-sm text-muted-foreground">شماره‌ی شما تأیید شد. حالا یک رمز عبور جدید انتخاب کنید.</p>
+
+			<div class="mt-6 space-y-4">
+				<div>
+					<label for="newpass-input" class="mb-1.5 block text-sm font-medium text-foreground">رمز عبور جدید *</label>
+					<input type="password" id="newpass-input" autocomplete="new-password" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+					<p class="mt-1.5 text-xs text-muted-foreground">حداقل ۶ کاراکتر.</p>
+				</div>
+				<div>
+					<label for="newpass-confirm-input" class="mb-1.5 block text-sm font-medium text-foreground">تکرار رمز عبور جدید *</label>
+					<input type="password" id="newpass-confirm-input" autocomplete="new-password" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+				</div>
+			</div>
+
+			<button type="button" id="btn-set-password" class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground transition-all hover:brightness-110 active:scale-[0.98]">
+				ذخیره‌ی رمز عبور
+			</button>
+
+			<button type="button" id="btn-skip-password" class="mt-3 w-full text-center text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
+				فعلاً نمی‌خواهم — ادامه بدون تغییر رمز
 			</button>
 		</div>
 
@@ -180,30 +241,34 @@ if ( is_user_logged_in() ) {
 
 			<div class="mt-6 grid grid-cols-2 gap-3">
 				<div>
-					<label class="mb-1.5 block text-sm font-medium text-foreground">نام کاربری *</label>
-					<input type="text" id="register-username-input" dir="ltr" class="w-full rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+					<label for="register-firstname-input" class="mb-1.5 block text-sm font-medium text-foreground">نام *</label>
+					<input type="text" id="register-firstname-input" autocomplete="given-name" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 				</div>
 				<div>
-					<label class="mb-1.5 block text-sm font-medium text-foreground">نام و نام‌خانوادگی *</label>
-					<input type="text" id="register-fullname-input" class="w-full rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+					<label for="register-lastname-input" class="mb-1.5 block text-sm font-medium text-foreground">نام خانوادگی *</label>
+					<input type="text" id="register-lastname-input" autocomplete="family-name" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 				</div>
 			</div>
 			<div class="mt-3 grid grid-cols-2 gap-3">
 				<div>
-					<label class="mb-1.5 block text-sm font-medium text-foreground">شماره موبایل *</label>
-					<input type="tel" id="register-phone-input" dir="ltr" maxlength="11" inputmode="numeric" placeholder="09xxxxxxxxx" class="w-full rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+					<label for="register-username-input" class="mb-1.5 block text-sm font-medium text-foreground">نام کاربری *</label>
+					<input type="text" id="register-username-input" dir="ltr" autocomplete="username" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 				</div>
 				<div>
-					<label class="mb-1.5 block text-sm font-medium text-foreground">آدرس ایمیل</label>
-					<input type="email" id="register-email-input" dir="ltr" placeholder="اختیاری" class="w-full rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+					<label for="register-email-input" class="mb-1.5 block text-sm font-medium text-foreground">آدرس ایمیل</label>
+					<input type="email" id="register-email-input" dir="ltr" autocomplete="email" placeholder="اختیاری" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 				</div>
 			</div>
 			<div class="mt-3">
-				<label class="mb-1.5 block text-sm font-medium text-foreground">رمز عبور مد نظر را وارد کنید *</label>
-				<input type="password" id="register-password-input" class="w-full rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+				<label for="register-phone-input" class="mb-1.5 block text-sm font-medium text-foreground">شماره موبایل *</label>
+				<input type="tel" id="register-phone-input" dir="ltr" maxlength="11" inputmode="numeric" autocomplete="tel" placeholder="09xxxxxxxxx" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
+			</div>
+			<div class="mt-3">
+				<label for="register-password-input" class="mb-1.5 block text-sm font-medium text-foreground">رمز عبور مد نظر را وارد کنید *</label>
+				<input type="password" id="register-password-input" autocomplete="new-password" class="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/40" />
 			</div>
 
-			<button type="button" id="btn-register-manual" class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-background transition-all hover:brightness-110 active:scale-[0.98]">
+			<button type="button" id="btn-register-manual" class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground transition-all hover:brightness-110 active:scale-[0.98]">
 				تأیید
 			</button>
 		</div>

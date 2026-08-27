@@ -18,14 +18,14 @@ function romanino_footer_nav( $location, $fallback = array() ) {
         return;
     }
     if ( empty( $fallback ) ) {
-        echo '<p class="text-xs text-slate-500">هنوز لینکی اضافه نشده. از پیشخوان → «هدر و فوتر رمانینو» اضافه کنید.</p>';
+        echo '<p class="text-xs text-ink-faint">هنوز لینکی اضافه نشده. از پیشخوان → «هدر و فوتر رمانینو» اضافه کنید.</p>';
         return;
     }
     echo '<ul class="flex flex-col gap-3.5">';
     foreach ( $fallback as $item ) {
         if ( empty( $item['title'] ) ) continue;
         printf(
-            '<li><a href="%s" class="group flex items-center gap-2 text-sm text-slate-400 transition-colors duration-150 hover:text-white"><span class="h-1 w-1 shrink-0 rounded-full bg-slate-600 transition-colors duration-150 group-hover:bg-[#eab308] group-hover:shadow-[0_0_6px_rgba(234,179,8,0.8)]"></span>%s</a></li>',
+            '<li><a href="%s" class="group flex items-center gap-2 text-sm text-ink-muted transition-colors duration-150 hover:text-ink"><span class="h-1 w-1 shrink-0 rounded-full bg-slate-600 transition-colors duration-150 group-hover:bg-primary group-hover:shadow-[0_0_6px_rgba(234,179,8,0.8)]"></span>%s</a></li>',
             esc_url( $item['url'] ?: '#' ),
             esc_html( $item['title'] )
         );
@@ -38,27 +38,33 @@ $romanino_footer_opts = romanino_get_footer_options();
 $romanino_plan_colors = romanino_plan_color_map();
 ?>
 
-<footer class="relative mt-24 overflow-hidden border-t border-white/10 bg-[#0b0514]">
+<?php
+/* نقطه‌ی اتصال افزونه‌ها درست قبل از فوتر — جای مرسوم بنر تبلیغاتی پایانی،
+   خبرنامه یا CTA. برای ویجت چت آنلاین از همان hook استاندارد wp_footer
+   (انتهای همین فایل) استفاده کنید. */
+do_action( 'romanino_before_footer' );
+?>
+<footer class="relative mt-24 overflow-hidden border-t border-ink/10 bg-surface">
 
     <!-- خط درخشان بالای فوتر -->
     <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#eab308]/60 to-transparent"></div>
 
     <!-- بلاب‌های نوری پس‌زمینه -->
-    <div class="pointer-events-none absolute -top-32 right-0 h-80 w-80 rounded-full bg-[#eab308]/10 blur-[110px]"></div>
-    <div class="pointer-events-none absolute top-40 left-0 h-72 w-72 rounded-full bg-[#06b6d4]/10 blur-[110px]"></div>
+    <div class="pointer-events-none absolute -top-32 right-0 h-80 w-80 rounded-full bg-primary/10 blur-[110px]"></div>
+    <div class="pointer-events-none absolute top-40 left-0 h-72 w-72 rounded-full bg-cyan-glow/10 blur-[110px]"></div>
     <div class="pointer-events-none absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-[#a855f7]/10 blur-[120px]"></div>
 
     <!-- ================= نوار اشتراک ویژه ================= -->
-    <div class="relative border-b border-white/10 bg-gradient-to-l from-[#150a2b] via-[#1a0e35] to-[#150a2b]">
+    <div class="relative border-b border-ink/10 bg-gradient-to-l from-surface-alt via-surface-input to-surface-alt">
         <div class="mx-auto flex max-w-7xl flex-col items-center gap-6 px-4 py-8 lg:flex-row lg:justify-between lg:px-8">
 
             <div class="flex items-center gap-4 text-center lg:text-right">
-                <span class="hidden h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#eab308]/15 text-[#eab308] ring-1 ring-[#eab308]/30 shadow-[0_0_20px_-4px_rgba(234,179,8,0.5)] sm:flex">
+                <span class="hidden h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-gold ring-1 ring-[#eab308]/30 shadow-[0_0_20px_-4px_rgba(234,179,8,0.5)] sm:flex">
                     <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9l4 3 6-7 6 7 4-3-2 11H4L2 9Z"/></svg>
                 </span>
                 <div>
-                    <h3 class="text-base font-extrabold text-white sm:text-lg"><?php echo esc_html( $romanino_footer_opts['sub_title'] ); ?></h3>
-                    <p class="mt-1 text-xs leading-relaxed text-slate-400 sm:text-sm"><?php echo esc_html( $romanino_footer_opts['sub_subtitle'] ); ?></p>
+                    <h3 class="text-base font-extrabold text-ink sm:text-lg"><?php echo esc_html( $romanino_footer_opts['sub_title'] ); ?></h3>
+                    <p class="mt-1 text-xs leading-relaxed text-ink-muted sm:text-sm"><?php echo esc_html( $romanino_footer_opts['sub_subtitle'] ); ?></p>
                 </div>
             </div>
 
@@ -69,9 +75,9 @@ $romanino_plan_colors = romanino_plan_color_map();
                     $hex = isset( $romanino_plan_colors[ $plan['color'] ] ) ? $romanino_plan_colors[ $plan['color'] ]['hex'] : '#eab308';
                     $link = ! empty( $plan['link'] ) ? $plan['link'] : home_url( '/subscription/' );
                     ?>
-                    <div class="flex w-[112px] flex-col items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-center backdrop-blur-sm transition-transform duration-200 hover:-translate-y-1">
+                    <div class="flex w-[112px] flex-col items-center gap-2 rounded-2xl border border-ink/10 bg-ink/[0.04] p-3 text-center backdrop-blur-sm transition-transform duration-200 hover:-translate-y-1">
                         <span class="rounded-full px-2.5 py-0.5 text-[11px] font-bold" style="background:<?php echo esc_attr( $hex ); ?>22; color:<?php echo esc_attr( $hex ); ?>"><?php echo esc_html( $plan['label'] ); ?></span>
-                        <span class="text-sm font-black text-white"><?php echo esc_html( $plan['price'] ); ?><span class="mr-1 text-[10px] font-medium text-slate-400">تومان</span></span>
+                        <span class="text-sm font-black text-ink"><?php echo esc_html( $plan['price'] ); ?><span class="mr-1 text-[10px] font-medium text-ink-muted">تومان</span></span>
                         <a href="<?php echo esc_url( $link ); ?>" class="mt-1 w-full rounded-lg py-1.5 text-[11px] font-bold text-[#0f0726] transition-all duration-150 hover:brightness-110" style="background:<?php echo esc_attr( $hex ); ?>">خرید فوری</a>
                     </div>
                 <?php endforeach; ?>
@@ -85,169 +91,246 @@ $romanino_plan_colors = romanino_plan_color_map();
         <div class="grid grid-cols-2 gap-x-6 gap-y-12 md:grid-cols-4 lg:grid-cols-12 lg:gap-8">
 
             <!-- برند و توضیحات -->
-            <div class="col-span-2 md:col-span-4 lg:col-span-4">
+            <?php
+            /* گرید فوتر دقیقاً ۱۲ ستون است. برای اینکه ستون محصولات یک واحد
+               فضای بیشتر بگیرد (تا عنوان تب‌ها در یک سطر جا شود)، همان یک واحد
+               از این ستون کم شد: ۳ + ۲ + ۲ + ۳ + ۲ = ۱۲.
+               بدون این کار مجموع ۱۳ می‌شد و ستون آخر به سطر بعد می‌افتاد. */
+            ?>
+            <div class="col-span-2 md:col-span-4 lg:col-span-3">
                 <div class="mb-4">
-                    <?php if ( has_custom_logo() ) : the_custom_logo(); else : ?>
+                    <?php
+                    /* FIX (لوگوی بزرگ در فوتر): the_custom_logo() قبلاً بدون هیچ
+                       wrapper صدا زده می‌شد. وردپرس لوگو را همیشه در اندازه‌ی
+                       «full» چاپ می‌کند — آرگومان‌های height/width در
+                       add_theme_support فقط راهنمای برش در سفارشی‌ساز هستند و
+                       سقف خروجی نیستند — پس یک فایل ۱۵۰۰ پیکسلی عیناً با همان
+                       عرض رندر می‌شد. هدر از قبل کلاس محافظ
+                       .romanino-site-logo داشت ولی فوتر از قلم افتاده بود.
+                       سقف اینجا ۲۰۰×۱۰۰ پیکسل است (assets/css/tailwind-src.css). */
+                    ?>
+                    <?php if ( has_custom_logo() ) : ?>
+                        <div class="romanino-footer-logo"><?php the_custom_logo(); ?></div>
+                    <?php else : ?>
                         <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="flex items-center gap-2">
-                            <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#eab308]/15 text-[#eab308] ring-1 ring-[#eab308]/40">
+                            <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-gold ring-1 ring-primary/40">
                                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                             </span>
-                            <span class="text-lg font-black text-white">رمان<span class="text-[#eab308]">سرا</span></span>
+                            <span class="text-lg font-black text-ink"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></span>
                         </a>
                     <?php endif; ?>
                 </div>
-                <p class="max-w-xs text-sm leading-loose text-slate-400">
+                <p class="max-w-xs text-sm leading-loose text-ink-muted">
                     <?php echo esc_html( $romanino_footer_opts['footer_description'] ); ?>
                 </p>
 
-                <div class="mt-6 flex items-center gap-3">
-                    <?php if ( ! empty( $romanino_footer_opts['social_instagram'] ) ) : ?>
-                    <a href="<?php echo esc_url( $romanino_footer_opts['social_instagram'] ); ?>" target="_blank" rel="nofollow noopener" aria-label="اینستاگرام رمانینو" class="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-300 transition-all duration-150 hover:border-[#eab308]/40 hover:text-[#eab308] hover:shadow-[0_0_16px_-4px_rgba(234,179,8,0.5)]">
-                        <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="0.6" fill="currentColor" stroke="none"/></svg>
+                <?php
+                /* شبکه‌های اجتماعی — تکرارشونده و کاملاً اختیاری.
+                   قبلاً دو آیکون ثابت (اینستاگرام/تلگرام) با SVG هاردکد بود.
+                   حالا مدیر سایت هر تعداد لینک با آیکون دلخواه اضافه می‌کند و
+                   اگر هیچ ردیفی نباشد، کل این بلوک رندر نمی‌شود. */
+                $romanino_socials = array_filter(
+                    (array) ( $romanino_footer_opts['social_links'] ?? array() ),
+                    static function ( $item ) {
+                        return ! empty( $item['url'] );
+                    }
+                );
+                ?>
+                <?php if ( $romanino_socials ) : ?>
+                <div class="mt-6 flex flex-wrap items-center gap-3">
+                    <?php foreach ( $romanino_socials as $romanino_social ) :
+                        $romanino_social_title = trim( (string) ( $romanino_social['title'] ?? '' ) );
+                        $romanino_social_icon  = trim( (string) ( $romanino_social['icon'] ?? '' ) );
+                        $romanino_social_label = $romanino_social_title !== ''
+                            ? $romanino_social_title
+                            : 'شبکه اجتماعی';
+                    ?>
+                    <a href="<?php echo esc_url( $romanino_social['url'] ); ?>"
+                        target="_blank" rel="nofollow noopener"
+                        title="<?php echo esc_attr( $romanino_social_label ); ?>"
+                        aria-label="<?php echo esc_attr( $romanino_social_label ); ?>"
+                        class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-ink/10 bg-ink/[0.04] text-ink-3 transition-all duration-150 hover:border-primary/40 hover:text-gold hover:shadow-[0_0_16px_-4px_rgba(234,179,8,0.5)]">
+                        <?php if ( $romanino_social_icon ) : ?>
+                            <img src="<?php echo esc_url( $romanino_social_icon ); ?>"
+                                alt="<?php echo esc_attr( $romanino_social_label ); ?>"
+                                class="h-5 w-5 object-contain" loading="lazy" decoding="async" width="20" height="20" />
+                        <?php else : ?>
+                            <?php // آیکون پیش‌فرض «لینک» برای ردیف‌هایی که تصویر انتخاب نشده ?>
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                        <?php endif; ?>
                     </a>
-                    <?php endif; ?>
-                    <?php if ( ! empty( $romanino_footer_opts['social_telegram'] ) ) : ?>
-                    <a href="<?php echo esc_url( $romanino_footer_opts['social_telegram'] ); ?>" target="_blank" rel="nofollow noopener" aria-label="تلگرام رمانینو" class="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-300 transition-all duration-150 hover:border-[#06b6d4]/40 hover:text-[#06b6d4] hover:shadow-[0_0_16px_-4px_rgba(6,182,212,0.5)]">
-                        <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-                    </a>
-                    <?php endif; ?>
+                    <?php endforeach; ?>
                 </div>
+                <?php endif; ?>
             </div>
 
             <!-- ستون لینک ۱: درباره رمانینو -->
             <div class="col-span-1 md:col-span-1 lg:col-span-2">
-                <h4 class="mb-5 text-sm font-extrabold text-white">درباره رمانینو</h4>
+                <h4 class="mb-5 text-sm font-extrabold text-ink">درباره رمانینو</h4>
                 <?php romanino_footer_nav( 'footer_1', $romanino_footer_opts['about_links'] ); ?>
             </div>
 
             <!-- ستون لینک ۲: راهنمای مشتریان -->
             <div class="col-span-1 md:col-span-1 lg:col-span-2">
-                <h4 class="mb-5 text-sm font-extrabold text-white">راهنمای مشتریان</h4>
+                <h4 class="mb-5 text-sm font-extrabold text-ink">راهنمای مشتریان</h4>
                 <?php romanino_footer_nav( 'footer_2', $romanino_footer_opts['guide_links'] ); ?>
             </div>
 
             <!-- ستون محصولات: جدیدترین / پرفروش‌ترین -->
-            <div class="col-span-2 md:col-span-2 lg:col-span-2">
-                <div class="mb-5 flex items-center gap-1 rounded-xl border border-white/10 bg-white/[0.03] p-1">
-                    <button type="button" data-footer-tab="latest" class="footer-tab-btn flex-1 rounded-lg py-1.5 text-xs font-bold transition-all duration-150">جدیدترین</button>
-                    <button type="button" data-footer-tab="bestseller" class="footer-tab-btn flex-1 rounded-lg py-1.5 text-xs font-bold transition-all duration-150">پرفروش‌ترین</button>
+            <?php
+            /* FIX (گزارش‌شده): این ستون در دسکتاپ فقط ۲ واحد از گرید را می‌گرفت
+               و عنوان تب‌ها («پرفروش‌ترین») در دو سطر می‌شکست. با یک واحد
+               فضای بیشتر، هر دو عنوان در یک سطر جا می‌شوند. whitespace-nowrap
+               هم اضافه شد تا حتی در باریک‌ترین حالت هم نشکند. */
+            ?>
+            <div class="col-span-2 md:col-span-2 lg:col-span-3">
+                <div class="mb-5 flex items-center gap-1 rounded-xl border border-ink/10 bg-ink/[0.03] p-1">
+                    <button type="button" data-footer-tab="latest" class="footer-tab-btn flex-1 whitespace-nowrap rounded-lg px-2 py-1.5 text-xs font-bold transition-all duration-150">جدیدترین</button>
+                    <button type="button" data-footer-tab="bestseller" class="footer-tab-btn flex-1 whitespace-nowrap rounded-lg px-2 py-1.5 text-xs font-bold transition-all duration-150">پرفروش‌ترین</button>
                 </div>
 
                 <div id="footer-panel-latest" class="footer-tab-panel flex flex-col gap-3.5">
                     <?php
-                    $romanino_latest = new WP_Query( array(
-                        'post_type'      => 'product',
-                        'posts_per_page' => 4,
-                        'post_status'    => 'publish',
-                        'orderby'        => 'date',
-                        'order'          => 'DESC',
-                    ) );
-                    if ( $romanino_latest->have_posts() ) :
-                        while ( $romanino_latest->have_posts() ) : $romanino_latest->the_post();
-                            global $product;
-                            $product = wc_get_product( get_the_ID() );
+                    // FIX (پرفورمنس): لیست کش‌شده به‌جای WP_Query در فوترِ «هر» صفحه‌ی سایت.
+                    // طبق درخواست: ۳ رمان در هر تب تا ارتفاع فوتر کمتر شود.
+                    $romanino_latest_ids = romanino_get_cached_product_ids( 'newest', array(
+                        'orderby' => 'date',
+                        'order'   => 'DESC',
+                    ), 3 );
+                    if ( $romanino_latest_ids ) :
+                        foreach ( $romanino_latest_ids as $romanino_f_id ) :
+                            $product = wc_get_product( $romanino_f_id );
                             if ( ! $product ) continue;
                             ?>
-                            <a href="<?php the_permalink(); ?>" class="group flex items-center gap-3" title="<?php the_title_attribute(); ?>">
-                                <span class="block h-14 w-10 shrink-0 overflow-hidden rounded-md bg-white/5 ring-1 ring-white/10">
-                                    <?php if ( has_post_thumbnail() ) : ?>
-                                        <?php the_post_thumbnail( 'thumbnail', array( 'class' => 'h-full w-full object-cover transition-transform duration-300 group-hover:scale-110' ) ); ?>
+                            <a href="<?php echo esc_url( get_permalink( $romanino_f_id ) ); ?>" class="group flex items-center gap-3" title="<?php echo esc_attr( $product->get_name() ); ?>">
+                                <span class="block h-11 w-11 shrink-0 overflow-hidden rounded-md bg-ink/5 ring-1 ring-ink/10">
+                                    <?php if ( has_post_thumbnail( $romanino_f_id ) ) : ?>
+                                        <?php echo get_the_post_thumbnail( $romanino_f_id, 'thumbnail', array( 'class' => 'h-full w-full object-cover transition-transform duration-300 group-hover:scale-110', 'loading' => 'lazy' ) ); ?>
                                     <?php endif; ?>
                                 </span>
                                 <span class="min-w-0">
-                                    <span class="line-clamp-2 block text-xs font-bold leading-relaxed text-slate-200 transition-colors duration-150 group-hover:text-[#eab308]"><?php the_title(); ?></span>
-                                    <span class="mt-1 block text-[11px] font-bold text-[#eab308]"><?php echo $product->get_price_html() ?: 'رایگان'; ?></span>
+                                    <span class="line-clamp-2 block text-xs font-bold leading-relaxed text-ink-2 transition-colors duration-150 group-hover:text-gold"><?php echo esc_html( $product->get_name() ); ?></span>
                                 </span>
                             </a>
-                        <?php endwhile; wp_reset_postdata();
+                        <?php endforeach;
                     else :
-                        echo '<p class="text-xs text-slate-500">فعلا محصولی ثبت نشده است.</p>';
+                        echo '<p class="text-xs text-ink-faint">فعلا محصولی ثبت نشده است.</p>';
                     endif;
                     ?>
                 </div>
 
                 <div id="footer-panel-bestseller" class="footer-tab-panel hidden flex-col gap-3.5">
                     <?php
-                    $romanino_best = new WP_Query( array(
-                        'post_type'      => 'product',
-                        'posts_per_page' => 4,
-                        'post_status'    => 'publish',
-                        'meta_key'       => 'total_sales',
-                        'orderby'        => 'meta_value_num',
-                        'order'          => 'DESC',
-                    ) );
-                    if ( $romanino_best->have_posts() ) :
-                        while ( $romanino_best->have_posts() ) : $romanino_best->the_post();
-                            global $product;
-                            $product = wc_get_product( get_the_ID() );
+                    $romanino_best_ids = romanino_get_cached_product_ids( 'bestsellers', array(
+                        'meta_key' => 'total_sales',
+                        'orderby'  => 'meta_value_num',
+                        'order'    => 'DESC',
+                    ), 3 );
+                    if ( $romanino_best_ids ) :
+                        foreach ( $romanino_best_ids as $romanino_f_id ) :
+                            $product = wc_get_product( $romanino_f_id );
                             if ( ! $product ) continue;
                             ?>
-                            <a href="<?php the_permalink(); ?>" class="group flex items-center gap-3" title="<?php the_title_attribute(); ?>">
-                                <span class="block h-14 w-10 shrink-0 overflow-hidden rounded-md bg-white/5 ring-1 ring-white/10">
-                                    <?php if ( has_post_thumbnail() ) : ?>
-                                        <?php the_post_thumbnail( 'thumbnail', array( 'class' => 'h-full w-full object-cover transition-transform duration-300 group-hover:scale-110' ) ); ?>
+                            <a href="<?php echo esc_url( get_permalink( $romanino_f_id ) ); ?>" class="group flex items-center gap-3" title="<?php echo esc_attr( $product->get_name() ); ?>">
+                                <span class="block h-11 w-11 shrink-0 overflow-hidden rounded-md bg-ink/5 ring-1 ring-ink/10">
+                                    <?php if ( has_post_thumbnail( $romanino_f_id ) ) : ?>
+                                        <?php echo get_the_post_thumbnail( $romanino_f_id, 'thumbnail', array( 'class' => 'h-full w-full object-cover transition-transform duration-300 group-hover:scale-110', 'loading' => 'lazy' ) ); ?>
                                     <?php endif; ?>
                                 </span>
                                 <span class="min-w-0">
-                                    <span class="line-clamp-2 block text-xs font-bold leading-relaxed text-slate-200 transition-colors duration-150 group-hover:text-[#eab308]"><?php the_title(); ?></span>
-                                    <span class="mt-1 block text-[11px] font-bold text-[#eab308]"><?php echo $product->get_price_html() ?: 'رایگان'; ?></span>
+                                    <span class="line-clamp-2 block text-xs font-bold leading-relaxed text-ink-2 transition-colors duration-150 group-hover:text-gold"><?php echo esc_html( $product->get_name() ); ?></span>
                                 </span>
                             </a>
-                        <?php endwhile; wp_reset_postdata();
+                        <?php endforeach;
                     else :
-                        echo '<p class="text-xs text-slate-500">فعلا آمار فروشی ثبت نشده است.</p>';
+                        echo '<p class="text-xs text-ink-faint">فعلا آمار فروشی ثبت نشده است.</p>';
                     endif;
                     ?>
                 </div>
             </div>
 
+            <?php
+            /* ستون «دانلود اپلیکیشن».
+               FIX: عنوان هاردکد «اپلیکیشن رمانینو» و متن تبلیغاتی زیر آن
+               («رمان‌هات رو نصب کن و همه‌جا همراه داشته باش…») طبق درخواست
+               مالک سایت حذف شدند.
+               همچنین کل ستون پشت یک تیک نمایش رفت: تا وقتی اپلیکیشنی منتشر
+               نشده، این بخش اصلاً رندر نمی‌شود. قبلاً هر سه دکمه همیشه دیده
+               می‌شدند و اگر لینکشان خالی بود به /app/ می‌رفتند — صفحه‌ای که
+               وجود ندارد، یعنی سه لینک ۴۰۴ در فوترِ هر صفحه‌ی سایت. */
+            $romanino_app_stores = array();
+            if ( ! empty( $romanino_footer_opts['app_enabled'] ) ) {
+                $romanino_app_stores = array_filter( array(
+                    'google' => array(
+                        'url'   => $romanino_footer_opts['app_google'] ?? '',
+                        'label' => 'Google Play',
+                        'color' => '#10b981',
+                        'icon'  => '<path d="M3 3.5c0-.4.22-.77.58-.94.35-.18.77-.13 1.08.11l12.1 8.5c.28.2.44.51.44.83s-.16.64-.44.83l-12.1 8.5a1.06 1.06 0 0 1-1.08.11A1.05 1.05 0 0 1 3 20.5v-17Z"/>',
+                        'fill'  => true,
+                    ),
+                    'bazaar' => array(
+                        'url'   => $romanino_footer_opts['app_bazaar'] ?? '',
+                        'label' => 'کافه بازار',
+                        'color' => '#eab308',
+                        'icon'  => '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/>',
+                        'fill'  => false,
+                    ),
+                    'myket' => array(
+                        'url'   => $romanino_footer_opts['app_myket'] ?? '',
+                        'label' => 'مایکت',
+                        'color' => '#06b6d4',
+                        'icon'  => '<rect x="4" y="2" width="16" height="20" rx="3"/><path d="M12 18h.01"/>',
+                        'fill'  => false,
+                    ),
+                ), static function ( $store ) {
+                    return ! empty( $store['url'] ); // دکمه‌ی بدون لینک اصلاً ساخته نمی‌شود
+                } );
+            }
+            ?>
+            <?php if ( $romanino_app_stores ) : ?>
             <!-- ستون اپلیکیشن -->
             <div class="col-span-2 md:col-span-2 lg:col-span-2">
-                <h4 class="mb-3 text-sm font-extrabold text-white">اپلیکیشن رمانینو</h4>
-                <p class="mb-4 text-xs leading-relaxed text-slate-400">رمان‌هات رو نصب کن و همه‌جا همراه داشته باش، آفلاین و بدون دردسر.</p>
                 <div class="flex flex-col gap-2.5">
-                    <a href="<?php echo esc_url( ! empty( $romanino_footer_opts['app_google'] ) ? $romanino_footer_opts['app_google'] : home_url( '/app/' ) ); ?>" class="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 transition-all duration-150 hover:border-[#10b981]/40 hover:bg-[#10b981]/10">
-                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#10b981]/15 text-[#10b981]">
-                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3.5c0-.4.22-.77.58-.94.35-.18.77-.13 1.08.11l12.1 8.5c.28.2.44.51.44.83s-.16.64-.44.83l-12.1 8.5a1.06 1.06 0 0 1-1.08.11A1.05 1.05 0 0 1 3 20.5v-17Z"/></svg>
+                    <?php foreach ( $romanino_app_stores as $romanino_store ) : ?>
+                    <a href="<?php echo esc_url( $romanino_store['url'] ); ?>" target="_blank" rel="nofollow noopener"
+                        class="flex items-center gap-2.5 rounded-xl border border-ink/10 bg-ink/[0.04] px-3 py-2 transition-all duration-150 hover:bg-ink/[0.08]"
+                        style="--rmn-store: <?php echo esc_attr( $romanino_store['color'] ); ?>;">
+                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                            style="background: <?php echo esc_attr( $romanino_store['color'] ); ?>26; color: <?php echo esc_attr( $romanino_store['color'] ); ?>;">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24"
+                                <?php echo $romanino_store['fill']
+                                    ? 'fill="currentColor"'
+                                    : 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"'; ?>
+                                aria-hidden="true"><?php echo $romanino_store['icon']; // phpcs:ignore WordPress.Security.EscapeOutput -- مسیر SVG ثابت و داخلی است ?></svg>
                         </span>
                         <span class="flex flex-col leading-tight">
-                            <span class="text-[10px] text-slate-400">دانلود از</span>
-                            <span class="text-xs font-bold text-white">Google Play</span>
+                            <span class="text-[10px] text-ink-muted">دانلود از</span>
+                            <span class="text-xs font-bold text-ink"><?php echo esc_html( $romanino_store['label'] ); ?></span>
                         </span>
                     </a>
-                    <a href="<?php echo esc_url( ! empty( $romanino_footer_opts['app_bazaar'] ) ? $romanino_footer_opts['app_bazaar'] : home_url( '/app/' ) ); ?>" class="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 transition-all duration-150 hover:border-[#eab308]/40 hover:bg-[#eab308]/10">
-                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#eab308]/15 text-[#eab308]">
-                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/></svg>
-                        </span>
-                        <span class="flex flex-col leading-tight">
-                            <span class="text-[10px] text-slate-400">دانلود از</span>
-                            <span class="text-xs font-bold text-white">کافه بازار</span>
-                        </span>
-                    </a>
-                    <a href="<?php echo esc_url( ! empty( $romanino_footer_opts['app_myket'] ) ? $romanino_footer_opts['app_myket'] : home_url( '/app/' ) ); ?>" class="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 transition-all duration-150 hover:border-[#06b6d4]/40 hover:bg-[#06b6d4]/10">
-                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#06b6d4]/15 text-[#06b6d4]">
-                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="3"/><path d="M12 18h.01"/></svg>
-                        </span>
-                        <span class="flex flex-col leading-tight">
-                            <span class="text-[10px] text-slate-400">دانلود از</span>
-                            <span class="text-xs font-bold text-white">مایکت</span>
-                        </span>
-                    </a>
+                    <?php endforeach; ?>
                 </div>
             </div>
+            <?php endif; ?>
 
         </div>
     </div>
 
     <!-- ================= نوار اعتماد، درگاه و بانک‌ها ================= -->
-    <div class="relative border-t border-white/10 bg-[#0a0418]/70">
+    <div class="relative border-t border-ink/10 bg-surface-nav/70">
         <div class="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 lg:flex-row lg:items-center lg:justify-between lg:px-8">
 
             <!-- نماد اعتماد الکترونیکی (کد از پنل مدیریت) -->
             <?php if ( ! empty( $romanino_footer_opts['enamad_code'] ) ) : ?>
             <div class="flex flex-wrap items-center justify-center gap-3">
-                <div id="enamad-container" class="flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/5 p-1.5 [&_img]:h-full [&_img]:w-full [&_img]:object-contain">
-                    <?php echo $romanino_footer_opts['enamad_code']; ?>
+                <div id="enamad-container" class="flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl border border-ink/10 bg-ink/5 p-1.5 [&_img]:h-full [&_img]:w-full [&_img]:object-contain">
+                    <?php
+                    // FIX: خروجی بدون escape چاپ می‌شد. مقدار هنگام ذخیره پاک‌سازی
+                    // می‌شود، ولی خروجی هم باید از همان allowlist رد شود تا اگر
+                    // مقدار قدیمی‌تری (پیش از این تغییر) در دیتابیس مانده باشد
+                    // هم امن بماند.
+                    echo romanino_kses_trust_seal( (string) $romanino_footer_opts['enamad_code'] );
+                    ?>
                 </div>
             </div>
             <?php endif; ?>
@@ -255,18 +338,18 @@ $romanino_plan_colors = romanino_plan_color_map();
             <!-- بانک‌های عضو شتاب -->
             <?php if ( ! empty( $romanino_footer_opts['banks'] ) ) : ?>
             <div class="flex flex-col items-center gap-2.5 lg:items-start">
-                <span class="flex items-center gap-1.5 text-[11px] font-bold text-slate-400">
-                    <svg class="h-3.5 w-3.5 text-[#10b981]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                <span class="flex items-center gap-1.5 text-[11px] font-bold text-ink-muted">
+                    <svg class="h-3.5 w-3.5 text-emerald-glow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
                     امکان پرداخت با تمامی کارت‌های بانکی عضو شتاب
                 </span>
                 <div class="flex flex-wrap items-center justify-center gap-2">
                     <?php foreach ( $romanino_footer_opts['banks'] as $bank ) :
                         if ( empty( $bank['name'] ) && empty( $bank['logo'] ) ) continue; ?>
-                        <span class="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-[11px] font-medium text-slate-300">
+                        <span class="flex items-center gap-1.5 rounded-lg border border-ink/10 bg-ink/[0.04] px-2.5 py-1.5 text-[11px] font-medium text-ink-3">
                             <?php if ( ! empty( $bank['logo'] ) ) : ?>
-                                <img src="<?php echo esc_url( $bank['logo'] ); ?>" alt="بانک <?php echo esc_attr( $bank['name'] ); ?>" class="h-3.5 w-3.5 object-contain" loading="lazy">
+                                <img src="<?php echo esc_url( $bank['logo'] ); ?>" alt="بانک <?php echo esc_attr( $bank['name'] ); ?>" class="h-3.5 w-3.5 object-contain" loading="lazy" decoding="async" width="14" height="14">
                             <?php else : ?>
-                                <svg class="h-3.5 w-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M4 10h16M12 3l8 5H4l8-5ZM6 10v8M10 10v8M14 10v8M18 10v8"/></svg>
+                                <svg class="h-3.5 w-3.5 text-ink-faint" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M4 10h16M12 3l8 5H4l8-5ZM6 10v8M10 10v8M14 10v8M18 10v8"/></svg>
                             <?php endif; ?>
                             <?php echo esc_html( $bank['name'] ? 'بانک ' . $bank['name'] : '' ); ?>
                         </span>
@@ -277,12 +360,12 @@ $romanino_plan_colors = romanino_plan_color_map();
 
             <!-- درگاه پرداخت -->
             <div class="flex items-center gap-2">
-                <span class="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-[11px] font-bold text-slate-300">
+                <span class="flex items-center gap-1.5 rounded-lg border border-ink/10 bg-ink/[0.04] px-3 py-2 text-[11px] font-bold text-ink-3">
                     <svg class="h-3.5 w-3.5 text-[#a855f7]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
                     <?php echo esc_html( $romanino_footer_opts['gateway_1_label'] ); ?>
                 </span>
-                <span class="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-[11px] font-bold text-slate-300">
-                    <svg class="h-3.5 w-3.5 text-[#eab308]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>
+                <span class="flex items-center gap-1.5 rounded-lg border border-ink/10 bg-ink/[0.04] px-3 py-2 text-[11px] font-bold text-ink-3">
+                    <svg class="h-3.5 w-3.5 text-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>
                     <?php echo esc_html( $romanino_footer_opts['gateway_2_label'] ); ?>
                 </span>
             </div>
@@ -290,54 +373,19 @@ $romanino_plan_colors = romanino_plan_color_map();
     </div>
 
     <!-- ================= نوار پایانی ================= -->
-    <div class="relative border-t border-white/5 bg-[#08030f] py-5">
+    <div class="relative border-t border-ink/5 bg-surface-deep py-5">
         <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 text-center sm:flex-row sm:text-right lg:px-8">
-            <p class="text-xs font-medium text-slate-500">© <?php echo esc_html( date_i18n( 'Y' ) ); ?> <?php echo esc_html( $romanino_footer_opts['copyright_text'] ); ?></p>
-            <p class="text-xs font-medium text-slate-600">طراحی رابط کاربری با <span class="text-[#ff6955]">♥</span> برای رمان‌خوان‌های ایرانی</p>
+            <p class="text-xs font-medium text-ink-faint">© <?php echo esc_html( date_i18n( 'Y' ) ); ?> <?php echo esc_html( $romanino_footer_opts['copyright_text'] ); ?></p>
+            <p class="text-xs font-medium text-ink-fainter">طراحی رابط کاربری با <span class="text-[#ff6955]">♥</span> برای رمان‌خوان‌های ایرانی</p>
         </div>
     </div>
 </footer>
 
 <!-- دکمه بازگشت به بالا -->
-<button type="button" id="scroll-top-btn" aria-label="بازگشت به بالا" class="fixed bottom-6 left-6 z-40 hidden h-11 w-11 items-center justify-center rounded-full bg-[#eab308] text-[#0f0726] shadow-[0_0_20px_-4px_rgba(234,179,8,0.6)] transition-all duration-200 hover:brightness-110">
+<button type="button" id="scroll-top-btn" aria-label="بازگشت به بالا" class="fixed bottom-6 left-6 z-40 hidden h-11 w-11 items-center justify-center rounded-full bg-primary text-[#0f0726] shadow-[0_0_20px_-4px_rgba(234,179,8,0.6)] transition-all duration-200 hover:brightness-110">
     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
 </button>
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    // تب جدیدترین / پرفروش‌ترین در فوتر
-    var footerTabBtns = document.querySelectorAll('.footer-tab-btn');
-    footerTabBtns.forEach(function (btn) {
-        if (btn.dataset.footerTab === 'latest') btn.classList.add('is-active');
-        btn.addEventListener('click', function () {
-            footerTabBtns.forEach(function (b) { b.classList.remove('is-active'); });
-            btn.classList.add('is-active');
-            document.querySelectorAll('.footer-tab-panel').forEach(function (panel) {
-                panel.classList.add('hidden');
-            });
-            var target = document.getElementById('footer-panel-' + btn.dataset.footerTab);
-            if (target) target.classList.remove('hidden');
-        });
-    });
-
-    // دکمه بازگشت به بالا
-    var scrollBtn = document.getElementById('scroll-top-btn');
-    if (scrollBtn) {
-        window.addEventListener('scroll', function () {
-            if (window.scrollY > 500) {
-                scrollBtn.classList.remove('hidden');
-                scrollBtn.classList.add('flex');
-            } else {
-                scrollBtn.classList.add('hidden');
-                scrollBtn.classList.remove('flex');
-            }
-        });
-        scrollBtn.addEventListener('click', function () {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-    }
-});
-</script>
 
 <?php
 /**
@@ -385,289 +433,7 @@ get_template_part( 'template-parts/cart/mini-cart' );
     </div>
 </div>
 
-<!-- ========================================== -->
-<!-- مودال پاپ‌آپ ورود و ثبت‌نام (مطابق تصویر) -->
-<!-- ========================================== -->
-<div id="auth-modal-overlay" class="fixed inset-0 z-[100] hidden bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 md:p-8 overflow-hidden">
-        
-        <!-- دکمه بستن -->
-        <button type="button" id="close-auth-modal" class="absolute top-6 left-6 text-gray-400 hover:text-gray-600">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-
-        <div class="text-center mb-6">
-            <span class="text-xl font-black text-[#1f2937]">رمانینو</span>
-        </div>
-
-        <div id="modal-alert" class="mb-4 hidden rounded-xl px-4 py-3 text-xs"></div>
-
-        <!-- اسکرین ۱: ورود با شماره موبایل -->
-        <div id="step-phone-view" class="auth-view space-y-5">
-            <div class="text-right">
-                <h3 class="text-lg font-black text-gray-800">ورود | ثبت نام</h3>
-                <p class="text-xs text-gray-500 mt-1">سلام! لطفا شماره موبایل خود را وارد کنید.</p>
-            </div>
-            <div>
-                <input type="tel" id="modal-phone-input" placeholder="09xxxxxxxxx" maxlength="11" dir="ltr" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-center text-sm outline-none focus:border-[#64d0bc] font-bold" />
-            </div>
-            <button type="button" id="btn-send-otp" class="w-full bg-[#64d0bc] hover:bg-[#5bbbae] text-white font-bold py-3.5 rounded-xl transition-colors shadow-lg shadow-[#64d0bc]/30">
-                ادامه ›
-            </button>
-            
-            <div class="pt-4 border-t border-gray-100 flex flex-col gap-2 text-xs font-bold text-[#64d0bc]">
-                <button type="button" class="switch-view text-right hover:underline flex items-center gap-1" data-target="step-traditional-login">ورود بدون احراز پیامکی</button>
-                <button type="button" class="switch-view text-right hover:underline flex items-center gap-1 text-[#ff6955]" data-target="step-traditional-register">ثبت نام بدون احراز پیامکی</button>
-            </div>
-        </div>
-
-        <!-- اسکرین ۱.۵: تایید کد OTP / تکمیل نام -->
-        <div id="step-otp-view" class="auth-view hidden space-y-5">
-            <div class="text-right">
-                <h3 class="text-lg font-black text-gray-800">تایید کد پیامک</h3>
-                <p class="text-xs text-gray-500 mt-1">کد ارسال شده به شماره <span id="display-sent-phone" class="font-bold text-gray-800" dir="ltr"></span> را وارد کنید.</p>
-            </div>
-            <div id="otp-code-box">
-                <input type="text" id="modal-otp-input" placeholder="کد ۵ رقمی" maxlength="5" inputmode="numeric" dir="ltr" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-center text-lg tracking-widest outline-none font-bold" />
-            </div>
-            <div id="name-input-box" class="hidden">
-                <label class="block text-xs font-bold text-gray-700 mb-1">نام و نام خانوادگی *</label>
-                <input type="text" id="modal-name-input" placeholder="مثال: سارا احمدی" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none" />
-            </div>
-            <button type="button" id="btn-verify-otp" class="w-full bg-[#64d0bc] hover:bg-[#5bbbae] text-white font-bold py-3.5 rounded-xl transition-colors">تایید و ورود</button>
-            <button type="button" class="switch-view text-xs text-gray-400 text-center w-full block hover:text-gray-600" data-target="step-phone-view">بازگشت</button>
-        </div>
-
-        <!-- اسکرین ۲: ورود سنتی -->
-        <div id="step-traditional-login" class="auth-view hidden space-y-4">
-            <div class="text-right">
-                <h3 class="text-lg font-black text-gray-800">ورود به حساب کاربری</h3>
-                <p class="text-xs text-gray-500 mt-1">اگر دسترسی به گوشی خود ندارید</p>
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-700 mb-1">شماره موبایل یا نام کاربری *</label>
-                <input type="text" id="trad-login-user" dir="ltr" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none text-right" />
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-700 mb-1">رمز عبور *</label>
-                <input type="password" id="trad-login-pass" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none" />
-            </div>
-            <button type="button" id="btn-trad-login" class="w-full bg-[#64d0bc] hover:bg-[#5bbbae] text-white font-bold py-3.5 rounded-xl transition-colors">ورود</button>
-            <button type="button" class="switch-view text-xs text-[#64d0bc] text-center w-full block font-bold" data-target="step-phone-view">‹ بازگشت به ورود با پیامک</button>
-        </div>
-
-        <!-- اسکرین ۳: ثبت‌نام سنتی -->
-        <div id="step-traditional-register" class="auth-view hidden space-y-3">
-            <div class="text-right">
-                <h3 class="text-lg font-black text-gray-800">ایجاد حساب کاربری</h3>
-                <p class="text-xs text-gray-500 mt-1">ثبت‌نام بدون احراز پیامکی</p>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-[11px] font-bold text-gray-700 mb-1">نام کاربری *</label>
-                    <input type="text" id="trad-reg-user" dir="ltr" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none text-right" />
-                </div>
-                <div>
-                    <label class="block text-[11px] font-bold text-gray-700 mb-1">نام خانوادگی *</label>
-                    <input type="text" id="trad-reg-name" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none" />
-                </div>
-            </div>
-            <div>
-                <label class="block text-[11px] font-bold text-gray-700 mb-1">ایمیل *</label>
-                <input type="email" id="trad-reg-email" dir="ltr" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none text-right" />
-            </div>
-            <div>
-                <label class="block text-[11px] font-bold text-gray-700 mb-1">شماره موبایل *</label>
-                <input type="tel" id="trad-reg-phone" dir="ltr" maxlength="11" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none text-right" />
-            </div>
-            <div>
-                <label class="block text-[11px] font-bold text-gray-700 mb-1">رمز عبور *</label>
-                <input type="password" id="trad-reg-pass" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none" />
-            </div>
-            <button type="button" id="btn-trad-register" class="w-full bg-[#64d0bc] hover:bg-[#5bbbae] text-white font-bold py-3 rounded-xl transition-colors text-sm">تایید</button>
-            <button type="button" class="switch-view text-xs text-[#64d0bc] text-center w-full block font-bold" data-target="step-phone-view">‹ بازگشت</button>
-        </div>
-
-    </div>
-</div>
-
 <?php wp_footer(); ?>
 
-<!-- اسکریپت‌های سراسری -->
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    
-    // ۱. مدیریت پاپ‌آپ احراز هویت
-    const modal = document.getElementById('auth-modal-overlay');
-    const openBtn = document.getElementById('open-auth-modal-btn');
-    const closeBtn = document.getElementById('close-auth-modal');
-    const alertBox = document.getElementById('modal-alert');
-    let activePhone = '';
-    let isNewUserWithoutName = false;
-
-    if (openBtn && modal) {
-        openBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            modal.classList.remove('hidden');
-        });
-    }
-    if (closeBtn && modal) {
-        closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
-    }
-    if (modal) {
-        modal.addEventListener('click', (e) => { if(e.target === modal) modal.classList.add('hidden'); });
-    }
-
-    document.querySelectorAll('.switch-view').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.auth-view').forEach(v => v.classList.add('hidden'));
-            document.getElementById(btn.dataset.target).classList.remove('hidden');
-            if(alertBox) alertBox.classList.add('hidden');
-        });
-    });
-
-    function showAlert(msg, isError = true) {
-        if(!alertBox) return;
-        alertBox.textContent = msg;
-        alertBox.className = `mb-4 rounded-xl px-4 py-3 text-xs ${isError ? 'bg-red-50 text-red-500 border border-red-100' : 'bg-green-50 text-green-600 border border-green-100'}`;
-        alertBox.classList.remove('hidden');
-    }
-
-    async function postAjax(action, data) {
-        const body = new URLSearchParams({ action, nonce: '<?php echo wp_create_nonce( "romanino_auth_nonce" ); ?>', ...data });
-        const res = await fetch('<?php echo admin_url( "admin-ajax.php" ); ?>', { method: 'POST', body });
-        return res.json();
-    }
-
-    // ارسال OTP
-    const btnSendOtp = document.getElementById('btn-send-otp');
-    if (btnSendOtp) {
-        btnSendOtp.addEventListener('click', async () => {
-            activePhone = document.getElementById('modal-phone-input').value.trim();
-            if(!/^09\d{9}$/.test(activePhone)) {
-                showAlert('شماره موبایل معتبر نیست.');
-                return;
-            }
-            btnSendOtp.textContent = 'در حال ارسال...';
-            const res = await postAjax('romanino_check_phone', { phone: activePhone });
-            btnSendOtp.textContent = 'ادامه ›';
-
-            if(res.success) {
-                document.getElementById('display-sent-phone').textContent = activePhone;
-                document.querySelectorAll('.auth-view').forEach(v => v.classList.add('hidden'));
-                document.getElementById('step-otp-view').classList.remove('hidden');
-                if(alertBox) alertBox.classList.add('hidden');
-            } else {
-                showAlert(res.data.message);
-            }
-        });
-    }
-
-    // تایید OTP
-    const btnVerifyOtp = document.getElementById('btn-verify-otp');
-    if(btnVerifyOtp) {
-        btnVerifyOtp.addEventListener('click', async () => {
-            const code = document.getElementById('modal-otp-input').value.trim();
-            const displayName = document.getElementById('modal-name-input').value.trim();
-
-            if(code.length < 5) { showAlert('کد ۵ رقمی را کامل وارد کنید.'); return; }
-            if(isNewUserWithoutName && !displayName) { showAlert('لطفاً نام و نام خانوادگی خود را وارد کنید.'); return; }
-
-            const res = await postAjax('romanino_verify_otp', { phone: activePhone, code, display_name: displayName });
-            
-            if(res.success) {
-                if(res.data.requires_name) {
-                    isNewUserWithoutName = true;
-                    document.getElementById('otp-code-box').classList.add('hidden');
-                    document.getElementById('name-input-box').classList.remove('hidden');
-                    showAlert('لطفاً نام و نام خانوادگی خود را برای تکمیل ثبت‌نام وارد کنید.', false);
-                } else {
-                    window.location.href = res.data.redirect;
-                }
-            } else {
-                showAlert(res.data.message);
-            }
-        });
-    }
-
-    // ورود سنتی
-    const btnTradLogin = document.getElementById('btn-trad-login');
-    if(btnTradLogin) {
-        btnTradLogin.addEventListener('click', async () => {
-            const username = document.getElementById('trad-login-user').value.trim();
-            const password = document.getElementById('trad-login-pass').value;
-            const res = await postAjax('romanino_traditional_login', { username, password });
-            if(res.success) { window.location.href = res.data.redirect; } 
-            else { showAlert(res.data.message); }
-        });
-    }
-
-    // ثبت‌نام سنتی
-    const btnTradRegister = document.getElementById('btn-trad-register');
-    if(btnTradRegister) {
-        btnTradRegister.addEventListener('click', async () => {
-            const username = document.getElementById('trad-reg-user').value.trim();
-            const displayName = document.getElementById('trad-reg-name').value.trim();
-            const email = document.getElementById('trad-reg-email').value.trim();
-            const phone = document.getElementById('trad-reg-phone').value.trim();
-            const password = document.getElementById('trad-reg-pass').value;
-
-            const res = await postAjax('romanino_traditional_register', { username, display_name: displayName, email, phone, password });
-            if(res.success) { window.location.href = res.data.redirect; } 
-            else { showAlert(res.data.message); }
-        });
-    }
-
-    // ۲. جستجوی ایجکسی
-    const searchInput = document.getElementById('ajax-search-input');
-    const searchResults = document.getElementById('ajax-search-results');
-    let timeout = null;
-
-    if (searchInput) {
-        searchInput.addEventListener('input', function (e) {
-            clearTimeout(timeout);
-            const keyword = e.target.value.trim();
-            if (keyword.length < 2) { searchResults.classList.add('hidden'); return; }
-
-            timeout = setTimeout(async () => {
-                const body = new URLSearchParams({ action: 'romanino_ajax_search', keyword: keyword });
-                try {
-                    const res = await fetch('<?php echo admin_url("admin-ajax.php"); ?>', { method: 'POST', body: body });
-                    const data = await res.json();
-                    
-                    searchResults.innerHTML = '';
-                    searchResults.classList.remove('hidden');
-
-                    if (data.success && data.data.length > 0) {
-                        data.data.forEach(item => {
-                            searchResults.innerHTML += `
-                                <a href="${item.url}" class="flex items-center gap-3 p-3 hover:bg-gray-50 border-b border-gray-100 last:border-0 transition-colors">
-                                    <img src="${item.image}" class="w-10 h-14 object-cover rounded-md shadow-sm" alt="${item.title}">
-                                    <div class="flex flex-col">
-                                        <span class="text-sm font-bold text-gray-800">${item.title}</span>
-                                        <span class="text-xs text-[#64d0bc] font-bold mt-1">${item.price}</span>
-                                    </div>
-                                </a>`;
-                        });
-                    } else {
-                        searchResults.innerHTML = '<div class="p-4 text-center text-sm text-gray-500">هیچ رمانی پیدا نشد.</div>';
-                    }
-                } catch (error) { console.error("خطا", error); }
-            }, 500);
-        });
-
-        document.addEventListener('click', function(e) {
-            if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
-                searchResults.classList.add('hidden');
-            }
-        });
-    }
-
-    // ۳. منوی موبایل: FIX — این listener حذف شد چون تکراریِ همون کاری بود که
-    // main.js روی #mobile-menu-btn انجام می‌داد؛ وجود همزمان دو listener روی
-    // یک کلیک باعث می‌شد کلاس hidden دوبار toggle بشه و نتیجه خنثی شه (یعنی
-    // ظاهراً «هیچ اتفاقی نمی‌افتاد»). الان فقط main.js مسئول این منوئه.
-});
-</script>
 </body>
 </html>

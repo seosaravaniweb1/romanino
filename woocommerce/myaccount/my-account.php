@@ -25,10 +25,10 @@ do_action( 'woocommerce_before_account_navigation' );
 	<!-- هدر پنل کاربری -->
 	<div class="glass glow-gold relative overflow-hidden rounded-3xl p-6 md:p-8 mb-6 flex flex-col md:flex-row items-center justify-between gap-6">
 		<!-- درخشش تزئینی پس‌زمینه -->
-		<div class="pointer-events-none absolute -top-16 -left-16 h-56 w-56 rounded-full bg-gold/10 blur-3xl"></div>
+		<div class="pointer-events-none absolute -top-16 -left-16 h-56 w-56 rounded-full bg-primary/10 blur-3xl"></div>
 
 		<div class="relative flex items-center gap-4">
-			<div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gold text-background text-2xl font-black shadow-[0_0_20px_-4px_rgba(234,179,8,0.6)] ring-1 ring-gold/40">
+			<div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground text-2xl font-black shadow-[0_0_20px_-4px_rgba(234,179,8,0.6)] ring-1 ring-primary/40">
 				<?php echo esc_html( mb_substr( $first_name ?: $current_user->display_name, 0, 1 ) ); ?>
 			</div>
 			<div>
@@ -43,7 +43,8 @@ do_action( 'woocommerce_before_account_navigation' );
 		</div>
 
 		<a href="<?php echo esc_url( wc_logout_url() ); ?>"
-			class="relative shrink-0 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-xs font-bold text-red-400 transition-colors hover:bg-red-500/20">
+			class="rmn-logout-btn relative shrink-0 rounded-xl px-4 py-2.5 text-xs font-bold">
+			<svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
 			خروج از حساب
 		</a>
 	</div>
@@ -60,15 +61,39 @@ do_action( 'woocommerce_before_account_navigation' );
 		</div>
 	</div>
 
-	<!-- بنر تخفیف -->
-	<div class="glass relative overflow-hidden rounded-2xl p-4 mb-6 flex items-center gap-3">
-		<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold/15 text-xl ring-1 ring-gold/30">🎁</span>
-		<div class="text-xs leading-relaxed text-muted-foreground">
-			<strong class="text-foreground">جشنواره تخفیف رمانینو:</strong> با کد
-			<code class="rounded bg-gold/15 px-2 py-0.5 font-mono font-black text-gold">ROMAN20</code>
-			از ۲۰٪ تخفیف بهره‌مند شوید!
-		</div>
+	<?php
+	/* بنر پیام / کد تخفیف
+	   ─────────────────────────────────────────────────────────────────────
+	   FIX (گزارش‌شده): این بنر با متن «جشنواره تخفیف رمانینو» و کد «ROMAN20»
+	   داخل همین فایل هاردکد بود. یعنی مدیر سایت هر چیزی در
+	   پیشخوان → تنظیمات قالب رمانینو → تب «پیشخوان مشتری» می‌نوشت، اینجا
+	   هیچ اثری نداشت و همان متن ثابتِ نمونه به همه‌ی کاربران نشان داده
+	   می‌شد — حتی وقتی هیچ جشنواره‌ای در کار نبود.
+
+	   حالا دقیقاً از همان تنظیمات خوانده می‌شود و اگر تیک «نمایش داده شود»
+	   خاموش باشد یا هر دو فیلد (متن پیام و کد تخفیف) خالی باشند، هیچ چیزی
+	   رندر نمی‌شود. */
+	$romanino_myacc_opts = function_exists( 'romanino_get_myaccount_options' )
+		? romanino_get_myaccount_options()
+		: array();
+
+	$romanino_promo_on   = ! empty( $romanino_myacc_opts['dashboard_enabled'] );
+	$romanino_promo_text = trim( (string) ( $romanino_myacc_opts['dashboard_text'] ?? '' ) );
+	$romanino_promo_code = trim( (string) ( $romanino_myacc_opts['dashboard_coupon'] ?? '' ) );
+	?>
+	<?php if ( $romanino_promo_on && ( '' !== $romanino_promo_text || '' !== $romanino_promo_code ) ) : ?>
+	<div class="glass relative overflow-hidden rounded-2xl p-4 mb-6 flex flex-wrap items-center gap-3">
+		<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-xl ring-1 ring-primary/30">🎁</span>
+		<?php if ( '' !== $romanino_promo_text ) : ?>
+			<div class="min-w-0 flex-1 text-xs leading-relaxed text-muted-foreground">
+				<?php echo wp_kses_post( $romanino_promo_text ); ?>
+			</div>
+		<?php endif; ?>
+		<?php if ( '' !== $romanino_promo_code ) : ?>
+			<code class="shrink-0 rounded-lg border border-dashed border-primary/50 bg-primary/10 px-3 py-1.5 font-mono text-sm font-black text-gold" dir="ltr"><?php echo esc_html( $romanino_promo_code ); ?></code>
+		<?php endif; ?>
 	</div>
+	<?php endif; ?>
 
 	<!-- فرم تکمیل پروفایل -->
 	<?php if ( $needs_profile_update ) : ?>
@@ -86,21 +111,21 @@ do_action( 'woocommerce_before_account_navigation' );
 
 			<input type="text" name="first_name" value="<?php echo esc_attr( $first_name ); ?>"
 				placeholder="نام *" required
-				class="w-full rounded-xl border border-border bg-input px-3 py-2.5 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-gold/60 focus:ring-1 focus:ring-gold/40" />
+				class="w-full rounded-xl border border-border bg-input px-3 py-2.5 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-primary/60 focus:ring-1 focus:ring-primary/40" />
 
 			<input type="text" name="last_name" value="<?php echo esc_attr( $last_name ); ?>"
 				placeholder="نام خانوادگی *" required
-				class="w-full rounded-xl border border-border bg-input px-3 py-2.5 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-gold/60 focus:ring-1 focus:ring-gold/40" />
+				class="w-full rounded-xl border border-border bg-input px-3 py-2.5 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-primary/60 focus:ring-1 focus:ring-primary/40" />
 
 			<select name="user_gender" required
-				class="w-full rounded-xl border border-border bg-input px-3 py-2.5 text-xs text-foreground outline-none focus:border-gold/60 focus:ring-1 focus:ring-gold/40">
+				class="w-full rounded-xl border border-border bg-input px-3 py-2.5 text-xs text-foreground outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/40">
 				<option value="" class="bg-background">جنسیت *</option>
 				<option value="female" class="bg-background" <?php selected( $gender, 'female' ); ?>>خانم</option>
 				<option value="male" class="bg-background" <?php selected( $gender, 'male' ); ?>>آقا</option>
 			</select>
 
 			<button type="submit"
-				class="glow-gold w-full rounded-xl bg-gold py-2.5 text-xs font-bold text-background transition-all hover:brightness-110">
+				class="glow-gold w-full rounded-xl bg-primary py-2.5 text-xs font-bold text-primary-foreground transition-all hover:brightness-110">
 				ثبت و ذخیره
 			</button>
 		</form>

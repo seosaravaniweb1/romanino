@@ -1,9 +1,39 @@
-document.addEventListener('DOMContentLoaded', function () {
+/**
+ * ROMANINO — کشوی سبد خرید
+ * ─────────────────────────────────────────────────────────────────────────────
+ * FIX (بحرانی — سازگاری با Delay JS در WP Rocket):
+ *
+ * این فایل قبلاً کل کدش داخل document.addEventListener('DOMContentLoaded', …)
+ * بود. وقتی WP Rocket گزینه‌ی «Delay JavaScript Execution» را روشن می‌کند،
+ * اجرای اسکریپت تا اولین تعامل کاربر (کلیک/اسکرول/حرکت ماوس) عقب می‌افتد —
+ * یعنی خیلی بعد از اینکه رویداد DOMContentLoaded «قبلاً شلیک شده».
+ *
+ * نتیجه: این listener هیچ‌وقت اجرا نمی‌شد و کل سبد خرید کشویی، دکمه‌های
+ * «افزودن به سبد»، مودال خرید و شمارنده‌ی سبد کاملاً مرده می‌ماندند — دقیقاً
+ * همان «شکستن قالب بعد از فعال‌کردن راکت».
+ *
+ * راه‌حل استاندارد: به‌جای گوش‌دادن کورکورانه به رویداد، اول وضعیت واقعی
+ * document.readyState بررسی می‌شود. اگر DOM از قبل آماده است (حالت Delay JS)
+ * کد بلافاصله اجرا می‌شود؛ در غیر این صورت مثل قبل منتظر رویداد می‌ماند.
+ * این الگو در هر دو حالت (با راکت و بدون راکت) درست کار می‌کند.
+ */
+function romaninoOnReady(fn) {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fn, { once: true });
+    } else {
+        fn();
+    }
+}
+
+romaninoOnReady(function () {
     const overlay   = document.getElementById('cart-overlay');
     const drawer    = document.getElementById('cart-drawer');
     const itemsWrap = document.getElementById('cart-items-wrap');
     const totalEl   = document.getElementById('cart-total-display');
-    const openBtn   = document.getElementById('cart-open-btn');
+    /* دو دکمه‌ی سبد خرید داریم چون هدر دو چیدمان جدا دارد (موبایل و دسکتاپ)
+       و هر لحظه فقط یکی از آن‌ها در DOM دیده می‌شود. با querySelectorAll هر دو
+       بسته می‌شوند و لازم نیست بدانیم کدام‌یک فعال است. */
+    const openBtns  = document.querySelectorAll('#cart-open-btn, #cart-open-btn-desktop');
     const closeBtn  = document.getElementById('cart-close-btn');
 
     const buyModal        = document.getElementById('buy-now-modal');
@@ -28,9 +58,11 @@ document.addEventListener('DOMContentLoaded', function () {
         overlay.classList.add('hidden');
     }
 
-    if (openBtn) openBtn.addEventListener('click', function (e) {
-        e.preventDefault();
-        openDrawer();
+    openBtns.forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            openDrawer();
+        });
     });
     if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
     if (overlay) overlay.addEventListener('click', closeDrawer);
@@ -145,13 +177,32 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* ── «خرید و دانلود رمان»: افزودن + پاپ‌آپ تاییدیه، بدون رفرش صفحه ────── */
 
-    async function addToCart(productId, replace) {
-        const body = { action: 'romanino_add_to_cart', nonce: romaninoCart.nonce, product_id: productId };
-        if (replace) body.replace = '1';
-        const res  = await fetch(romaninoCart.ajaxUrl, {
+    /**
+     * افزودن به سبد.
+     * @param {string|number} productId
+     * @param {boolean} replace        سبد قبلی خالی شود؟
+     * @param {object|null} variation  برای محصول متغیر:
+     *        { id: <variation_id>, attributes: { attribute_pa_format: 'pdf', ... } }
+     */
+    async function addToCart(productId, replace, variation) {
+        const params = new URLSearchParams({
+            action: 'romanino_add_to_cart',
+            nonce: romaninoCart.nonce,
+            product_id: productId,
+        });
+        if (replace) params.append('replace', '1');
+
+        if (variation && variation.id) {
+            params.append('variation_id', variation.id);
+            Object.keys(variation.attributes || {}).forEach(key => {
+                params.append('variation[' + key + ']', variation.attributes[key]);
+            });
+        }
+
+        const res = await fetch(romaninoCart.ajaxUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams(body),
+            body: params,
         });
         return res.json();
     }
@@ -187,7 +238,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const productName = btn.dataset.product_name || '';
         btn.disabled = true;
 
-        addToCart(productId, false)
+        handleAddToCart(productId, productName, null, btn);
+    });
+
+    /* جریان مشترک «افزودن به سبد + مودال» — هم دکمه‌ی ساده و هم فرم تنوع
+       محصول متغیر از همین استفاده می‌کنند تا منطق مودال یک‌جا بماند. */
+    function handleAddToCart(productId, productName, variation, btn) {
+        addToCart(productId, false, variation)
             .then(json => {
                 if (!json.success) {
                     alert((json.data && json.data.message) || 'افزودن به سبد خرید با خطا مواجه شد.');
@@ -220,6 +277,45 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             })
             .catch(() => alert('خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.'))
-            .finally(() => { btn.disabled = false; });
+            .finally(() => { if (btn) btn.disabled = false; });
+    }
+
+    /* ── محصول متغیر: فرم انتخاب نسخه ────────────────────────────────────────
+       فرم را خود ووکامرس می‌سازد (variations_form) و اسکریپت
+       wc-add-to-cart-variation مقدار variation_id و فعال/غیرفعال بودن دکمه را
+       مدیریت می‌کند. ما فقط ارسال فرم را می‌گیریم تا به‌جای ریلود کامل صفحه،
+       همان کشوی سبد و مودال همیشگی قالب اجرا شود.
+
+       اگر جاوااسکریپت اجرا نشود یا ووکامرس تغییر کند، ارسال معمولی فرم
+       دست‌نخورده کار می‌کند — یعنی خرید هیچ‌وقت به این کد وابسته نیست. */
+    document.body.addEventListener('submit', function (e) {
+        const form = e.target.closest('form.variations_form');
+        if (!form) return;
+
+        const variationInput = form.querySelector('input[name="variation_id"]');
+        const variationId    = variationInput ? parseInt(variationInput.value, 10) : 0;
+
+        // هنوز نسخه‌ای انتخاب نشده → بگذار خود ووکامرس پیام استانداردش را بدهد
+        if (!variationId) return;
+
+        e.preventDefault();
+
+        const productId = form.dataset.product_id
+            || form.querySelector('input[name="product_id"]')?.value
+            || form.querySelector('button[name="add-to-cart"]')?.value;
+        if (!productId) return;
+
+        // مقادیر ویژگی‌های انتخاب‌شده (attribute_pa_format و مانند آن)
+        const attributes = {};
+        form.querySelectorAll('[name^="attribute_"]').forEach(field => {
+            attributes[field.name] = field.value;
+        });
+
+        const submitBtn   = form.querySelector('.single_add_to_cart_button');
+        const productName = document.querySelector('.product_title')?.textContent?.trim()
+            || document.title;
+
+        if (submitBtn) submitBtn.disabled = true;
+        handleAddToCart(productId, productName, { id: variationId, attributes: attributes }, submitBtn);
     });
 });

@@ -1,6 +1,54 @@
 (function ($) {
     'use strict';
 
+    /* ---------- تب‌ها بدون بارگذاری مجدد صفحه ----------
+       قبلاً هر تب یک لینک معمولی بود و کلیک روی آن کل صفحه‌ی پیشخوان را از
+       سرور دوباره می‌گرفت. حالا هر شش پنل از قبل در صفحه هستند و جابه‌جایی
+       فقط نمایش/پنهان‌سازی است — بدون هیچ درخواست شبکه‌ای.
+       آدرس مرورگر با replaceState هماهنگ می‌ماند تا رفرش یا بوکمارک کردن،
+       همان تب را باز کند. لینک‌ها href واقعی دارند، پس اگر جاوااسکریپت
+       اجرا نشود (یا کاربر Ctrl+Click بزند) رفتار قدیمی کار می‌کند. */
+    var $tabLinks  = $('.romanino-tab-nav .nav-tab');
+    var $tabPanels = $('[data-romanino-panel]');
+
+    function activateTab(key, pushUrl) {
+        var $panel = $tabPanels.filter('[data-romanino-panel="' + key + '"]');
+        if (!$panel.length) return false;
+
+        $tabPanels.prop('hidden', true);
+        $panel.prop('hidden', false);
+
+        $tabLinks.removeClass('nav-tab-active');
+        $tabLinks.filter('[data-romanino-tab="' + key + '"]').addClass('nav-tab-active');
+
+        if (pushUrl && window.history && window.history.replaceState) {
+            var url = new URL(window.location.href);
+            url.searchParams.set('tab', key);
+            window.history.replaceState({ romaninoTab: key }, '', url.toString());
+        }
+        return true;
+    }
+
+    if ($tabLinks.length && $tabPanels.length) {
+        $tabLinks.on('click', function (e) {
+            // کلیک با Ctrl/Cmd یا دکمه‌ی وسط = باز کردن در تب جدید؛ دست نمی‌زنیم
+            if (e.ctrlKey || e.metaKey || e.shiftKey || e.which === 2) return;
+            var key = $(this).data('romanino-tab');
+
+            /* استثنا: پنلی که ویرایشگر وردپرس (TinyMCE) دارد نباید با
+               نمایش/پنهان‌سازی سمت کلاینت باز شود. TinyMCE وقتی داخل یک عنصر
+               مخفی مقداردهی اولیه شود، iframe ویرایشگر با ارتفاع صفر رندر
+               می‌شود و کادر نوشتن عملاً نامرئی می‌ماند. برای این تب‌ها لینک را
+               دست‌نخورده می‌گذاریم تا مرورگر واقعاً صفحه را باز کند و ویرایشگر
+               در حالت نمایان ساخته شود. */
+            if ($tabPanels.filter('[data-romanino-panel="' + key + '"]').find('.wp-editor-area').length) {
+                return;
+            }
+
+            if (activateTab(key, true)) e.preventDefault();
+        });
+    }
+
     /* ---------- جست‌وجوی زنده‌ی رمان ویژه (Select2 + AJAX) ---------- */
     if ($.fn.selectWoo) {
         $('.romanino-product-search').selectWoo({
@@ -93,6 +141,23 @@
         $wrap.append(row);
     });
 
+    /* ---------- ردیف شبکه اجتماعی (لینک + آیکون دلخواه) ---------- */
+    $('#romanino-add-social').on('click', function () {
+        var $wrap = $('#romanino-repeater-social');
+        var idx = nextIndex($wrap);
+        var row = '<div class="romanino-repeater-row romanino-repeater-row-social">' +
+            '<input type="text" name="social_links[' + idx + '][title]" placeholder="عنوان، مثلا: تلگرام">' +
+            '<input type="text" name="social_links[' + idx + '][url]" placeholder="آدرس لینک (اجباری)">' +
+            '<div class="romanino-media-field">' +
+            '<input type="text" class="romanino-media-url" name="social_links[' + idx + '][icon]" placeholder="آدرس آیکون" readonly>' +
+            '<img class="romanino-media-preview" src="" style="display:none;">' +
+            '<button type="button" class="button romanino-upload-logo">انتخاب آیکون</button>' +
+            '</div>' +
+            '<button type="button" class="button romanino-remove-row">حذف</button>' +
+            '</div>';
+        $wrap.append(row);
+    });
+
     /* ---------- ردیف سوال متداول ---------- */
     $('#romanino-add-faq').on('click', function () {
         var $wrap = $('#romanino-repeater-faq');
@@ -114,9 +179,12 @@
         e.preventDefault();
         var $btn = $(this);
         var $field = $btn.closest('.romanino-media-field');
+        // همین آپلودر برای لوگوی بانک، آیکون بانکی سایدبار و آیکون شبکه‌های
+        // اجتماعی استفاده می‌شود، پس عنوانش عمومی است.
         var frame = wp.media({
-            title: 'انتخاب لوگوی بانک (ترجیحاً webp)',
+            title: 'انتخاب تصویر (ترجیحاً WEBP یا SVG)',
             button: { text: 'استفاده از این تصویر' },
+            library: { type: 'image' },
             multiple: false
         });
         frame.on('select', function () {

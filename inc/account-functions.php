@@ -53,13 +53,13 @@ add_action( 'woocommerce_save_account_details', 'romanino_save_custom_user_profi
 function romanino_save_custom_user_profile_fields( int $user_id ): void {
     // اعتبارسنجی جنسیت
     $allowed_genders = [ 'male', 'female', '' ];
-    $gender = sanitize_text_field( $_POST['user_gender'] ?? '' );
+    $gender = sanitize_text_field( wp_unslash( $_POST['user_gender'] ?? '' ) );
     if ( in_array( $gender, $allowed_genders, true ) ) {
         update_user_meta( $user_id, 'user_gender', $gender );
     }
 
     // اعتبارسنجی تاریخ شمسی (فرمت YYYY/MM/DD)
-    $dob = sanitize_text_field( $_POST['user_dob'] ?? '' );
+    $dob = sanitize_text_field( wp_unslash( $_POST['user_dob'] ?? '' ) );
     if ( preg_match( '/^1[34]\d{2}\/(0[1-9]|1[0-2])\/(0[1-9]|[12]\d|3[01])$/', $dob ) ) {
         update_user_meta( $user_id, 'user_dob', $dob );
     }
@@ -73,24 +73,29 @@ function romanino_handle_quick_profile_save(): void {
         exit;
     }
 
-    if ( ! isset( $_POST['_romanino_quick_profile_nonce'] ) ||
-         ! wp_verify_nonce( $_POST['_romanino_quick_profile_nonce'], 'romanino_quick_profile' ) ) {
+    // FIX: بدون wp_unslash، بک‌اسلش‌ها روی نام کاربر انباشته می‌شدند.
+    $romanino_nonce = isset( $_POST['_romanino_quick_profile_nonce'] )
+        ? sanitize_text_field( wp_unslash( $_POST['_romanino_quick_profile_nonce'] ) )
+        : '';
+    if ( ! $romanino_nonce || ! wp_verify_nonce( $romanino_nonce, 'romanino_quick_profile' ) ) {
         wp_die( 'درخواست نامعتبر.' );
     }
 
     $user_id = get_current_user_id();
 
     if ( isset( $_POST['first_name'] ) ) {
-        update_user_meta( $user_id, 'first_name', sanitize_text_field( $_POST['first_name'] ) );
-        update_user_meta( $user_id, 'billing_first_name', sanitize_text_field( $_POST['first_name'] ) );
+        $first = sanitize_text_field( wp_unslash( $_POST['first_name'] ) );
+        update_user_meta( $user_id, 'first_name', $first );
+        update_user_meta( $user_id, 'billing_first_name', $first );
     }
     if ( isset( $_POST['last_name'] ) ) {
-        update_user_meta( $user_id, 'last_name', sanitize_text_field( $_POST['last_name'] ) );
-        update_user_meta( $user_id, 'billing_last_name', sanitize_text_field( $_POST['last_name'] ) );
+        $last = sanitize_text_field( wp_unslash( $_POST['last_name'] ) );
+        update_user_meta( $user_id, 'last_name', $last );
+        update_user_meta( $user_id, 'billing_last_name', $last );
     }
 
     $allowed_genders = [ 'male', 'female', '' ];
-    $gender = sanitize_text_field( $_POST['user_gender'] ?? '' );
+    $gender = sanitize_text_field( wp_unslash( $_POST['user_gender'] ?? '' ) );
     if ( in_array( $gender, $allowed_genders, true ) ) {
         update_user_meta( $user_id, 'user_gender', $gender );
     }

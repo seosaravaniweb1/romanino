@@ -22,8 +22,12 @@ function romanino_footer_defaults() {
             array( 'label' => 'سه ماه',  'price' => '۴۱۵,۰۰۰', 'color' => 'purple',  'link' => '' ),
         ),
         'footer_description' => 'رمانینو؛ مرجع دانلود رمان‌های عاشقانه، ترسناک و جنایی ایرانی و خارجی با قابلیت دانلود آنی پس از پرداخت.',
-        'social_instagram' => '',
-        'social_telegram'  => '',
+        /* شبکه‌های اجتماعی — تکرارشونده (بدون محدودیت تعداد).
+           قبلاً فقط دو فیلد ثابت «اینستاگرام» و «تلگرام» وجود داشت؛ حالا مدیر
+           سایت هر تعداد لینک دلخواه با آیکون دلخواه اضافه می‌کند (تلگرام،
+           روبیکا، ایتا، واتساپ یا هر چیز دیگر). اگر هیچ ردیفی نباشد، کل بخش
+           در فوتر رندر نمی‌شود. */
+        'social_links'     => array(),
         'about_links'      => array(
             array( 'title' => 'درباره ما',        'url' => '' ),
             array( 'title' => 'قوانین و مقررات',  'url' => '' ),
@@ -34,6 +38,11 @@ function romanino_footer_defaults() {
             array( 'title' => 'راهنمای دانلود', 'url' => '' ),
             array( 'title' => 'پیگیری سفارش',   'url' => '' ),
         ),
+        /* بخش «دانلود اپلیکیشن» فوتر.
+           app_enabled پیش‌فرض خاموش است: تا وقتی اپلیکیشنی منتشر نشده، این
+           ستون اصلاً در فوتر نمایش داده نمی‌شود. هر دکمه‌ی فروشگاه هم فقط
+           وقتی رندر می‌شود که لینکش واقعاً پر شده باشد. */
+        'app_enabled' => 0,
         'app_google'  => '',
         'app_bazaar'  => '',
         'app_myket'   => '',
@@ -92,6 +101,19 @@ function romanino_get_sidebar_options() {
 /** سوالات متداول صفحه اصلی — قابل ویرایش از پیشخوان (قبلاً هاردکد در inc/seo-functions.php بود) */
 function romanino_faq_defaults() {
     return array(
+        /* FIX (باگ گزارش‌شده): این فیلد قبلاً یک باکس مستقل «زیر سوالات متداول»
+           می‌ساخت، در حالی که صفحه‌ی اصلی از قبل یک بخش متنی سئو در انتهای صفحه
+           داشت که متنش داخل front-page.php هاردکد بود. یعنی مدیر سایت با پر
+           کردن این فیلد، یک بلوک متنی *دوم* می‌ساخت و متن اصلی همچنان
+           غیرقابل‌ویرایش می‌ماند.
+
+           حالا این دو یکی شده‌اند: همین دو فیلد، مستقیماً همان بخش انتهای صفحه‌ی
+           اصلی را می‌سازند و مقدار پیش‌فرضشان دقیقاً همان متنی است که تا امروز
+           هاردکد بود — پس تا وقتی مدیر سایت چیزی عوض نکند، صفحه‌ی اصلی هیچ
+           تغییری نمی‌کند. */
+        'description_title' => 'رمانینو؛ مرجع دانلود رمان و بهترین سایت خرید رمان PDF',
+        'description'       => '<p>رمانینو به‌عنوان مرجع دانلود رمان، مجموعه‌ای گسترده از بهترین و پرطرفدارترین رمان‌های ایرانی و خارجی را در ژانرهای متنوع عاشقانه، اجتماعی، هیجانی، ترسناک و علمی‌تخیلی، به‌صورت PDF و صوتی و بدون سانسور و حذفیات، گردآوری کرده است.</p>'
+            . "\n" . '<p>تمامی فایل‌های ارائه‌شده پیش از انتشار از نظر کیفیت متن و صحت فایل بررسی می‌شوند؛ به همین دلیل رمانینو را می‌توان بهترین سایت خرید رمان برای علاقه‌مندان به مطالعه دانست. شما می‌توانید در هر ساعت از شبانه‌روز، رمان جدید مورد علاقه‌ی خود را انتخاب کرده و بلافاصله پس از پرداخت، آن را دانلود کنید.</p>',
         'items' => array(
             array( 'q' => 'دانلود رمان از رمانینو چگونه است؟', 'a' => 'کافی است رمان مورد نظرتان را از بین دسته‌بندی‌ها یا با جست‌وجو پیدا کنید، خرید را نهایی کنید و بلافاصله پس از پرداخت، لینک دانلود فایل PDF یا نسخه صوتی در پنل کاربری و ایمیل شما قرار می‌گیرد.' ),
             array( 'q' => 'چرا رمانینو را بهترین سایت خرید رمان می‌دانیم؟', 'a' => 'رمانینو به‌عنوان مرجع دانلود رمان، پیش از انتشار هر عنوان، کیفیت فایل و صحت متن را بررسی می‌کند و نسخه‌ی کامل و بدون حذفیات را در اختیار خریدار قرار می‌دهد.' ),
@@ -104,7 +126,19 @@ function romanino_faq_defaults() {
 function romanino_get_faq_options() {
     static $opts = null;
     if ( null === $opts ) {
-        $opts = wp_parse_args( get_option( 'romanino_faq_options', array() ), romanino_faq_defaults() );
+        $defaults = romanino_faq_defaults();
+        $opts     = wp_parse_args( get_option( 'romanino_faq_options', array() ), $defaults );
+
+        /* wp_parse_args فقط کلیدهای «غایب» را با پیش‌فرض پر می‌کند، نه کلیدهایی
+           که ذخیره شده‌اند ولی رشته‌ی خالی‌اند. سایت‌هایی که قبلاً تب سوالات
+           متداول را ذخیره کرده‌اند، description آن‌ها به‌صورت '' در دیتابیس
+           نشسته؛ بدون این گارد، بخش متنی انتهای صفحه‌ی اصلی در آن سایت‌ها
+           بی‌صدا ناپدید می‌شد. */
+        foreach ( array( 'description_title', 'description' ) as $key ) {
+            if ( '' === trim( (string) $opts[ $key ] ) ) {
+                $opts[ $key ] = $defaults[ $key ];
+            }
+        }
     }
     return $opts;
 }
@@ -127,9 +161,12 @@ function romanino_get_myaccount_options() {
 
 function romanino_sms_defaults() {
     return array(
-        'ippanel_api_key'      => '',
-        'ippanel_originator'   => '', // شماره خط ارسال (در پنل ippanel، بخش «خطوط»)
-        'ippanel_pattern_otp'  => '', // کد پترنی که برای ورود/ثبت‌نام ساختید (مثلا lrhbzV0qbfeYkzj)
+        'ippanel_enabled'      => 0,  // کلید اصلی روشن/خاموش ارسال پیامک
+        'ippanel_test_mode'    => 0,  // حالت آزمایشی: کد فقط در لاگ، بدون ارسال واقعی
+        'ippanel_api_key'      => '', // پنل ← توسعه‌دهندگان/وب‌سرویس ← کلید API
+        'ippanel_originator'   => '', // پنل ← «خطوط من» (مثلاً 3000505)
+        'ippanel_pattern_otp'  => '', // پنل ← «پترن‌ها» ← کد پترن (مثلاً t2cfmnyo0c)
+        'ippanel_pattern_var'  => 'code', // نام متغیر داخل پترن؛ در «%code%» یعنی code
     );
 }
 
@@ -137,8 +174,72 @@ function romanino_get_footer_options() {
     static $opts = null;
     if ( null === $opts ) {
         $opts = wp_parse_args( get_option( 'romanino_footer_options', array() ), romanino_footer_defaults() );
+        $opts = romanino_migrate_legacy_social_links( $opts );
     }
     return $opts;
+}
+
+/**
+ * مهاجرت خودکار دو فیلد قدیمی «اینستاگرام/تلگرام» به آرایه‌ی social_links.
+ *
+ * این کار در لحظه‌ی خواندن انجام می‌شود (نه با نوشتن در دیتابیس) تا اگر
+ * تنظیمات هنوز ذخیره‌ی مجدد نشده باشد، لینک‌های فعلی سایت از بین نروند.
+ * به‌محض اینکه مدیر سایت یک بار فرم فوتر را ذخیره کند، مقادیر در قالب جدید
+ * نوشته می‌شوند و این تابع دیگر کاری نمی‌کند.
+ *
+ * @param array $opts تنظیمات فوتر
+ * @return array
+ */
+function romanino_migrate_legacy_social_links( array $opts ): array {
+    if ( ! empty( $opts['social_links'] ) ) {
+        return $opts; // از قبل مهاجرت شده
+    }
+
+    $legacy = array(
+        'اینستاگرام' => $opts['social_instagram'] ?? '',
+        'تلگرام'     => $opts['social_telegram'] ?? '',
+    );
+
+    $migrated = array();
+    foreach ( $legacy as $title => $url ) {
+        $url = trim( (string) $url );
+        if ( '' !== $url ) {
+            $migrated[] = array( 'title' => $title, 'url' => $url, 'icon' => '' );
+        }
+    }
+
+    if ( $migrated ) {
+        $opts['social_links'] = $migrated;
+    }
+    return $opts;
+}
+
+/**
+ * پاک‌سازی ردیف‌های شبکه‌های اجتماعی.
+ *
+ * @param mixed $items ورودی خام از فرم
+ * @return array<int, array{title:string, url:string, icon:string}>
+ */
+function romanino_sanitize_social_links( $items ): array {
+    $clean = array();
+    if ( ! is_array( $items ) ) {
+        return $clean;
+    }
+    foreach ( $items as $item ) {
+        if ( ! is_array( $item ) ) {
+            continue;
+        }
+        $url = isset( $item['url'] ) ? esc_url_raw( trim( wp_unslash( $item['url'] ) ) ) : '';
+        if ( '' === $url ) {
+            continue; // ردیف بدون لینک اصلاً ذخیره نمی‌شود
+        }
+        $clean[] = array(
+            'title' => isset( $item['title'] ) ? sanitize_text_field( wp_unslash( $item['title'] ) ) : '',
+            'url'   => $url,
+            'icon'  => isset( $item['icon'] ) ? esc_url_raw( trim( wp_unslash( $item['icon'] ) ) ) : '',
+        );
+    }
+    return $clean;
 }
 
 function romanino_get_header_options() {
@@ -236,6 +337,88 @@ add_action( 'wp_ajax_romanino_admin_search_products', function () {
 /* ------------------------------------------------------------
    ۴. ذخیره‌سازی
    ------------------------------------------------------------ */
+/**
+ * پاک‌سازی کد نماد اعتماد (اینماد / ساماندهی).
+ *
+ * FIX: قبلاً با wp_kses_post ذخیره می‌شد. آن تابع صفت referrerpolicy را در
+ * لیست مجاز ندارد و حذفش می‌کند — در حالی که اسنیپت رسمی اینماد دقیقاً به
+ * referrerpolicy="origin" روی هر دو تگ <a> و <img> نیاز دارد، وگرنه سرور
+ * اینماد تصویر را برنمی‌گرداند و جای لوگو خالی می‌ماند.
+ * این تابع یک allowlist محدود و هدفمند است: فقط <a> و <img> با همان صفاتی
+ * که این اسنیپت‌ها واقعاً لازم دارند (بدون هیچ رویداد on* یا <script>).
+ *
+ * @param string $html کد خام واردشده توسط مدیر سایت
+ * @return string
+ */
+function romanino_kses_trust_seal( string $html ): string {
+    return wp_kses( $html, array(
+        'a'   => array(
+            'href'           => true,
+            'target'         => true,
+            'rel'            => true,
+            'referrerpolicy' => true,
+            'class'          => true,
+            'id'             => true,
+            'style'          => true,
+        ),
+        'img' => array(
+            'src'            => true,
+            'alt'            => true,
+            'referrerpolicy' => true,
+            'width'          => true,
+            'height'         => true,
+            'class'          => true,
+            'id'             => true,
+            'style'          => true,
+            'loading'        => true,
+        ),
+        'div' => array( 'class' => true, 'id' => true, 'style' => true ),
+        'br'  => array(),
+    ), array( 'https', 'http' ) );
+}
+
+/**
+ * ذخیره‌ی موفق → ریدایرکت به همان تب (الگوی Post/Redirect/Get).
+ *
+ * FIX: قبلاً بعد از ذخیره، پیام موفقیت با add_action('admin_notices') در
+ * «همان ریکوئستِ POST» چاپ می‌شد. دو مشکل داشت:
+ *   ۱) رفرش کردن صفحه، مرورگر را وادار به ارسال دوباره‌ی فرم می‌کرد
+ *      («آیا می‌خواهید فرم را دوباره ارسال کنید؟») و تنظیمات دوباره ذخیره می‌شد.
+ *   ۲) چون آدرس صفحه پارامتر tab نداشت، بعد از ذخیره همیشه به تب «فوتر»
+ *      برمی‌گشت — حتی اگر کاربر تب پیامک را ذخیره کرده بود.
+ * حالا بعد از ذخیره یک ریدایرکت واقعی انجام می‌شود و پیام از طریق یک
+ * ترنزینت کوتاه‌عمر (مخصوص همان کاربر) منتقل می‌شود.
+ *
+ * @param string $tab     تبی که باید بعد از ریدایرکت فعال باشد
+ * @param string $message پیام موفقیت
+ */
+function romanino_options_saved_redirect( string $tab, string $message ): void {
+    set_transient( 'romanino_options_notice_' . get_current_user_id(), $message, 30 );
+
+    wp_safe_redirect( add_query_arg(
+        array(
+            'page' => 'romanino-theme-options',
+            'tab'  => $tab,
+        ),
+        admin_url( 'admin.php' )
+    ) );
+    exit;
+}
+
+/** نمایش پیام موفقیتِ منتقل‌شده از ریکوئست قبلی. */
+function romanino_render_saved_notice(): void {
+    $key     = 'romanino_options_notice_' . get_current_user_id();
+    $message = get_transient( $key );
+    if ( ! $message ) {
+        return;
+    }
+    delete_transient( $key );
+    printf(
+        '<div class="notice notice-success is-dismissible"><p>%s</p></div>',
+        esc_html( $message )
+    );
+}
+
 function romanino_sanitize_link_repeater( $items, $limit = 0 ) {
     $clean = array();
     if ( ! is_array( $items ) ) return $clean;
@@ -282,14 +465,16 @@ add_action( 'admin_init', function () {
             'sub_subtitle'        => sanitize_textarea_field( wp_unslash( $_POST['sub_subtitle'] ?? $defaults['sub_subtitle'] ) ),
             'sub_plans'           => $plans,
             'footer_description'  => sanitize_textarea_field( wp_unslash( $_POST['footer_description'] ?? '' ) ),
-            'social_instagram'   => esc_url_raw( trim( wp_unslash( $_POST['social_instagram'] ?? '' ) ) ),
-            'social_telegram'    => esc_url_raw( trim( wp_unslash( $_POST['social_telegram'] ?? '' ) ) ),
+            'social_links'       => romanino_sanitize_social_links( $_POST['social_links'] ?? array() ),
             'about_links'        => romanino_sanitize_link_repeater( $_POST['about_links'] ?? array() ),
             'guide_links'        => romanino_sanitize_link_repeater( $_POST['guide_links'] ?? array(), 5 ),
+            'app_enabled'        => isset( $_POST['app_enabled'] ) ? 1 : 0,
             'app_google'         => esc_url_raw( trim( wp_unslash( $_POST['app_google'] ?? '' ) ) ),
             'app_bazaar'         => esc_url_raw( trim( wp_unslash( $_POST['app_bazaar'] ?? '' ) ) ),
             'app_myket'          => esc_url_raw( trim( wp_unslash( $_POST['app_myket'] ?? '' ) ) ),
-            'enamad_code'        => wp_kses_post( wp_unslash( $_POST['enamad_code'] ?? '' ) ),
+            // FIX: wp_kses_post صفت referrerpolicy را حذف می‌کرد — دقیقاً همان
+            // صفتی که اسنیپت رسمی اینماد بدون آن لوگو را نمایش نمی‌دهد.
+            'enamad_code'        => romanino_kses_trust_seal( wp_unslash( $_POST['enamad_code'] ?? '' ) ),
             'banks'              => $banks,
             'gateway_1_label'    => sanitize_text_field( wp_unslash( $_POST['gateway_1_label'] ?? $defaults['gateway_1_label'] ) ),
             'gateway_2_label'    => sanitize_text_field( wp_unslash( $_POST['gateway_2_label'] ?? $defaults['gateway_2_label'] ) ),
@@ -297,9 +482,7 @@ add_action( 'admin_init', function () {
         );
 
         update_option( 'romanino_footer_options', $data );
-        add_action( 'admin_notices', function () {
-            echo '<div class="notice notice-success is-dismissible"><p>تنظیمات فوتر با موفقیت ذخیره شد.</p></div>';
-        } );
+        romanino_options_saved_redirect( 'footer', 'تنظیمات فوتر با موفقیت ذخیره شد.' );
     }
 
     // ذخیره هدر
@@ -310,9 +493,7 @@ add_action( 'admin_init', function () {
             'notification_text'    => wp_kses_post( wp_unslash( $_POST['notification_text'] ?? '' ) ),
         );
         update_option( 'romanino_header_options', $data );
-        add_action( 'admin_notices', function () {
-            echo '<div class="notice notice-success is-dismissible"><p>تنظیمات هدر با موفقیت ذخیره شد.</p></div>';
-        } );
+        romanino_options_saved_redirect( 'header', 'تنظیمات هدر با موفقیت ذخیره شد.' );
     }
 
     // FIX (Task 1.5): هندلر ذخیره «رمان‌های ویژه» حذف شد — این بخش کاملاً از سایت حذف شده است.
@@ -339,9 +520,7 @@ add_action( 'admin_init', function () {
             'trust_titles' => $titles,
         );
         update_option( 'romanino_sidebar_options', $data );
-        add_action( 'admin_notices', function () {
-            echo '<div class="notice notice-success is-dismissible"><p>تنظیمات باکس اعتماد محصول با موفقیت ذخیره شد.</p></div>';
-        } );
+        romanino_options_saved_redirect( 'sidebar', 'تنظیمات باکس اعتماد محصول با موفقیت ذخیره شد.' );
     }
 
     // ذخیره سوالات متداول
@@ -355,10 +534,14 @@ add_action( 'admin_init', function () {
             if ( '' === $q && '' === $a ) continue;
             $items[] = array( 'q' => $q, 'a' => $a );
         }
-        update_option( 'romanino_faq_options', array( 'items' => $items ) );
-        add_action( 'admin_notices', function () {
-            echo '<div class="notice notice-success is-dismissible"><p>سوالات متداول با موفقیت ذخیره شد.</p></div>';
-        } );
+        update_option( 'romanino_faq_options', array(
+            'items'             => $items,
+            'description_title' => sanitize_text_field( wp_unslash( $_POST['faq_description_title'] ?? '' ) ),
+            // wp_kses_post چون خروجی ویرایشگر وردپرس است: پاراگراف، لیست، لینک،
+            // bold و… مجاز می‌مانند ولی <script>/<iframe>/on* حذف می‌شوند.
+            'description'       => wp_kses_post( wp_unslash( $_POST['faq_description'] ?? '' ) ),
+        ) );
+        romanino_options_saved_redirect( 'faq', 'تنظیمات صفحه اصلی با موفقیت ذخیره شد.' );
     }
 
     // ذخیره تنظیمات پیشخوان مشتری
@@ -369,24 +552,24 @@ add_action( 'admin_init', function () {
             'dashboard_coupon'  => sanitize_text_field( wp_unslash( $_POST['dashboard_coupon'] ?? '' ) ),
         );
         update_option( 'romanino_myaccount_options', $data );
-        add_action( 'admin_notices', function () {
-            echo '<div class="notice notice-success is-dismissible"><p>تنظیمات پیشخوان مشتری با موفقیت ذخیره شد.</p></div>';
-        } );
+        romanino_options_saved_redirect( 'myaccount', 'تنظیمات پیشخوان مشتری با موفقیت ذخیره شد.' );
     }
 
     // ذخیره تنظیمات پیامک (ippanel)
     if ( isset( $_POST['romanino_save_sms'] ) && check_admin_referer( 'romanino_sms_nonce', 'romanino_sms_nonce_field' ) ) {
         $data = array(
-            // FIX: کلید API عمداً trim می‌شود ولی sanitize_text_field روش اعمال
-            // نمی‌شود چون ممکن است شامل کاراکترهایی باشد که با آن حذف می‌شوند.
+            'ippanel_enabled'     => isset( $_POST['ippanel_enabled'] ) ? 1 : 0,
+            'ippanel_test_mode'   => isset( $_POST['ippanel_test_mode'] ) ? 1 : 0,
+            // FIX: کلید API عمداً فقط trim می‌شود و sanitize_text_field رویش
+            // اعمال نمی‌شود، چون ممکن است کاراکترهایی داشته باشد که آن تابع حذف می‌کند.
             'ippanel_api_key'     => trim( wp_unslash( $_POST['ippanel_api_key'] ?? '' ) ),
             'ippanel_originator'  => preg_replace( '/[^0-9+]/', '', wp_unslash( $_POST['ippanel_originator'] ?? '' ) ),
             'ippanel_pattern_otp' => sanitize_text_field( wp_unslash( $_POST['ippanel_pattern_otp'] ?? '' ) ),
+            // نام متغیر پترن: فقط حروف/عدد/خط‌تیره/زیرخط مجاز است.
+            'ippanel_pattern_var' => preg_replace( '/[^A-Za-z0-9_\-]/', '', wp_unslash( $_POST['ippanel_pattern_var'] ?? 'code' ) ) ?: 'code',
         );
         update_option( 'romanino_sms_options', $data );
-        add_action( 'admin_notices', function () {
-            echo '<div class="notice notice-success is-dismissible"><p>تنظیمات پیامک با موفقیت ذخیره شد.</p></div>';
-        } );
+        romanino_options_saved_redirect( 'sms', 'تنظیمات پیامک با موفقیت ذخیره شد.' );
     }
 } );
 
@@ -396,8 +579,11 @@ add_action( 'admin_init', function () {
 function romanino_render_options_page() {
     if ( ! current_user_can( 'manage_options' ) ) return;
 
-    $valid_tabs = array( 'header', 'sidebar', 'faq', 'myaccount', 'sms' );
-    $tab      = isset( $_GET['tab'] ) && in_array( $_GET['tab'], $valid_tabs, true ) ? $_GET['tab'] : 'footer';
+    // FIX: 'footer' در لیست مجاز نبود و فقط چون مقدار پیش‌فرض است تصادفاً کار
+    // می‌کرد؛ اگر روزی پیش‌فرض عوض می‌شد، تب فوتر غیرقابل انتخاب می‌شد.
+    $valid_tabs   = array( 'footer', 'header', 'sidebar', 'faq', 'myaccount', 'sms' );
+    $requested    = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : '';
+    $tab          = in_array( $requested, $valid_tabs, true ) ? $requested : 'footer';
     $footer   = romanino_get_footer_options();
     $header   = romanino_get_header_options();
     $sidebar  = romanino_get_sidebar_options();
@@ -410,17 +596,39 @@ function romanino_render_options_page() {
         <h1>تنظیمات قالب رمانینو</h1>
         <p class="description">از این صفحه می‌توانید محتوای بخش‌های مختلف سایت را بدون نیاز به کدنویسی مدیریت کنید. جلوی هر تب مشخص شده که مربوط به کدام بخش سایت است.</p>
 
-        <h2 class="nav-tab-wrapper">
-            <a href="?page=romanino-theme-options&tab=footer" class="nav-tab <?php echo $tab === 'footer' ? 'nav-tab-active' : ''; ?>">فوتر</a>
-            <a href="?page=romanino-theme-options&tab=header" class="nav-tab <?php echo $tab === 'header' ? 'nav-tab-active' : ''; ?>">هدر (سرچ + زنگوله نوتیف)</a>
-            <?php // FIX (Task 1.5 + 2.1): تب‌های «هدر (رمان‌های ویژه)» و «صفحه اصلی (رمان‌های پرطرفدار)» طبق درخواست حذف شدند. ?>
-            <a href="?page=romanino-theme-options&tab=sidebar" class="nav-tab <?php echo $tab === 'sidebar' ? 'nav-tab-active' : ''; ?>">صفحه محصول (باکس اعتماد)</a>
-            <a href="?page=romanino-theme-options&tab=faq" class="nav-tab <?php echo $tab === 'faq' ? 'nav-tab-active' : ''; ?>">صفحه اصلی (سوالات متداول)</a>
-            <a href="?page=romanino-theme-options&tab=myaccount" class="nav-tab <?php echo $tab === 'myaccount' ? 'nav-tab-active' : ''; ?>">پیشخوان مشتری</a>
-            <a href="?page=romanino-theme-options&tab=sms" class="nav-tab <?php echo $tab === 'sms' ? 'nav-tab-active' : ''; ?>">پیامک (OTP)</a>
+        <?php romanino_render_saved_notice(); ?>
+
+        <?php
+        /* FIX (تب‌های بدون بارگذاری مجدد): قبلاً هر تب یک لینک معمولی بود و
+           کلیک روی آن، کل صفحه‌ی پیشخوان را از سرور دوباره می‌گرفت — یعنی
+           برای دیدن یک فرم، همه‌ی کوئری‌های وردپرس، منوی پیشخوان و اسکریپت‌ها
+           دوباره لود می‌شدند.
+           حالا هر شش پنل یک‌بار در همان صفحه رندر می‌شوند و جابه‌جایی بینشان
+           فقط نمایش/پنهان‌سازی است: بدون هیچ درخواست شبکه، بدون تأخیر.
+           این از AJAX هم سریع‌تر است چون اصلاً رفت‌وبرگشتی به سرور ندارد.
+           آدرس صفحه با history.replaceState هماهنگ می‌ماند، پس رفرش کردن یا
+           بوکمارک کردن یک تب همچنان همان تب را باز می‌کند. */
+        $romanino_tabs = array(
+            'footer'    => 'فوتر',
+            'header'    => 'هدر (سرچ + زنگوله نوتیف)',
+            'sidebar'   => 'صفحه محصول (باکس اعتماد)',
+            'faq'       => 'صفحه اصلی (سوالات متداول + متن سئو)',
+            'myaccount' => 'پیشخوان مشتری',
+            'sms'       => 'پنل پیامک (ippanel)',
+        );
+        ?>
+        <h2 class="nav-tab-wrapper romanino-tab-nav">
+            <?php foreach ( $romanino_tabs as $romanino_tab_key => $romanino_tab_label ) : ?>
+                <a href="<?php echo esc_url( add_query_arg( array( 'page' => 'romanino-theme-options', 'tab' => $romanino_tab_key ), admin_url( 'admin.php' ) ) ); ?>"
+                    class="nav-tab <?php echo $tab === $romanino_tab_key ? 'nav-tab-active' : ''; ?>"
+                    data-romanino-tab="<?php echo esc_attr( $romanino_tab_key ); ?>">
+                    <?php echo esc_html( $romanino_tab_label ); ?>
+                </a>
+            <?php endforeach; ?>
         </h2>
 
-        <?php if ( $tab === 'footer' ) : ?>
+
+        <div class="romanino-tab-panel" data-romanino-panel="footer"<?php echo $tab === 'footer' ? '' : ' hidden'; ?>>
 
         <form method="post" class="romanino-admin-form">
             <?php wp_nonce_field( 'romanino_footer_nonce', 'romanino_footer_nonce_field' ); ?>
@@ -466,15 +674,30 @@ function romanino_render_options_page() {
                         <th><label for="footer_description">توضیح زیر لوگو</label></th>
                         <td><textarea id="footer_description" name="footer_description" class="large-text" rows="3"><?php echo esc_textarea( $footer['footer_description'] ); ?></textarea></td>
                     </tr>
-                    <tr>
-                        <th><label for="social_instagram">لینک اینستاگرام</label></th>
-                        <td><input type="url" id="social_instagram" name="social_instagram" class="large-text" value="<?php echo esc_attr( $footer['social_instagram'] ); ?>" placeholder="https://instagram.com/..."></td>
-                    </tr>
-                    <tr>
-                        <th><label for="social_telegram">لینک تلگرام</label></th>
-                        <td><input type="url" id="social_telegram" name="social_telegram" class="large-text" value="<?php echo esc_attr( $footer['social_telegram'] ); ?>" placeholder="https://t.me/..."></td>
-                    </tr>
                 </table>
+
+                <h3>شبکه‌های اجتماعی و راه‌های ارتباطی</h3>
+                <p class="description">
+                    هر ردیف یک آیکون در فوتر می‌سازد. عنوان برای دسترس‌پذیری (توضیح صفحه‌خوان و tooltip) استفاده می‌شود،
+                    آیکون هم از کتابخانه‌ی رسانه انتخاب می‌شود (فرمت پیشنهادی WEBP یا SVG).
+                    <strong>محدودیتی در تعداد نیست</strong> — تلگرام، روبیکا، ایتا، واتساپ یا هر چیز دیگری.
+                    اگر هیچ ردیفی نسازید یا لینک را خالی بگذارید، این بخش اصلاً در فوتر نمایش داده نمی‌شود.
+                </p>
+                <div id="romanino-repeater-social" class="romanino-repeater">
+                    <?php foreach ( $footer['social_links'] as $i => $social ) : ?>
+                        <div class="romanino-repeater-row romanino-repeater-row-social">
+                            <input type="text" name="social_links[<?php echo (int) $i; ?>][title]" placeholder="عنوان، مثلا: تلگرام" value="<?php echo esc_attr( $social['title'] ?? '' ); ?>">
+                            <input type="text" name="social_links[<?php echo (int) $i; ?>][url]" placeholder="آدرس لینک (اجباری)" value="<?php echo esc_attr( $social['url'] ?? '' ); ?>">
+                            <div class="romanino-media-field">
+                                <input type="text" class="romanino-media-url" name="social_links[<?php echo (int) $i; ?>][icon]" placeholder="آدرس آیکون" value="<?php echo esc_attr( $social['icon'] ?? '' ); ?>" readonly>
+                                <img class="romanino-media-preview" src="<?php echo esc_url( $social['icon'] ?? '' ); ?>" style="<?php echo ! empty( $social['icon'] ) ? '' : 'display:none;'; ?>">
+                                <button type="button" class="button romanino-upload-logo">انتخاب آیکون</button>
+                            </div>
+                            <button type="button" class="button romanino-remove-row">حذف</button>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <button type="button" class="button button-secondary" id="romanino-add-social">+ افزودن شبکه اجتماعی</button>
             </div>
 
             <div class="romanino-box">
@@ -509,7 +732,22 @@ function romanino_render_options_page() {
 
             <div class="romanino-box">
                 <h2>۵. دانلود اپلیکیشن</h2>
+                <p class="description">
+                    عنوان «اپلیکیشن رمانینو» و متن تبلیغاتی زیر آن از فوتر حذف شدند.
+                    تا وقتی تیک زیر را نزنید، کل این ستون در فوتر نمایش داده نمی‌شود؛
+                    هر دکمه‌ی فروشگاه هم فقط در صورتی رندر می‌شود که لینکش را پر کرده باشید.
+                </p>
                 <table class="form-table">
+                    <tr>
+                        <th>نمایش داده شود؟</th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="app_enabled" value="1" <?php checked( $footer['app_enabled'], 1 ); ?>>
+                                بخش «دانلود اپلیکیشن» در فوتر نمایش داده شود
+                            </label>
+                            <p class="description">وقتی اپلیکیشن منتشر شد، این تیک را بزنید.</p>
+                        </td>
+                    </tr>
                     <tr>
                         <th><label for="app_google">لینک Google Play</label></th>
                         <td><input type="text" id="app_google" name="app_google" class="large-text" value="<?php echo esc_attr( $footer['app_google'] ); ?>"></td>
@@ -571,7 +809,9 @@ function romanino_render_options_page() {
             <p><button type="submit" name="romanino_save_footer" value="1" class="button button-primary button-hero">ذخیره تنظیمات فوتر</button></p>
         </form>
 
-        <?php elseif ( $tab === 'header' ) : ?>
+        </div>
+
+        <div class="romanino-tab-panel" data-romanino-panel="header"<?php echo $tab === 'header' ? '' : ' hidden'; ?>>
 
         <form method="post" class="romanino-admin-form">
             <?php wp_nonce_field( 'romanino_header_nonce', 'romanino_header_nonce_field' ); ?>
@@ -605,7 +845,9 @@ function romanino_render_options_page() {
 
         <?php // FIX (Task 1.5 + 2.1): تب‌های «هدر (رمان‌های ویژه)» و «صفحه اصلی (رمان‌های پرطرفدار)» طبق درخواست کاملاً حذف شدند — دیگر انتخاب دستی امکان‌پذیر نیست. ?>
 
-        <?php elseif ( $tab === 'sidebar' ) : ?>
+        </div>
+
+        <div class="romanino-tab-panel" data-romanino-panel="sidebar"<?php echo $tab === 'sidebar' ? '' : ' hidden'; ?>>
 
         <form method="post" class="romanino-admin-form">
             <?php wp_nonce_field( 'romanino_sidebar_nonce', 'romanino_sidebar_nonce_field' ); ?>
@@ -639,7 +881,9 @@ function romanino_render_options_page() {
             <p><button type="submit" name="romanino_save_sidebar" value="1" class="button button-primary button-hero">ذخیره باکس اعتماد</button></p>
         </form>
 
-        <?php elseif ( $tab === 'faq' ) : ?>
+        </div>
+
+        <div class="romanino-tab-panel" data-romanino-panel="faq"<?php echo $tab === 'faq' ? '' : ' hidden'; ?>>
 
         <form method="post" class="romanino-admin-form">
             <?php wp_nonce_field( 'romanino_faq_nonce', 'romanino_faq_nonce_field' ); ?>
@@ -657,10 +901,56 @@ function romanino_render_options_page() {
                 </div>
                 <button type="button" class="button button-secondary" id="romanino-add-faq">+ افزودن سوال جدید</button>
             </div>
-            <p><button type="submit" name="romanino_save_faq" value="1" class="button button-primary button-hero">ذخیره سوالات متداول</button></p>
+
+            <div class="romanino-box">
+                <h2>متن معرفی انتهای صفحه اصلی <span class="description">(بخش سئو — پایین‌ترین بخش صفحه اصلی)</span></h2>
+                <p class="description">
+                    این همان باکسی است که در <strong>انتهای صفحه اصلی</strong> (بعد از سوالات متداول) نمایش داده می‌شود.
+                    تا پیش از این متنِ آن داخل فایل قالب ثابت بود و قابل ویرایش نبود؛ حالا هر چیزی اینجا بنویسید،
+                    مستقیماً همان باکس را می‌سازد.
+                </p>
+                <p class="description">
+                    اگر متن طولانی شد، در صفحه اصلی به‌صورت خودکار جمع می‌شود و انتهای آن محو شده و دکمه‌ی
+                    «مشاهده بیشتر» زیرش می‌آید، تا اسکرول صفحه اصلی بلند نشود.
+                    اگر هر دو فیلد را خالی بگذارید، متن پیش‌فرض قالب نمایش داده می‌شود.
+                </p>
+
+                <table class="form-table">
+                    <tr>
+                        <th scope="row"><label for="faq_description_title">عنوان باکس</label></th>
+                        <td>
+                            <input type="text" id="faq_description_title" name="faq_description_title" class="large-text"
+                                value="<?php echo esc_attr( $faq_opts['description_title'] ?? '' ); ?>">
+                            <p class="description">به‌صورت تگ <code>&lt;h2&gt;</code> بالای متن چاپ می‌شود.</p>
+                        </td>
+                    </tr>
+                </table>
+
+                <p><strong>متن باکس</strong></p>
+                <?php
+                /* ویرایشگر کامل وردپرس (TinyMCE) به‌جای textarea خام، تا مدیر سایت
+                   بتواند پاراگراف، لیست، لینک و متن پررنگ بسازد بدون اینکه HTML
+                   بنویسد. media_buttons خاموش است چون این باکس متنی سئوست و
+                   تصویر داخلش جایی ندارد. */
+                wp_editor(
+                    $faq_opts['description'] ?? '',
+                    'faq_description',
+                    array(
+                        'textarea_name' => 'faq_description',
+                        'textarea_rows' => 12,
+                        'media_buttons' => false,
+                        'teeny'         => true,
+                        'quicktags'     => true,
+                    )
+                );
+                ?>
+            </div>
+            <p><button type="submit" name="romanino_save_faq" value="1" class="button button-primary button-hero">ذخیره تنظیمات صفحه اصلی</button></p>
         </form>
 
-        <?php elseif ( $tab === 'myaccount' ) : ?>
+        </div>
+
+        <div class="romanino-tab-panel" data-romanino-panel="myaccount"<?php echo $tab === 'myaccount' ? '' : ' hidden'; ?>>
 
         <form method="post" class="romanino-admin-form">
             <?php wp_nonce_field( 'romanino_myaccount_nonce', 'romanino_myaccount_nonce_field' ); ?>
@@ -685,50 +975,171 @@ function romanino_render_options_page() {
             <p><button type="submit" name="romanino_save_myaccount" value="1" class="button button-primary button-hero">ذخیره تنظیمات پیشخوان</button></p>
         </form>
 
-        <?php endif; ?>
+        </div>
 
-        <?php if ( $tab === 'sms' ) : ?>
+        <div class="romanino-tab-panel" data-romanino-panel="sms"<?php echo $tab === 'sms' ? '' : ' hidden'; ?>>
 
         <form method="post" class="romanino-admin-form">
             <?php wp_nonce_field( 'romanino_sms_nonce', 'romanino_sms_nonce_field' ); ?>
+
             <div class="romanino-box">
-                <h2>اتصال به پنل پیامکی ippanel</h2>
+                <h2>اتصال به پنل پیامکی آی‌پی‌پنل <span class="description">(ippanel.ir)</span></h2>
                 <p class="description">
-                    برای این‌که ارسال فعال شود، ابتدا پکیج رسمی <code>ippanel/php-rest-sdk</code> باید در پوشه‌ی
-                    قالب نصب شده باشد (به <code>inc/sms-functions.php</code> مراجعه کنید). این تنظیمات فقط اطلاعات
-                    اتصال را ذخیره می‌کند.
+                    این تنظیمات برای ارسال «کد ورود/ثبت‌نام» به کاربران استفاده می‌شود.
+                    نیازی به نصب هیچ افزونه یا پکیج اضافه‌ای نیست — ارتباط مستقیماً با وب‌سرویس آی‌پی‌پنل برقرار می‌شود.
                 </p>
+
                 <table class="form-table">
                     <tr>
-                        <th><label for="ippanel_api_key">API Key</label></th>
+                        <th scope="row">وضعیت ارسال</th>
                         <td>
-                            <input type="password" id="ippanel_api_key" name="ippanel_api_key" class="large-text" autocomplete="off" value="<?php echo esc_attr( $sms['ippanel_api_key'] ); ?>">
-                            <p class="description">از پنل ippanel.ir → بخش وب‌سرویس/API بگیرید.</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th><label for="ippanel_originator">شماره خط ارسال‌کننده (Originator)</label></th>
-                        <td>
-                            <input type="text" id="ippanel_originator" name="ippanel_originator" class="regular-text" placeholder="مثلا 3000xxxxxx" value="<?php echo esc_attr( $sms['ippanel_originator'] ); ?>">
-                            <p class="description">از پنل ippanel.ir → بخش «خطوط» شماره‌ی خط فعال خودتان را کپی کنید.</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th><label for="ippanel_pattern_otp">کد پترن ورود/ثبت‌نام</label></th>
-                        <td>
-                            <input type="text" id="ippanel_pattern_otp" name="ippanel_pattern_otp" class="regular-text" placeholder="مثلا lrhbzV0qbfeYkzj" value="<?php echo esc_attr( $sms['ippanel_pattern_otp'] ); ?>">
+                            <label>
+                                <input type="checkbox" name="ippanel_enabled" value="1" <?php checked( $sms['ippanel_enabled'], 1 ); ?>>
+                                ارسال پیامک فعال باشد
+                            </label>
+                            <p class="description">تا وقتی این تیک خورده نباشد، هیچ پیامکی ارسال نمی‌شود و کاربران فقط می‌توانند از «ورود بدون احراز پیامکی» استفاده کنند.</p>
+
+                            <label style="display:block; margin-top:10px;">
+                                <input type="checkbox" name="ippanel_test_mode" value="1" <?php checked( $sms['ippanel_test_mode'], 1 ); ?>>
+                                حالت آزمایشی (پیامک واقعی ارسال نشود)
+                            </label>
                             <p class="description">
-                                همان کدی که در بخش «پترن‌های آماده» پنل ippanel می‌بینید — پترن باید دقیقاً یک متغیر
-                                به نام <code>code</code> داشته باشد (مثل: «کد ورود %code% به رمانینو»).
+                                در این حالت کد فقط در فایل لاگ ثبت می‌شود و اعتبار پنل خرج نمی‌شود.
+                                برای تست کل جریان ورود پیش از راه‌اندازی نهایی مفید است.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row"><label for="ippanel_api_key">۱. کلید وب‌سرویس (API Key)</label></th>
+                        <td>
+                            <input type="password" id="ippanel_api_key" name="ippanel_api_key" class="large-text" autocomplete="off" dir="ltr" value="<?php echo esc_attr( $sms['ippanel_api_key'] ); ?>">
+                            <p class="description">
+                                در پنل ippanel.ir از منوی <strong>«توسعه‌دهندگان» یا «وب‌سرویس»</strong> کلید API را بردارید.
+                                <br>توجه: این همان «نام کاربری و رمز پنل» نیست — پنل جدید آی‌پی‌پنل با کلید کار می‌کند، نه یوزر/پسورد.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row"><label for="ippanel_originator">۲. شماره خط ارسال (Sender)</label></th>
+                        <td>
+                            <input type="text" id="ippanel_originator" name="ippanel_originator" class="regular-text" dir="ltr" placeholder="3000505" value="<?php echo esc_attr( $sms['ippanel_originator'] ); ?>">
+                            <p class="description">
+                                در پنل، بخش <strong>«خطوط من»</strong> — همان شماره‌ای که پیامک با آن فرستاده می‌شود.
+                                فقط رقم و علامت + مجاز است.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row"><label for="ippanel_pattern_otp">۳. کد پترن (الگو)</label></th>
+                        <td>
+                            <input type="text" id="ippanel_pattern_otp" name="ippanel_pattern_otp" class="regular-text" dir="ltr" placeholder="t2cfmnyo0c" value="<?php echo esc_attr( $sms['ippanel_pattern_otp'] ); ?>">
+                            <p class="description">
+                                در پنل، بخش <strong>«پترن‌ها»</strong>. برای هر پترن یک کد کوتاه ساخته می‌شود؛ همان را اینجا وارد کنید.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row"><label for="ippanel_pattern_var">۴. نام متغیر پترن</label></th>
+                        <td>
+                            <input type="text" id="ippanel_pattern_var" name="ippanel_pattern_var" class="regular-text" dir="ltr" placeholder="code" value="<?php echo esc_attr( $sms['ippanel_pattern_var'] ); ?>">
+                            <p class="description">
+                                وقتی پترن را در پنل می‌سازید متنش چیزی شبیه این است:
+                                <code style="direction:rtl;">کد ورود شما به رمانینو: %code%</code>
+                                <br>کلمه‌ی داخل درصدها همان «نام متغیر» است. اگر موقع ساخت پترن اسم دیگری گذاشتید
+                                (مثلاً <code>verification-code</code>)، باید <strong>دقیقاً همان</strong> را اینجا بنویسید،
+                                وگرنه آی‌پی‌پنل درخواست را با خطای ۴۲۲ رد می‌کند.
+                                <br>پترن باید فقط همین یک متغیر را داشته باشد.
                             </p>
                         </td>
                     </tr>
                 </table>
             </div>
+
             <p><button type="submit" name="romanino_save_sms" value="1" class="button button-primary button-hero">ذخیره تنظیمات پیامک</button></p>
         </form>
 
-        <?php endif; ?>
+        <?php
+        /* ابزار عیب‌یابی — بدون این، تنها راه فهمیدن اینکه تنظیمات درست است یا
+           نه، ثبت‌نام واقعی با یک شماره‌ی واقعی بود و در صورت شکست هم هیچ پیام
+           مشخصی دیده نمی‌شد. */
+        $romanino_sms_last_error = get_option( 'romanino_sms_last_error' );
+        ?>
+        <div class="romanino-box">
+            <h2>بررسی اتصال</h2>
+            <p class="description">بعد از ذخیره‌ی تنظیمات بالا، با این دو دکمه مطمئن شوید همه‌چیز درست است.</p>
+
+            <p style="margin-top:14px;">
+                <button type="button" class="button button-secondary" id="romanino-sms-test-credit">بررسی کلید و نمایش اعتبار پنل</button>
+                <span class="description" style="margin-right:8px;">فقط کلید وب‌سرویس را می‌سنجد و اعتبار باقی‌مانده را نشان می‌دهد (پیامکی ارسال نمی‌شود).</span>
+            </p>
+
+            <p style="margin-top:14px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <input type="tel" id="romanino-sms-test-phone" class="regular-text" dir="ltr" placeholder="09123456789" style="max-width:200px;">
+                <button type="button" class="button button-secondary" id="romanino-sms-test-send">ارسال پیامک آزمایشی</button>
+                <span class="description">یک کد تصادفی به این شماره می‌فرستد تا شماره خط و کد پترن هم سنجیده شود.</span>
+            </p>
+
+            <div id="romanino-sms-test-result" style="margin-top:12px;"></div>
+
+            <?php if ( is_array( $romanino_sms_last_error ) && ! empty( $romanino_sms_last_error['message'] ) ) : ?>
+                <div class="notice notice-error inline" style="margin-top:14px;">
+                    <p>
+                        <strong>آخرین خطای ثبت‌شده‌ی پیامک:</strong><br>
+                        <code style="direction:ltr; display:inline-block; margin-top:6px;"><?php echo esc_html( $romanino_sms_last_error['message'] ); ?></code><br>
+                        <span class="description">
+                            زمان: <?php echo esc_html( date_i18n( 'Y/m/d H:i', (int) $romanino_sms_last_error['time'] ) ); ?>
+                            — پس از یک ارسال موفق، این پیام خودکار پاک می‌شود.
+                        </span>
+                    </p>
+                </div>
+            <?php endif; ?>
+
+            <p class="description" style="margin-top:16px;">
+                <strong>راهنمای خطاهای پرتکرار:</strong><br>
+                <code>403</code> کلید وب‌سرویس اشتباه است یا IP سرور در پنل مجاز نشده.<br>
+                <code>404</code> کد پترن پیدا نشد.<br>
+                <code>422</code> معمولاً «نام متغیر پترن» یا «شماره خط» با پنل هم‌خوانی ندارد.
+            </p>
+        </div>
+
+        <script>
+        (function ($) {
+            var nonce = '<?php echo esc_js( wp_create_nonce( 'romanino_sms_test' ) ); ?>';
+            var $out  = $('#romanino-sms-test-result');
+
+            function run(mode, phone, $btn) {
+                var label = $btn.text();
+                $btn.prop('disabled', true).text('در حال بررسی...');
+                $out.html('');
+
+                $.post(ajaxurl, { action: 'romanino_sms_test', nonce: nonce, mode: mode, phone: phone || '' })
+                    .done(function (res) {
+                        var ok  = res && res.success;
+                        var msg = (res && res.data && res.data.message) ? res.data.message : 'پاسخ نامشخص از سرور.';
+                        $out.html('<div class="notice notice-' + (ok ? 'success' : 'error') + ' inline"><p>' + msg + '</p></div>');
+                    })
+                    .fail(function () {
+                        $out.html('<div class="notice notice-error inline"><p>ارتباط با سرور برقرار نشد.</p></div>');
+                    })
+                    .always(function () {
+                        $btn.prop('disabled', false).text(label);
+                    });
+            }
+
+            $('#romanino-sms-test-credit').on('click', function () { run('credit', '', $(this)); });
+            $('#romanino-sms-test-send').on('click', function () {
+                var phone = $('#romanino-sms-test-phone').val();
+                if (!phone) { $out.html('<div class="notice notice-error inline"><p>ابتدا شماره موبایل را وارد کنید.</p></div>'); return; }
+                run('send', phone, $(this));
+            });
+        })(jQuery);
+        </script>
+
+        </div>
     </div>
     <?php
 }

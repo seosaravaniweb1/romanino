@@ -21,14 +21,28 @@
     </form>
 
     <?php if ( have_posts() ) : ?>
+        <?php /* همان دلیل archive-product.php: پر کردن سطح جاافتاده‌ی h2. */ ?>
+        <h2 class="sr-only">نتایج جست‌وجو</h2>
         <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
             <?php
+            /* FIX: قبلاً هر نتیجه‌ای که محصول نبود با «if (!$product) continue;»
+               بی‌صدا حذف می‌شد. یعنی اگر کاربر عبارتی را جست‌وجو می‌کرد که فقط
+               در یک نوشته‌ی وبلاگ بود، شمارنده‌ی بالای صفحه «۳ نتیجه یافت شد»
+               را نشان می‌داد ولی گرید کاملاً خالی بود — گیج‌کننده‌ترین حالت ممکن.
+               حالا محصول با کارت محصول و نوشته با کارت وبلاگ رندر می‌شود. */
             $romanino_loop_index = 0;
             while ( have_posts() ) : the_post();
-                $product = wc_get_product( get_the_ID() );
-                if ( ! $product ) continue;
-                // کارت محصول مشترک: تصویر مربعی + نویسنده/مترجم + ملیت رمان + قیمت + دکمه خرید
-                get_template_part( 'template-parts/product/book', 'card', array( 'romanino_loop_index' => $romanino_loop_index ) );
+                $product = function_exists( 'wc_get_product' ) ? wc_get_product( get_the_ID() ) : null;
+
+                if ( $product ) {
+                    // کارت محصول: تصویر مربعی + نویسنده/مترجم + ملیت رمان + قیمت + دکمه خرید
+                    get_template_part( 'template-parts/product/book', 'card', array( 'romanino_loop_index' => $romanino_loop_index ) );
+                } else {
+                    // نوشته‌ی وبلاگ یا هر نوع محتوای دیگر
+                    echo '<div class="col-span-2 sm:col-span-3 lg:col-span-5">';
+                    get_template_part( 'template-parts/blog/post', 'card' );
+                    echo '</div>';
+                }
                 $romanino_loop_index++;
             endwhile;
             ?>

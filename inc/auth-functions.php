@@ -15,9 +15,55 @@
 defined( 'ABSPATH' ) || exit;
 
 /* ─── ثوابت ─────────────────────────────────────────────────────────────── */
-define( 'ROMANINO_OTP_EXPIRE',    5 * MINUTE_IN_SECONDS );  // ۵ دقیقه
-define( 'ROMANINO_OTP_MAX_TRY',   5 );  // حداکثر ۵ بار تلاش ناموفق
-define( 'ROMANINO_RATE_WINDOW',   15 * MINUTE_IN_SECONDS ); // پنجره rate-limit
+// FIX: با defined() محافظت می‌شوند تا اگر افزونه‌ای همین نام‌ها را زودتر
+// تعریف کرده باشد، به‌جای «Constant already defined» فقط مقدار قبلی بماند —
+// و تا بشود این مقادیر را از wp-config.php هم override کرد.
+defined( 'ROMANINO_OTP_EXPIRE' )  || define( 'ROMANINO_OTP_EXPIRE',  5 * MINUTE_IN_SECONDS );  // ۵ دقیقه
+defined( 'ROMANINO_OTP_MAX_TRY' ) || define( 'ROMANINO_OTP_MAX_TRY', 5 );                      // حداکثر ۵ تلاش ناموفق
+defined( 'ROMANINO_RATE_WINDOW' ) || define( 'ROMANINO_RATE_WINDOW', 15 * MINUTE_IN_SECONDS ); // پنجره rate-limit
+
+/* ═════════════════════════════════════════════════════════════════════════
+   FIX (بحرانی — «هر اسمی وارد می‌کنیم خطا می‌دهد»)
+   ─────────────────────────────────────────────────────────────────────────
+   علامت مسئله: کاربر با شماره موبایل ثبت‌نام می‌کرد، به مرحله‌ی «نام و نام
+   خانوادگی» می‌رسید و هر چه وارد می‌کرد خطا می‌گرفت.
+
+   علت: nonce وردپرس به «کاربر» گره خورده است، نه فقط به اکشن. مقدارش از
+   ترکیب  tick | action | user_id | session_token  ساخته می‌شود.
+
+   جریان خراب:
+     ۱. صفحه‌ی ورود برای یک «مهمان» رندر می‌شد → nonce با user_id = 0 چاپ می‌شد.
+     ۲. کاربر کد را تأیید می‌کرد → همان‌جا لاگین می‌شد (user_id = 57 مثلاً).
+     ۳. مرحله‌ی بعد (ذخیره‌ی نام) همان nonce قدیمی را می‌فرستاد، ولی سرور حالا
+        آن را برای کاربر لاگین‌شده اعتبارسنجی می‌کرد → دو مقدار متفاوت →
+        check_ajax_referer با -1 می‌مُرد و کاربر فقط یک «خطا» عمومی می‌دید.
+        هیچ ربطی به خودِ نام واردشده نداشت؛ برای همین «هر چیزی» خطا می‌داد.
+
+   راه‌حل دو تکه است و هر دو لازم‌اند:
+
+     الف) همگام‌سازی $_COOKIE در همان درخواست (همین تابع پایین).
+          wp_set_auth_cookie() فقط هدر Set-Cookie می‌فرستد و $_COOKIE را
+          به‌روز نمی‌کند. تا وقتی این کار نشود، wp_get_session_token() در
+          ادامه‌ی همان درخواست رشته‌ی خالی برمی‌گرداند و nonce ی که می‌سازیم
+          با آنچه در درخواست بعدی انتظار می‌رود فرق می‌کند — یعنی مشکل فقط
+          یک قدم جابه‌جا می‌شد.
+
+     ب) برگرداندن یک nonce تازه در پاسخ ورود، و استفاده‌ی جاوااسکریپت از آن
+          برای درخواست‌های بعدی (در همین فایل، پایین‌تر).
+   ═════════════════════════════════════════════════════════════════════════ */
+
+add_action( 'set_logged_in_cookie', 'romanino_sync_logged_in_cookie_to_request' );
+function romanino_sync_logged_in_cookie_to_request( $logged_in_cookie ): void {
+    $_COOKIE[ LOGGED_IN_COOKIE ] = $logged_in_cookie;
+}
+
+/**
+ * nonce تازه برای کاربری که همین الان لاگین شد.
+ * باید «بعد از» wp_set_auth_cookie() صدا زده شود.
+ */
+function romanino_fresh_auth_nonce(): string {
+    return wp_create_nonce( 'romanino_auth_nonce' );
+}
 
 /* ─── توابع کمکی ────────────────────────────────────────────────────────── */
 
@@ -71,35 +117,24 @@ function romanino_find_user_by_identifier( string $identifier ): WP_User|false {
     return $by_login ?: false;
 }
 
-/**
- * بررسی rate-limit برای یک عملیات مشخص
- * @return bool اگر true باشد = بلاک شده
- */
-function romanino_is_rate_limited( string $action, string $identifier ): bool {
-    $key     = 'romanino_rl_' . $action . '_' . md5( $identifier );
-    $current = (int) get_transient( $key );
-    if ( $current >= ROMANINO_OTP_MAX_TRY ) {
-        return true;
-    }
-    set_transient( $key, $current + 1, ROMANINO_RATE_WINDOW );
-    return false;
-}
-
-/** پاک کردن rate-limit پس از موفقیت */
-function romanino_clear_rate_limit( string $action, string $identifier ): void {
-    delete_transient( 'romanino_rl_' . $action . '_' . md5( $identifier ) );
-}
+/* FIX: توابع romanino_is_rate_limited() و romanino_clear_rate_limit() از
+   اینجا حذف شدند. آن‌ها آستانه‌ی ثابت (۵ بار/۱۵ دقیقه) داشتند و باعث شده
+   بودند قالب دو پیاده‌سازی موازی rate-limit داشته باشد. حالا همه‌ی مسیرها
+   (احراز هویت، سبد خرید، جست‌وجو) از یک پیاده‌سازی واحد و پارامتری در
+   inc/misc-functions.php استفاده می‌کنند:
+       romanino_check_rate_limit( $action, $identifier, $max, $window )
+       romanino_clear_rate_limit_v2( $action, $identifier ) */
 
 /**
  * ارسال پیامک واقعی — جایگزین با API خودتان
  * @return bool
  */
 function romanino_send_sms_code( string $phone, string $code ): bool {
-    // اتصال واقعی: پیامک الگو (پترن) از طریق ippanel.ir ارسال می‌شود.
-    // تنظیمات (API Key / شماره خط / کد پترن) از پیشخوان » هدر و فوتر
-    // رمانینو » تب «پیامک (OTP)» خوانده می‌شوند — به inc/sms-functions.php
-    // مراجعه کنید. پترن باید دقیقاً یک متغیر با نام code داشته باشد.
-    $sent = romanino_ippanel_send_pattern( $phone, [ 'code' => $code ] );
+    /* اتصال واقعی: پیامک الگو (پترن) از طریق ippanel.ir ارسال می‌شود.
+       همه‌ی تنظیمات (کلید وب‌سرویس، شماره خط، کد پترن و «نام متغیر پترن»)
+       از پیشخوان ← تنظیمات قالب رمانینو ← تب «پیامک» خوانده می‌شوند.
+       جزئیات API و راهنمای پر کردن فیلدها در inc/sms-functions.php است. */
+    $sent = romanino_ippanel_send_otp( $phone, $code );
 
     // FIX امنیتی: قبلاً فقط شرط WP_DEBUG چک می‌شد. اگر یک روز روی سرور
     // Production به‌اشتباه WP_DEBUG روشن بماند (اشتباه تنظیمات رایج)، یا
@@ -131,36 +166,53 @@ function romanino_generate_otp( string $phone ): string {
 add_action( 'wp_ajax_nopriv_romanino_check_phone', 'romanino_ajax_check_phone' );
 // کاربر لاگین‌شده نباید این endpoint را فراخوانی کند
 function romanino_ajax_check_phone(): void {
-    check_ajax_referer( 'romanino_auth_nonce', 'nonce' );
+    /* FIX (تشخیص‌پذیری): پیش‌فرضِ check_ajax_referer این است که با یک «-1»
+       خام بمیرد. آن خروجی نه JSON معتبرِ قابل‌فهم برای فرانت است و نه هیچ
+       سرنخی به کاربر می‌دهد؛ دقیقاً به همین دلیل بود که مشکلِ nonce به شکل
+       «هر چه وارد می‌کنم خطا می‌دهد» دیده می‌شد و ربطش به نشست معلوم نبود.
+       حالا پیام واقعی و قابل‌اقدام برگردانده می‌شود. */
+    if ( ! check_ajax_referer( 'romanino_auth_nonce', 'nonce', false ) ) {
+        wp_send_json_error( [ 'message' => 'نشست شما منقضی شده است. لطفاً صفحه را تازه‌سازی کنید و دوباره تلاش کنید.' ], 403 );
+    }
 
-    $ip    = sanitize_text_field( $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0' );
-    $phone = romanino_normalize_phone( $_POST['phone'] ?? '' );
+    $ip    = romanino_get_client_ip();
+    $phone = romanino_normalize_phone( wp_unslash( $_POST['phone'] ?? '' ) );
 
     if ( ! $phone ) {
         wp_send_json_error( [ 'message' => 'شماره موبایل معتبر نیست.' ], 400 );
     }
 
-    // Rate-limit بر اساس IP
-    if ( romanino_is_rate_limited( 'check_phone', $ip ) ) {
+    /* FIX (بحرانی): دو لایه‌ی مستقل rate-limit.
+       لایه‌ی «شماره» اصلی است و با چرخش IP قابل دور زدن نیست — بدون آن،
+       مهاجم می‌توانست با یک لیست پروکسی، به هر شماره‌ای پیامک بمباران کند
+       (هزینه‌ی مستقیم روی پنل پیامکی شما). */
+    if ( romanino_check_rate_limit( 'check_phone_p', $phone, 5, 15 * MINUTE_IN_SECONDS ) ) {
+        wp_send_json_error( [ 'message' => 'برای این شماره درخواست‌های زیادی ثبت شده. لطفاً ۱۵ دقیقه صبر کنید.' ], 429 );
+    }
+    if ( romanino_check_rate_limit( 'check_phone_ip', $ip, 20, 15 * MINUTE_IN_SECONDS ) ) {
         wp_send_json_error( [ 'message' => 'درخواست‌های زیادی ارسال شده. لطفاً چند دقیقه صبر کنید.' ], 429 );
     }
 
-    $user = romanino_find_user_by_phone( $phone );
+    /* جریان مورد نظر فروشگاه: فیلد شماره موبایل «همیشه» کد یک‌بارمصرف
+       می‌فرستد — چه کاربر از قبل ثبت‌نام کرده باشد چه نه. ورود با رمز عبور
+       مسیر جداگانه‌ی خودش را دارد (لینک «ورود بدون احراز پیامکی»).
 
-    /*
-     * امنیتی: به جای اینکه مشخص کنیم «کاربر وجود دارد یا نه»، فقط
-     * رفتار پیشین را حفظ می‌کنیم. پاسخ has_password تنها به معنای
-     * «آیا کاربر رمز دارد» است نه «آیا اکانت وجود دارد».
-     */
-    $has_password = $user && get_user_meta( $user->ID, 'has_set_password', true );
-
-    if ( ! $has_password ) {
-        // ارسال OTP — چه کاربر موجود باشد چه نباشد
-        $code = romanino_generate_otp( $phone );
-        romanino_send_sms_code( $phone, $code );
+       این هم‌زمان نشت «آیا این شماره حساب دارد؟» را می‌بندد: پاسخ برای هر
+       شماره‌ای دقیقاً یکسان است، پس نمی‌شود با آزمودن شماره‌ها فهمید کدام‌ها
+       در سایت ثبت‌نام کرده‌اند. سقف تعداد شماره‌های متمایز هر IP هم به‌عنوان
+       لایه‌ی دوم باقی می‌ماند. */
+    if ( romanino_track_distinct_phone_lookups( $ip, $phone, 15, HOUR_IN_SECONDS ) ) {
+        wp_send_json_error( [ 'message' => 'درخواست‌های زیادی از این شبکه ارسال شده. لطفاً بعداً تلاش کنید.' ], 429 );
     }
 
-    wp_send_json_success( [ 'has_password' => (bool) $has_password ] );
+    $code = romanino_generate_otp( $phone );
+    $sent = romanino_send_sms_code( $phone, $code );
+
+    if ( ! $sent ) {
+        wp_send_json_error( [ 'message' => 'خطا در ارسال پیامک. لطفاً دوباره تلاش کنید یا از «ورود بدون احراز پیامکی» استفاده کنید.' ] );
+    }
+
+    wp_send_json_success( [ 'otp_sent' => true ] );
 }
 
 
@@ -168,18 +220,30 @@ function romanino_ajax_check_phone(): void {
 
 add_action( 'wp_ajax_nopriv_romanino_send_otp', 'romanino_ajax_send_otp' );
 function romanino_ajax_send_otp(): void {
-    check_ajax_referer( 'romanino_auth_nonce', 'nonce' );
+    /* FIX (تشخیص‌پذیری): پیش‌فرضِ check_ajax_referer این است که با یک «-1»
+       خام بمیرد. آن خروجی نه JSON معتبرِ قابل‌فهم برای فرانت است و نه هیچ
+       سرنخی به کاربر می‌دهد؛ دقیقاً به همین دلیل بود که مشکلِ nonce به شکل
+       «هر چه وارد می‌کنم خطا می‌دهد» دیده می‌شد و ربطش به نشست معلوم نبود.
+       حالا پیام واقعی و قابل‌اقدام برگردانده می‌شود. */
+    if ( ! check_ajax_referer( 'romanino_auth_nonce', 'nonce', false ) ) {
+        wp_send_json_error( [ 'message' => 'نشست شما منقضی شده است. لطفاً صفحه را تازه‌سازی کنید و دوباره تلاش کنید.' ], 403 );
+    }
 
-    $ip    = sanitize_text_field( $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0' );
-    $phone = romanino_normalize_phone( $_POST['phone'] ?? '' );
+    $ip    = romanino_get_client_ip();
+    $phone = romanino_normalize_phone( wp_unslash( $_POST['phone'] ?? '' ) );
 
     if ( ! $phone ) {
         wp_send_json_error( [ 'message' => 'شماره موبایل معتبر نیست.' ], 400 );
     }
 
-    // Rate-limit: حداکثر ۵ بار در ۱۵ دقیقه
-    if ( romanino_is_rate_limited( 'send_otp', $ip . $phone ) ) {
+    /* FIX (بحرانی): کلید قبلی «$ip . $phone» بود؛ یعنی مهاجم با تعویض IP
+       سقف را ریست می‌کرد و می‌توانست پیامک بی‌نهایت به یک شماره بفرستد.
+       حالا سقف اصلی روی خود شماره است. */
+    if ( romanino_check_rate_limit( 'send_otp_p', $phone, 5, 15 * MINUTE_IN_SECONDS ) ) {
         wp_send_json_error( [ 'message' => 'تعداد درخواست‌ها از حد مجاز گذشته. لطفاً ۱۵ دقیقه صبر کنید.' ], 429 );
+    }
+    if ( romanino_check_rate_limit( 'send_otp_ip', $ip, 20, 15 * MINUTE_IN_SECONDS ) ) {
+        wp_send_json_error( [ 'message' => 'درخواست‌های زیادی از این شبکه ارسال شده. کمی بعد تلاش کنید.' ], 429 );
     }
 
     $code = romanino_generate_otp( $phone );
@@ -196,20 +260,36 @@ function romanino_ajax_send_otp(): void {
 
 add_action( 'wp_ajax_nopriv_romanino_verify_otp', 'romanino_ajax_verify_otp' );
 function romanino_ajax_verify_otp(): void {
-    check_ajax_referer( 'romanino_auth_nonce', 'nonce' );
+    /* FIX (تشخیص‌پذیری): پیش‌فرضِ check_ajax_referer این است که با یک «-1»
+       خام بمیرد. آن خروجی نه JSON معتبرِ قابل‌فهم برای فرانت است و نه هیچ
+       سرنخی به کاربر می‌دهد؛ دقیقاً به همین دلیل بود که مشکلِ nonce به شکل
+       «هر چه وارد می‌کنم خطا می‌دهد» دیده می‌شد و ربطش به نشست معلوم نبود.
+       حالا پیام واقعی و قابل‌اقدام برگردانده می‌شود. */
+    if ( ! check_ajax_referer( 'romanino_auth_nonce', 'nonce', false ) ) {
+        wp_send_json_error( [ 'message' => 'نشست شما منقضی شده است. لطفاً صفحه را تازه‌سازی کنید و دوباره تلاش کنید.' ], 403 );
+    }
 
-    $ip    = sanitize_text_field( $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0' );
-    $phone = romanino_normalize_phone( $_POST['phone'] ?? '' );
-    $code  = preg_replace( '/[^0-9]/', '', sanitize_text_field( $_POST['code'] ?? '' ) );
+    $ip    = romanino_get_client_ip();
+    $phone = romanino_normalize_phone( wp_unslash( $_POST['phone'] ?? '' ) );
+    $code  = preg_replace( '/[^0-9]/', '', sanitize_text_field( wp_unslash( $_POST['code'] ?? '' ) ) );
 
     if ( ! $phone || strlen( $code ) !== 5 ) {
         wp_send_json_error( [ 'message' => 'اطلاعات ناقص یا نامعتبر است.' ], 400 );
     }
 
-    // Rate-limit تلاش‌های ناموفق OTP
-    if ( romanino_is_rate_limited( 'verify_otp', $ip . $phone ) ) {
+    /* FIX (بحرانی — بروت‌فورس OTP): کلید قبلی «$ip . $phone» بود. فضای یک کد
+       ۵ رقمی فقط ۹۰٬۰۰۰ حالت است؛ با چرخش IP، مهاجم به ازای هر IP جدید ۵
+       تلاش تازه می‌گرفت و با چند صد پروکسی حمله کاملاً عملی می‌شد.
+       لایه‌ی اول حالا فقط به «شماره» بسته است — هرچقدر هم IP عوض شود، سقف
+       تلاش برای یک شماره ثابت می‌ماند و بعد از عبور از آن، خودِ OTP باطل
+       می‌شود تا مهاجم مجبور به درخواست کد جدید (با سقف مستقل خودش) شود. */
+    if ( romanino_check_rate_limit( 'verify_otp_p', $phone, ROMANINO_OTP_MAX_TRY, ROMANINO_RATE_WINDOW ) ) {
         delete_transient( 'romanino_otp_' . $phone ); // باطل کردن OTP
-        wp_send_json_error( [ 'message' => 'حساب موقتاً قفل شد. لطفاً بعداً درخواست جدید بدهید.' ], 429 );
+        wp_send_json_error( [ 'message' => 'تعداد تلاش‌های ناموفق زیاد بود. لطفاً کد جدید درخواست کنید.' ], 429 );
+    }
+    // لایه‌ی دوم: جلوگیری از اسکن یک IP روی شماره‌های مختلف
+    if ( romanino_check_rate_limit( 'verify_otp_ip', $ip, 30, ROMANINO_RATE_WINDOW ) ) {
+        wp_send_json_error( [ 'message' => 'درخواست‌های زیادی از این شبکه ارسال شده. کمی بعد تلاش کنید.' ], 429 );
     }
 
     $stored_hash = get_transient( 'romanino_otp_' . $phone );
@@ -219,10 +299,11 @@ function romanino_ajax_verify_otp(): void {
         wp_send_json_error( [ 'message' => 'کد وارد‌شده صحیح نیست یا منقضی شده.' ] );
     }
 
-    // موفقیت: پاک‌سازی OTP و rate-limit
+    // موفقیت: پاک‌سازی OTP و شمارنده‌های rate-limit
     delete_transient( 'romanino_otp_' . $phone );
-    romanino_clear_rate_limit( 'verify_otp', $ip . $phone );
-    romanino_clear_rate_limit( 'send_otp', $ip . $phone );
+    romanino_clear_rate_limit_v2( 'verify_otp_p', $phone );
+    romanino_clear_rate_limit_v2( 'send_otp_p', $phone );
+    romanino_clear_rate_limit_v2( 'check_phone_p', $phone );
 
     // پیدا کردن یا ساختن کاربر
     $user = romanino_find_user_by_phone( $phone );
@@ -237,8 +318,16 @@ function romanino_ajax_verify_otp(): void {
         if ( is_wp_error( $user_id ) ) {
             wp_send_json_error( [ 'message' => 'خطا در ساخت حساب کاربری.' ] );
         }
+        /* FIX (بحرانی — خطای دانلود پس از خرید): قبلاً فقط phone_number و
+           billing_phone ست می‌شد. ایمیل جایگزین روی خودِ حساب کاربری ساخته
+           می‌شد ولی هرگز روی «ایمیل صورتحساب» ننشست.
+           نتیجه: در چک‌اوت فیلد ایمیل خالی می‌ماند، سفارش بدون ایمیل ثبت
+           می‌شد و ووکامرس نمی‌توانست ایمیلِ حاوی لینک دانلود را بفرستد —
+           یعنی کاربر بعد از پرداخت به فایل نمی‌رسید. */
+        $placeholder_email = romanino_build_placeholder_email( $phone );
         update_user_meta( $user_id, 'phone_number', $phone );
         update_user_meta( $user_id, 'billing_phone', $phone );
+        update_user_meta( $user_id, 'billing_email', $placeholder_email );
         update_user_meta( $user_id, 'has_set_password', '' ); // هنوز رمز تنظیم نکرده
         $user = get_user_by( 'id', $user_id );
         // Hook برای ووکامرس
@@ -263,6 +352,10 @@ function romanino_ajax_verify_otp(): void {
     wp_send_json_success( [
         'redirect'   => esc_url_raw( $redirect ),
         'needs_name' => $needs_name,
+        /* nonce تازه برای مرحله‌ی بعد (ذخیره‌ی نام). nonce ی که در صفحه چاپ
+           شده بود متعلق به «مهمان» است و حالا که کاربر لاگین شده دیگر
+           اعتبارسنجی نمی‌شود — توضیح کامل بالای همین فایل. */
+        'nonce'      => romanino_fresh_auth_nonce(),
     ] );
 }
 
@@ -271,23 +364,34 @@ function romanino_ajax_verify_otp(): void {
 
 add_action( 'wp_ajax_nopriv_romanino_login_password', 'romanino_ajax_login_password' );
 function romanino_ajax_login_password(): void {
-    check_ajax_referer( 'romanino_auth_nonce', 'nonce' );
+    /* FIX (تشخیص‌پذیری): پیش‌فرضِ check_ajax_referer این است که با یک «-1»
+       خام بمیرد. آن خروجی نه JSON معتبرِ قابل‌فهم برای فرانت است و نه هیچ
+       سرنخی به کاربر می‌دهد؛ دقیقاً به همین دلیل بود که مشکلِ nonce به شکل
+       «هر چه وارد می‌کنم خطا می‌دهد» دیده می‌شد و ربطش به نشست معلوم نبود.
+       حالا پیام واقعی و قابل‌اقدام برگردانده می‌شود. */
+    if ( ! check_ajax_referer( 'romanino_auth_nonce', 'nonce', false ) ) {
+        wp_send_json_error( [ 'message' => 'نشست شما منقضی شده است. لطفاً صفحه را تازه‌سازی کنید و دوباره تلاش کنید.' ], 403 );
+    }
 
-    $ip = sanitize_text_field( $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0' );
+    $ip = romanino_get_client_ip();
 
     // FIX: فرم «ورود بدون احراز پیامکی» فیلد identifier (نام‌کاربری/ایمیل/موبایل)
     // می‌فرستد، در حالی که فرم «رمز عبور بعد از OTP» فیلد phone می‌فرستد.
     // هر دو حالت اینجا پشتیبانی می‌شود.
-    $identifier = sanitize_text_field( $_POST['identifier'] ?? $_POST['phone'] ?? '' );
-    $password   = $_POST['password'] ?? ''; // نباید sanitize شود (رمز ممکن است کاراکتر خاص داشته باشد)
+    $identifier = sanitize_text_field( wp_unslash( $_POST['identifier'] ?? $_POST['phone'] ?? '' ) );
+    $password   = (string) ( $_POST['password'] ?? '' ); // نباید sanitize شود (رمز ممکن است کاراکتر خاص داشته باشد)
 
     if ( ! $identifier || ! $password ) {
         wp_send_json_error( [ 'message' => 'مشخصات ورود و رمز عبور الزامی هستند.' ], 400 );
     }
 
-    // Rate-limit: جلوگیری از brute-force رمز عبور
-    if ( romanino_is_rate_limited( 'login_pass', $ip . $identifier ) ) {
-        wp_send_json_error( [ 'message' => 'به دلیل تلاش‌های مکرر ناموفق، حساب موقتاً قفل شد.' ], 429 );
+    /* FIX (بحرانی — بروت‌فورس رمز عبور): کلید قبلی «$ip . $identifier» بود و
+       با چرخش IP ریست می‌شد. سقف اصلی حالا روی خود حساب کاربری است. */
+    if ( romanino_check_rate_limit( 'login_pass_u', $identifier, ROMANINO_OTP_MAX_TRY, ROMANINO_RATE_WINDOW ) ) {
+        wp_send_json_error( [ 'message' => 'به دلیل تلاش‌های مکرر ناموفق، ورود به این حساب موقتاً قفل شد.' ], 429 );
+    }
+    if ( romanino_check_rate_limit( 'login_pass_ip', $ip, 30, ROMANINO_RATE_WINDOW ) ) {
+        wp_send_json_error( [ 'message' => 'تلاش‌های ورود زیادی از این شبکه انجام شده. کمی بعد تلاش کنید.' ], 429 );
     }
 
     $user = romanino_find_user_by_identifier( $identifier );
@@ -298,12 +402,38 @@ function romanino_ajax_login_password(): void {
         wp_send_json_error( [ 'message' => 'مشخصات ورود یا رمز عبور اشتباه است.' ] );
     }
 
-    // بررسی وضعیت کاربر
-    if ( $user->user_status !== 0 ) {
+    /* FIX (بحرانی — «حساب کاربری شما غیرفعال است» برای همه‌ی کاربران)
+       ─────────────────────────────────────────────────────────────────────
+       شرط قبلی این بود:  if ( $user->user_status !== 0 )
+
+       ستون user_status در جدول wp_users یک ستون قدیمی است که وردپرس از
+       نسخه‌ی ۳٫۰ به بعد در سایت تک‌سایتی اصلاً استفاده نمی‌کند و مقدارش
+       همیشه صفر می‌ماند. اما وردپرس نتایج دیتابیس را به‌صورت «رشته»
+       برمی‌گرداند، نه عدد صحیح — یعنی مقدار واقعی '0' است نه 0.
+
+       و !== یک مقایسه‌ی «سخت‌گیرانه» است که نوع را هم می‌سنجد:
+             '0' !== 0   →   true
+
+       نتیجه: این شرط برای «هر» کاربری برقرار می‌شد و ورود با نام کاربری و
+       رمز عبور همیشه با پیام «حساب کاربری شما غیرفعال است» رد می‌شد —
+       دقیقاً همان چیزی که بعد از ثبت‌نام دیده می‌شد.
+
+       اصلاح: تبدیل صریح به عدد. (این ستون در چندسایتی برای کاربران اسپم
+       مقدار ۱ می‌گیرد، پس خودِ بررسی بی‌فایده نیست و حفظ می‌شود.) */
+    if ( (int) $user->user_status !== 0 ) {
         wp_send_json_error( [ 'message' => 'حساب کاربری شما غیرفعال است.' ] );
     }
 
-    romanino_clear_rate_limit( 'login_pass', $ip . $identifier );
+    /* راه استاندارد و امروزیِ «آیا این کاربر اجازه‌ی ورود دارد؟».
+       افزونه‌های مسدودسازی کاربر به همین فیلتر وصل می‌شوند و WP_Error
+       برمی‌گردانند. با این کار، منطق ورودِ اختصاصی قالب هم همان قواعدی را
+       رعایت می‌کند که فرم ورود پیش‌فرض وردپرس رعایت می‌کند. */
+    $romanino_auth_check = apply_filters( 'wp_authenticate_user', $user, $password );
+    if ( is_wp_error( $romanino_auth_check ) ) {
+        wp_send_json_error( [ 'message' => wp_strip_all_tags( $romanino_auth_check->get_error_message() ) ] );
+    }
+
+    romanino_clear_rate_limit_v2( 'login_pass_u', $identifier );
     wp_set_current_user( $user->ID );
     wp_set_auth_cookie( $user->ID, true );
     do_action( 'wp_login', $user->user_login, $user );
@@ -313,7 +443,10 @@ function romanino_ajax_login_password(): void {
         wc_get_page_permalink( 'myaccount' ),
         $user
     );
-    wp_send_json_success( [ 'redirect' => esc_url_raw( $redirect ) ] );
+    wp_send_json_success( [
+        'redirect' => esc_url_raw( $redirect ),
+        'nonce'    => romanino_fresh_auth_nonce(),
+    ] );
 }
 
 
@@ -325,24 +458,32 @@ function romanino_ajax_login_password(): void {
 
 add_action( 'wp_ajax_nopriv_romanino_register_manual', 'romanino_ajax_register_manual' );
 function romanino_ajax_register_manual(): void {
-    check_ajax_referer( 'romanino_auth_nonce', 'nonce' );
+    /* FIX (تشخیص‌پذیری): پیش‌فرضِ check_ajax_referer این است که با یک «-1»
+       خام بمیرد. آن خروجی نه JSON معتبرِ قابل‌فهم برای فرانت است و نه هیچ
+       سرنخی به کاربر می‌دهد؛ دقیقاً به همین دلیل بود که مشکلِ nonce به شکل
+       «هر چه وارد می‌کنم خطا می‌دهد» دیده می‌شد و ربطش به نشست معلوم نبود.
+       حالا پیام واقعی و قابل‌اقدام برگردانده می‌شود. */
+    if ( ! check_ajax_referer( 'romanino_auth_nonce', 'nonce', false ) ) {
+        wp_send_json_error( [ 'message' => 'نشست شما منقضی شده است. لطفاً صفحه را تازه‌سازی کنید و دوباره تلاش کنید.' ], 403 );
+    }
 
-    $ip          = sanitize_text_field( $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0' );
-    $username    = sanitize_user( $_POST['username'] ?? '', true );
-    $first       = sanitize_text_field( $_POST['first_name'] ?? '' );
-    $last        = sanitize_text_field( $_POST['last_name'] ?? '' );
-    $email_raw   = sanitize_email( $_POST['email'] ?? '' );
-    $phone_raw   = sanitize_text_field( $_POST['phone'] ?? '' );
-    $password    = $_POST['password'] ?? '';
+    $ip          = romanino_get_client_ip();
+    $username    = sanitize_user( wp_unslash( $_POST['username'] ?? '' ), true );
+    $first       = sanitize_text_field( wp_unslash( $_POST['first_name'] ?? '' ) );
+    $last        = sanitize_text_field( wp_unslash( $_POST['last_name'] ?? '' ) );
+    $email_raw   = sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
+    $phone_raw   = sanitize_text_field( wp_unslash( $_POST['phone'] ?? '' ) );
+    $password    = (string) ( $_POST['password'] ?? '' );
 
-    // FIX: طبق سیاست جدید، فقط نام/نام‌خانوادگی/موبایل الزامی‌اند؛ ایمیل اختیاری است.
-    if ( ! $username || ! $first || ! $phone_raw || ! $password ) {
-        wp_send_json_error( [ 'message' => 'لطفاً فیلدهای الزامی (نام‌کاربری، نام، موبایل، رمز عبور) را کامل کنید.' ], 400 );
+    // فرم ثبت‌نام دستی شش فیلد دارد؛ همه به‌جز ایمیل الزامی‌اند (ایمیل در
+    // نبودِ ورودی، خودکار از روی شماره موبایل ساخته می‌شود).
+    if ( ! $username || ! $first || ! $last || ! $phone_raw || ! $password ) {
+        wp_send_json_error( [ 'message' => 'لطفاً فیلدهای الزامی (نام، نام خانوادگی، نام کاربری، موبایل، رمز عبور) را کامل کنید.' ], 400 );
     }
     if ( strlen( $password ) < 6 ) {
         wp_send_json_error( [ 'message' => 'رمز عبور باید حداقل ۶ کاراکتر باشد.' ], 400 );
     }
-    if ( romanino_is_rate_limited( 'register_manual', $ip ) ) {
+    if ( romanino_check_rate_limit( 'register_manual', $ip, 5, ROMANINO_RATE_WINDOW ) ) {
         wp_send_json_error( [ 'message' => 'تعداد درخواست‌ها از حد مجاز گذشته. کمی بعد دوباره تلاش کنید.' ], 429 );
     }
     if ( username_exists( $username ) ) {
@@ -380,6 +521,11 @@ function romanino_ajax_register_manual(): void {
         'display_name' => trim( $first . ' ' . $last ) ?: $username,
     ] );
     update_user_meta( $user_id, 'has_set_password', '1' );
+    // همان دلیل بالا: ایمیل و نام باید روی فیلدهای صورتحساب هم بنشینند تا
+    // چک‌اوت از قبل پر شود و ایمیل لینک دانلود واقعاً ارسال شود.
+    update_user_meta( $user_id, 'billing_email', $email );
+    update_user_meta( $user_id, 'billing_first_name', $first );
+    update_user_meta( $user_id, 'billing_last_name', $last );
     if ( $phone ) {
         update_user_meta( $user_id, 'phone_number', $phone );
         update_user_meta( $user_id, 'billing_phone', $phone );
@@ -392,7 +538,69 @@ function romanino_ajax_register_manual(): void {
     do_action( 'wp_login', $user->user_login, $user );
 
     $redirect = apply_filters( 'romanino_after_login_redirect', wc_get_page_permalink( 'myaccount' ), $user );
-    wp_send_json_success( [ 'redirect' => esc_url_raw( $redirect ) ] );
+    wp_send_json_success( [
+        'redirect' => esc_url_raw( $redirect ),
+        'nonce'    => romanino_fresh_auth_nonce(),
+    ] );
+}
+
+
+/* ─── ۵ب. تعیین رمز عبور تازه (بازیابی رمز فراموش‌شده) ────────────────────
+   جریان: کاربر روی «رمز عبور خود را فراموش کرده‌ام» می‌زند → شماره‌اش را
+   وارد می‌کند → کد پیامکی را تأیید می‌کند (که همان‌جا واردش می‌کند) → و بعد
+   اینجا رمز تازه را ذخیره می‌کند.
+
+   چرا بازیابی با پیامک و نه ایمیل: اکثر کاربران این فروشگاه با کد پیامکی
+   ثبت‌نام می‌کنند و ایمیل واقعی ندارند؛ سیستم برایشان یک ایمیل ساختگی از
+   روی شماره می‌سازد. لینک بازیابیِ ایمیلیِ استاندارد وردپرس برای آن‌ها به
+   هیچ صندوق پستی‌ای نمی‌رسد. شماره‌ی موبایل تنها چیزی است که قطعاً در
+   دسترسشان است.
+
+   امنیت: این اکشن فقط برای کاربر «لاگین‌شده» ثبت شده است. یعنی رسیدن به آن
+   حتماً از مسیر تأیید کد پیامکی گذشته — همان چیزی که مالکیت شماره را ثابت
+   می‌کند. هیچ مسیر مهمانی به آن وجود ندارد.
+   ────────────────────────────────────────────────────────────────────── */
+
+add_action( 'wp_ajax_romanino_set_password', 'romanino_ajax_set_password' );
+function romanino_ajax_set_password(): void {
+    if ( ! check_ajax_referer( 'romanino_auth_nonce', 'nonce', false ) ) {
+        wp_send_json_error( [ 'message' => 'نشست شما منقضی شده است. لطفاً صفحه را تازه‌سازی کنید و دوباره تلاش کنید.' ], 403 );
+    }
+
+    if ( ! is_user_logged_in() ) {
+        wp_send_json_error( [ 'message' => 'ابتدا باید شماره‌ی خود را با کد پیامکی تأیید کنید.' ], 401 );
+    }
+
+    $password = (string) ( $_POST['password'] ?? '' ); // نباید sanitize شود
+    if ( mb_strlen( $password ) < 6 ) {
+        wp_send_json_error( [ 'message' => 'رمز عبور باید حداقل ۶ کاراکتر باشد.' ], 400 );
+    }
+
+    $user_id = get_current_user_id();
+
+    /* ⚠️ نکته‌ی حیاتی: wp_set_password() «همه‌ی» نشست‌های کاربر را باطل
+       می‌کند — از جمله نشست خودِ همین درخواست. اگر بعدش کوکی را دوباره
+       ست نکنیم، کاربر بلافاصله بعد از تغییر رمز از سایت بیرون می‌افتد و
+       فکر می‌کند تغییر رمز شکست خورده. */
+    wp_set_password( $password, $user_id );
+
+    $user = get_user_by( 'id', $user_id );
+    wp_set_current_user( $user_id );
+    wp_set_auth_cookie( $user_id, true );
+    do_action( 'wp_login', $user->user_login, $user );
+
+    update_user_meta( $user_id, 'has_set_password', '1' );
+
+    $redirect = apply_filters(
+        'romanino_after_login_redirect',
+        wc_get_page_permalink( 'myaccount' ),
+        $user
+    );
+
+    wp_send_json_success( [
+        'redirect' => esc_url_raw( $redirect ),
+        'nonce'    => romanino_fresh_auth_nonce(),
+    ] );
 }
 
 
@@ -403,14 +611,21 @@ function romanino_ajax_register_manual(): void {
 
 add_action( 'wp_ajax_romanino_save_name', 'romanino_ajax_save_name' );
 function romanino_ajax_save_name(): void {
-    check_ajax_referer( 'romanino_auth_nonce', 'nonce' );
+    /* FIX (تشخیص‌پذیری): پیش‌فرضِ check_ajax_referer این است که با یک «-1»
+       خام بمیرد. آن خروجی نه JSON معتبرِ قابل‌فهم برای فرانت است و نه هیچ
+       سرنخی به کاربر می‌دهد؛ دقیقاً به همین دلیل بود که مشکلِ nonce به شکل
+       «هر چه وارد می‌کنم خطا می‌دهد» دیده می‌شد و ربطش به نشست معلوم نبود.
+       حالا پیام واقعی و قابل‌اقدام برگردانده می‌شود. */
+    if ( ! check_ajax_referer( 'romanino_auth_nonce', 'nonce', false ) ) {
+        wp_send_json_error( [ 'message' => 'نشست شما منقضی شده است. لطفاً صفحه را تازه‌سازی کنید و دوباره تلاش کنید.' ], 403 );
+    }
 
     if ( ! is_user_logged_in() ) {
         wp_send_json_error( [ 'message' => 'ابتدا باید وارد حساب کاربری شوید.' ], 401 );
     }
 
-    $first = sanitize_text_field( $_POST['first_name'] ?? '' );
-    $last  = sanitize_text_field( $_POST['last_name'] ?? '' );
+    $first = sanitize_text_field( wp_unslash( $_POST['first_name'] ?? '' ) );
+    $last  = sanitize_text_field( wp_unslash( $_POST['last_name'] ?? '' ) );
 
     if ( ! $first || ! $last ) {
         wp_send_json_error( [ 'message' => 'نام و نام‌خانوادگی الزامی است.' ], 400 );
@@ -423,6 +638,9 @@ function romanino_ajax_save_name(): void {
         'last_name'    => $last,
         'display_name' => trim( $first . ' ' . $last ),
     ] );
+    // نام صورتحساب هم پر می‌شود تا کاربر مجبور نباشد در چک‌اوت دوباره بنویسد.
+    update_user_meta( $user_id, 'billing_first_name', $first );
+    update_user_meta( $user_id, 'billing_last_name', $last );
 
     $redirect = apply_filters(
         'romanino_after_login_redirect',
