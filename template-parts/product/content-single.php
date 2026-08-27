@@ -238,6 +238,37 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 				<!-- توضیح کوتاه -->
 				<section class="glass-box rounded-2xl p-4 text-sm leading-loose text-ink-3 lg:p-5 lg:text-base">
 					<?php echo apply_filters( 'woocommerce_short_description', $post->post_excerpt ); ?>
+
+					<?php if ( $romanino_audio_url ) : ?>
+					<?php
+					/* پخش‌کننده‌ی «تحلیل و بررسی صوتی» — جای درستش همین‌جاست.
+					   ─────────────────────────────────────────────────────────
+					   قبلاً این بخش انتهای «توضیحات بلند» بود، یعنی داخل تبی که
+					   کاربر باید عمداً بازش می‌کرد. عملاً دیده نمی‌شد.
+
+					   حالا داخل توضیح کوتاه و بالای صفحه است: کنار قیمت و
+					   دکمه‌ی خرید، در همان نگاه اول. برای فروشگاه رمان این مهم
+					   است، چون شنیدن چند دقیقه تحلیل، بیشترین چیزی است که
+					   بازدیدکننده را روی صفحه نگه می‌دارد.
+
+					   preload="none" دست‌نخورده ماند: با اینکه حالا بالای صفحه
+					   است، تا وقتی کاربر دکمه‌ی پخش را نزند هیچ بایتی دانلود
+					   نمی‌شود، پس روی LCP و بقیه‌ی سنجه‌های سرعت اثری ندارد. */
+					?>
+					<div class="romanino-audio-review mt-4">
+						<div class="romanino-audio-head">
+							<span class="romanino-audio-icon" aria-hidden="true">
+								<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+							</span>
+							<span class="romanino-audio-title"><?php echo esc_html( $romanino_audio_title ); ?></span>
+							<span class="romanino-audio-hint">برای شنیدن پخش کنید</span>
+						</div>
+						<audio class="romanino-audio-player" controls preload="none" src="<?php echo esc_url( $romanino_audio_url ); ?>">
+							مرورگر شما از پخش فایل صوتی پشتیبانی نمی‌کند.
+							<a href="<?php echo esc_url( $romanino_audio_url ); ?>">دانلود فایل صوتی</a>
+						</audio>
+					</div>
+					<?php endif; ?>
 				</section>
 
 				<!-- تب‌ها/آکاردئون یکپارچه: همان کامپوننت در تمام سایزها -->
@@ -375,26 +406,6 @@ $direct_dl_url    = $is_free_product ? romanino_get_public_free_download_url( $p
 							<?php the_content(); ?>
 						</div>
 
-						<?php if ( $romanino_audio_url ) : ?>
-						<?php
-						/* پخش‌کننده‌ی «تحلیل و بررسی صوتی».
-						   preload="none" عمدی است: تا وقتی کاربر دکمه‌ی پخش را
-						   نزند حتی یک بایت از فایل دانلود نمی‌شود، پس روی سرعت
-						   صفحه و سنجه‌های Core Web Vitals هیچ اثری ندارد. */
-						?>
-						<div class="romanino-audio-review mt-6">
-							<div class="romanino-audio-head">
-								<span class="romanino-audio-icon" aria-hidden="true">
-									<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
-								</span>
-								<span class="romanino-audio-title"><?php echo esc_html( $romanino_audio_title ); ?></span>
-							</div>
-							<audio class="romanino-audio-player" controls preload="none" src="<?php echo esc_url( $romanino_audio_url ); ?>">
-								مرورگر شما از پخش فایل صوتی پشتیبانی نمی‌کند.
-								<a href="<?php echo esc_url( $romanino_audio_url ); ?>">دانلود فایل صوتی</a>
-							</audio>
-						</div>
-						<?php endif; ?>
 					</div>
 
 					<div id="ppanel-reviews" class="product-panel hidden space-y-6">

@@ -1304,6 +1304,19 @@ html.light .blur-\[120px\] { opacity: 0.35; }
 	color: var(--on-surface);
 }
 
+/* راهنمای کوچک کنار عنوان. در موبایل حذف می‌شود تا سطر نشکند. */
+.romanino-audio-hint {
+	margin-right: auto;
+	font-size: 0.68rem;
+	font-weight: 600;
+	color: var(--on-surface-muted);
+	white-space: nowrap;
+}
+
+@media (max-width: 380px) {
+	.romanino-audio-hint { display: none; }
+}
+
 .romanino-audio-player {
 	width: 100%;
 	height: 2.5rem;
